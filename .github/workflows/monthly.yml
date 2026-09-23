@@ -1,0 +1,73 @@
+# Monthly satellite and rainfall extraction. Prepared, not deployed: the repo has no
+# remote yet. Outputs are uploaded as a workflow artifact; the runner is wiped after the
+# job, and silver needs every past month, so silver is rebuilt locally (`just silver`)
+# or after moving bronze to persistent storage.
+name: monthly-extract
+
+on:
+  schedule:
+    # 25th, after CHIRPS finalises the previous month (~3rd week); off-minute to avoid the :00 rush
+    - cron: "23 2 25 * *"
+  workflow_dispatch:
+    inputs:
+      desa:
+        description: Desa name as spelled in GADM
+        default: Jotosanur
+      start:
+        description: First month YYYY-MM (empty = previous month)
+        default: ""
+      end:
+        description: Last month YYYY-MM (empty = same as start)
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monthly-extract
+  cancel-in-progress: false
+
+jobs:
+  extract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      # Inputs reach the shell only through env, never interpolated into the script
+      DESA: ${{ inputs.desa || 'Jotosanur' }}
+      START: ${{ inputs.start }}
+      END: ${{ inputs.end }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+        with:
+          # Keep the token off disk; nothing here pushes, and the artifact must not carry it
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e  # v6.8.0
+        with:
+          enable-cache: true
+
+      - name: Validate inputs
+        run: |
+          [[ "$DESA" =~ ^[A-Za-z]+$ ]] || { echo "bad desa: $DESA"; exit 1; }
+          for m in "$START" "$END"; do
+            [[ -z "$m" || "$m" =~ ^[0-9]{4}-[0-9]{2}$ ]] || { echo "bad month: $m"; exit 1; }
+          done
+
+      - name: Install runtime dependencies
+        run: uv sync --locked --no-dev
+
+      - name: CHIRPS monthly rainfall
+        run: uv run --no-sync python -m jotosanur_agri.pipeline.load_chirps
+
+      - name: Sentinel-1/2 bronze
+        run: uv run --no-sync python -m jotosanur_agri.pipeline.load_sentinel "$DESA" "$START" "$END"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: extract-${{ env.DESA }}-${{ github.run_id }}
+          path: |
+            data/bronze/chirps/
+            data/silver/chirps/
+            data/bronze/sentinel/
+          retention-days: 90
+          if-no-files-found: error

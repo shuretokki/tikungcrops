@@ -15,8 +15,9 @@ cropland. Each scene becomes one row per cell with per-cell statistics:
     - S1: mean VV and VH backscatter in dB. Flooded paddy at transplanting shows as
       a sharp VH drop, visible through the rainy-season clouds that block S2.
 
-Usage: `python -m jotosanur_agri.pipeline.load_sentinel [DESA] [YEAR]` (default
-Jotosanur 2020).
+Output: data/bronze/sentinel/<desa>/<YYYY-MM>.parquet plus cells.parquet.
+Usage: `python -m jotosanur_agri.pipeline.load_sentinel [DESA] [START_MONTH] [END_MONTH]`;
+without months it processes the previous calendar month (the scheduled case).
 """
 
 from __future__ import annotations
@@ -26,7 +27,7 @@ import sys
 import urllib.request
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -101,12 +102,14 @@ def desa_geometry(desa: str, kecamatan: str = "Tikung") -> dict[str, Any]:
     raise ValueError(f"desa {desa!r} not found in GADM for kecamatan {kecamatan}")
 
 
-def stac_search(url: str, collection: str, geometry: dict[str, Any], year: int) -> list[dict[str, Any]]:
-    """All items of `collection` intersecting `geometry` in `year`, one per acquisition date."""
+def stac_search(url: str, collection: str, geometry: dict[str, Any], month: str) -> list[dict[str, Any]]:
+    """All items of `collection` intersecting `geometry` in `month` (``YYYY-MM``), one per acquisition date."""
+    first = date.fromisoformat(f"{month}-01")
+    last = date(first.year + first.month // 12, first.month % 12 + 1, 1) - timedelta(days=1)
     body = {
         "collections": [collection],
         "intersects": geometry,
-        "datetime": f"{year}-01-01T00:00:00Z/{year}-12-31T23:59:59Z",
+        "datetime": f"{first.isoformat()}T00:00:00Z/{last.isoformat()}T23:59:59Z",
         "limit": 100,
     }
     request = urllib.request.Request(url, json.dumps(body).encode(), {"Content-Type": "application/json"})
@@ -261,12 +264,42 @@ def pc_token() -> str:
         return json.load(resp)["token"]
 
 
-def run_sentinel_pipeline(desa: str = "Jotosanur", year: int = 2020, out_dir: str | Path = "data") -> dict[str, Any]:
-    """Build the bronze cell x date table for one desa and year.
+def month_range(start: str, end: str) -> list[str]:
+    """Months from `start` to `end` inclusive, as ``YYYY-MM`` strings."""
+    y, m = map(int, start.split("-"))
+    months = []
+    while f"{y:04d}-{m:02d}" <= end:
+        months.append(f"{y:04d}-{m:02d}")
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+    return months
+
+
+def previous_month(today: date | None = None) -> str:
+    """The calendar month before `today`, as ``YYYY-MM``; the default for scheduled runs."""
+    today = today or date.today()
+    y, m = (today.year - 1, 12) if today.month == 1 else (today.year, today.month - 1)
+    return f"{y:04d}-{m:02d}"
+
+
+def run_sentinel_pipeline(
+    desa: str = "Jotosanur", start: str | None = None, end: str | None = None, out_dir: str | Path = "data"
+) -> dict[str, Any]:
+    """Build bronze cell x date tables for one desa, one parquet file per month.
+
+    Each month is written on its own, so a scheduled run can process only the month it
+    needs without reading earlier output, and a rerun overwrites the same file.
+
+    Args:
+        desa: Desa name as spelled in GADM.
+        start: First month, ``YYYY-MM``. Defaults to the previous calendar month.
+        end: Last month, ``YYYY-MM``. Defaults to `start`.
+        out_dir: Data root.
 
     Returns:
-        Scene and row counts and output paths.
+        Cell count and, per month, scene and row counts.
     """
+    start = start or previous_month()
+    end = end or start
     geometry = desa_geometry(desa)
     grid, inside = make_grid(geometry)
     cropland = read_to_grid(WORLDCOVER, grid) == WORLDCOVER_CROPLAND
@@ -274,29 +307,25 @@ def run_sentinel_pipeline(desa: str = "Jotosanur", year: int = 2020, out_dir: st
     keep = np.isin(cell_ids(grid, np.ones_like(inside)), cells["cell_id"].to_numpy())
     ids = cell_ids(grid, inside & cropland & keep)
 
-    s2_items = stac_search(EARTH_SEARCH, "sentinel-2-l2a", geometry, year)
-    s1_items = stac_search(PLANETARY, "sentinel-1-rtc", geometry, year)
+    desa_dir = Path(out_dir) / "bronze" / "sentinel" / desa.lower()
+    save(cells, desa_dir / "cells.parquet")
     token = pc_token()
-    print(f"[sentinel] {desa} {year}: {cells.height} cells, {len(s2_items)} S2 dates, {len(s1_items)} S1 dates")
-
-    with ThreadPoolExecutor(WORKERS) as pool:
-        s2 = pool.map(lambda i: s2_rows(i, grid, ids), s2_items)
-        s1 = pool.map(lambda i: s1_rows(i, grid, ids, token), s1_items)
-        rows = [row for batch in (*s2, *s1) for row in batch]
-
-    bronze = pl.DataFrame(rows, schema=BRONZE_SCHEMA).sort("sensor", "date", "cell_id")
-    stem = f"{desa.lower()}_{year}"
-    bronze_dir = Path(out_dir) / "bronze" / "sentinel"
-    return {
-        "cells": cells.height,
-        "s2_dates": len(s2_items),
-        "s1_dates": len(s1_items),
-        "rows_bronze": bronze.height,
-        "cells_path": save(cells, bronze_dir / f"{stem}_cells.parquet"),
-        "bronze_path": save(bronze, bronze_dir / f"{stem}.parquet"),
-    }
+    summary: dict[str, Any] = {"cells": cells.height, "months": {}}
+    for month in month_range(start, end):
+        s2_items = stac_search(EARTH_SEARCH, "sentinel-2-l2a", geometry, month)
+        s1_items = stac_search(PLANETARY, "sentinel-1-rtc", geometry, month)
+        with ThreadPoolExecutor(WORKERS) as pool:
+            s2 = pool.map(lambda i: s2_rows(i, grid, ids), s2_items)
+            s1 = pool.map(lambda i: s1_rows(i, grid, ids, token), s1_items)
+            rows = [row for batch in (*s2, *s1) for row in batch]
+        bronze = pl.DataFrame(rows, schema=BRONZE_SCHEMA).sort("sensor", "date", "cell_id")
+        save(bronze, desa_dir / f"{month}.parquet")
+        summary["months"][month] = {"s2": len(s2_items), "s1": len(s1_items), "rows": bronze.height}
+        print(f"[sentinel] {desa} {month}: {len(s2_items)} S2, {len(s1_items)} S1, {bronze.height} rows")
+    return summary
 
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    print(run_sentinel_pipeline(args[0] if args else "Jotosanur", int(args[1]) if len(args) > 1 else 2020))
+    # load_sentinel [DESA] [START_MONTH] [END_MONTH]; no months = previous month
+    args = sys.argv[1:] + [None] * 3
+    print(run_sentinel_pipeline(args[0] or "Jotosanur", args[1], args[2]))

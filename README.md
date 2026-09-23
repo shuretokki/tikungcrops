@@ -18,3 +18,11 @@ just app        # dashboard
 ```
 
 Data sources and their provenance: `data/raw/sumber-data/README.md`.
+
+## Scheduled extraction
+
+`.github/workflows/monthly.yml` runs on the 25th of each month once the repo has a GitHub
+remote: CHIRPS plus the previous month's Sentinel-1/2 scenes, uploaded as a workflow
+artifact (kept 90 days). It needs no secrets; every source is public. Silver needs all past
+months, so rebuild it where the bronze history lives: `just silver`. The same job runs
+locally with `just monthly`.
