@@ -35,6 +35,10 @@ chirps *args:
 sentinel aoi="Lamongan/Tikung" start="" end="":
     {{py}}.pipeline.load_sentinel "{{aoi}}" {{start}} {{end}}
 
+# Paddy share per cell from the official Lahan Baku Sawah map (run after `just sentinel`)
+paddy aoi="Lamongan/Tikung":
+    {{py}}.pipeline.load_paddy "{{aoi}}"
+
 # Rebuild the 5-day silver time series for an area from all bronze months
 silver aoi="Lamongan/Tikung":
     {{py}}.pipeline.silver_sentinel "{{aoi}}"

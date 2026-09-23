@@ -8,6 +8,8 @@ README are tracked in git.
 | `raw/sumber-data/` | yes (PDFs no) | hand-copied from BPS / Dinas Perikanan publications | BPS Kecamatan Tikung tables (rice, corn, cattle) for 2013 and 2020, Lamongan fish production 2021; provenance in its README |
 | `external/gadm/` | no | `pipeline.aoi`, downloaded on first use | GADM 4.1 admin boundaries (free for non-commercial use, not redistributable) |
 | `bronze/sentinel/<aoi>/` | no | `just sentinel AOI START END` | one parquet per month: cell x acquisition date x sensor (S2 NDVI/LSWI/clear share, S1 VV/VH dB), plus `cells.parquet` (100 m cropland cells, their unit and coordinates) |
+| `bronze/sentinel/<aoi>/paddy.parquet` | no | `just paddy AOI` | share of each cell inside official paddy fields (Lahan Baku Sawah, BIG) |
+| `external/lbs/` | no | `just paddy AOI` | Lahan Baku Sawah polygons for the AOI (redistribution terms not stated) |
 | `silver/sentinel/<aoi>.parquet` | no | `just silver AOI` | cleaned per-cell series on a 5-day calendar |
 | `gold/sentinel/<aoi>_seasons.parquet` | no | `just gold AOI` | one row per cell per rice season: flooding, green-up, peak, harvest dates |
 | `bronze\|silver/chirps/` | no | `just chirps` | CHIRPS v3 monthly rainfall at Jotosanur, 1981-now, and annual totals |
@@ -36,5 +38,7 @@ gold take seconds.
 - CHIRPS v3: public domain / CC BY 4.0.
 - SoilGrids 2.0: CC BY 4.0.
 - GADM 4.1: non-commercial use, no redistribution.
+- Peta Lahan Baku Sawah (BIG Satu Peta, public ArcGIS REST service): terms not stated,
+  so it is not redistributed.
 - BPS and Dinas Perikanan tables: public government publications, cited per table in
   `raw/sumber-data/README.md`.

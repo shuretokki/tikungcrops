@@ -122,8 +122,33 @@ April 1.256. Median penggenangan per desa berkisar dari 15 November (Soko) sampa
 pernyataan DKPP bahwa sawah irigasi menanam lebih dulu dan puncak tanam November-Desember.
 Musim 2: penggenangan terutama April (3.239 sel) dan Mei (1.235).
 
-## 8. Langkah berikutnya
+## 8. Masker padi resmi (Lahan Baku Sawah)
 
-Tahun-tahun lain (2017-2026) untuk melihat tren jumlah musim dan waktu tanam, masker padi
-yang lebih spesifik daripada WorldCover untuk menurunkan selisih level, dan tampilan
-hasil per desa di dashboard.
+WorldCover kelas 40 mencakup semua lahan pertanian (padi, jagung, tegalan). Peta Lahan Baku
+Sawah (BIG Satu Peta, layanan ArcGIS publik) memberi 105 poligon sawah di Tikung, 4.420 ha
+di dalam sel yang dipantau; hanya 236 ha sawah LBS berada di luar sel. 93% sel (4.587 dari
+4.954) setidaknya separuhnya sawah LBS, jadi masker padi hampir tidak mengubah hasil: luas
+panen satelit tetap 1,35 kali BPS (r = 0,78).
+
+Selisih berasal dari **jumlah musim**, bukan luas: satelit menghitung rata-rata 2,18 musim
+per tahun di sawah, sementara luas panen padi BPS 2020 (7.145 ha) dibagi luas sawah LBS
+setara 1,62 kali panen padi. Sinyal radar mendukung dugaan bahwa musim kedua sering bukan
+padi sawah tergenang:
+
+| Musim di sel sawah | Median VH saat "penggenangan" | Porsi dengan VH < -18 dB |
+|---|---|---|
+| Musim 1 (hujan) | -18,4 dB | 65% |
+| Musim 2 (kemarau) | -15,6 dB | 9% |
+
+Musim kemarau tanpa tanda penggenangan kemungkinan palawija (jagung, kedelai, kacang hijau)
+atau padi tanam benih langsung. Korelasi selisih musim dengan luas jagung BPS per desa lemah
+(r = 0,27), jadi jagung saja belum menjelaskan seluruh selisih. Jotosanur justru kebalikannya:
+BPS setara 3,33 kali panen di sawah LBS-nya, kemungkinan karena poligon LBS di desa itu lebih
+kecil dari sawah sebenarnya.
+
+## 9. Langkah berikutnya
+
+
+Klasifikasi padi/non-padi per musim dari tanda penggenangan radar (lalu uji ulang terhadap
+BPS), data 2023-2026 untuk melihat perubahan sejak program 2025, dan tampilan hasil per desa
+di dashboard.

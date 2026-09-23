@@ -15,7 +15,7 @@ the season runs past the edge of the covered period; `start_truncated` and
 `end_truncated` mark the latter. Seasons are never dropped, so gaps stay visible.
 
 Output: data/gold/sentinel/<aoi-slug>_seasons.parquet, one row per cell per season, with
-the cell's AOI unit (e.g. its desa).
+the cell's AOI unit (e.g. its desa) and, after `load_paddy`, its LBS paddy share.
 """
 
 from __future__ import annotations
@@ -153,8 +153,12 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
     """
     slug = slugify(aoi_spec)
     silver = pl.read_parquet(Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet")
-    cells = pl.read_parquet(Path(data_dir) / "bronze" / "sentinel" / slug / "cells.parquet")
-    gold = build_gold(silver).join(cells.select("cell_id", "unit"), on="cell_id", how="left")
+    cells_dir = Path(data_dir) / "bronze" / "sentinel" / slug
+    cells = pl.read_parquet(cells_dir / "cells.parquet").select("cell_id", "unit")
+    # Paddy share from the LBS map, when `load_paddy` has been run for this AOI
+    if (cells_dir / "paddy.parquet").exists():
+        cells = cells.join(pl.read_parquet(cells_dir / "paddy.parquet"), on="cell_id", how="left")
+    gold = build_gold(silver).join(cells, on="cell_id", how="left")
     return {
         "seasons": gold.height,
         "cells": gold["cell_id"].n_unique(),
