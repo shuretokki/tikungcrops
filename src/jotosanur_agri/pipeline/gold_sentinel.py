@@ -9,13 +9,20 @@ from a higher neighbouring peak is one season. Around it:
       green-up. Standing water scatters radar away, so transplanting shows as a VH
       minimum even under clouds;
     - harvest: first date after the peak where NDVI falls below peak - `EOS_FRAC` of
-      the amplitude.
+      the amplitude;
+    - rice: the field went under standing water around planting, i.e. the flooding VH is
+      at most `RICE_FLOOD_VH_DB`, or at least `RICE_VH_DROP_DB` below the field's median
+      VH `PRE_SEASON_DAYS` before green-up. Wet-season fields are already wet before
+      planting (low VH, little drop); dry-season fields start dry after the previous
+      harvest (higher VH, clear drop), so either condition marks transplanted paddy.
+      Seasons failing both are other crops (maize, pulses) or dry-seeded fields.
 A date is null when the series has no data there (clouds beyond the gap limit), or when
 the season runs past the edge of the covered period; `start_truncated` and
 `end_truncated` mark the latter. Seasons are never dropped, so gaps stay visible.
 
-Output: data/gold/sentinel/<aoi-slug>_seasons.parquet, one row per cell per season, with
-the cell's AOI unit (e.g. its desa) and, after `load_paddy`, its LBS paddy share.
+Outputs: data/gold/sentinel/<aoi-slug>_seasons.parquet, one row per cell per season, with
+the cell's AOI unit (e.g. its desa) and, after `load_paddy`, its LBS paddy share; and
+<aoi-slug>_units.parquet, per unit x year x planting season (see `summarize_units`).
 """
 
 from __future__ import annotations
@@ -39,12 +46,19 @@ SOS_FRAC = 0.2
 EOS_FRAC = 0.5
 FLOOD_BEFORE_DAYS = 45
 FLOOD_AFTER_DAYS = 20
+# Rice thresholds, chosen from the Tikung 2020 VH distributions (wet season median -18.4 dB
+# at flooding; dry season median drop 1.8 dB); not validated on a second BPS year yet.
+RICE_FLOOD_VH_DB = -17.0
+RICE_VH_DROP_DB = 1.5
+PRE_SEASON_DAYS = (75, 30)
 
 SEASON_SCHEMA = {
     "cell_id": pl.Int64,
     "season": pl.Int32,
     "flood_date": pl.Date,
     "flood_vh_db": pl.Float64,
+    "vh_drop_db": pl.Float64,
+    "rice": pl.Boolean,
     "greenup_date": pl.Date,
     "peak_date": pl.Date,
     "peak_ndvi": pl.Float64,
@@ -100,6 +114,8 @@ def seasons_for_cell(dates: np.ndarray, ndvi: np.ndarray, vh: np.ndarray) -> lis
             "greenup_date": None,
             "flood_date": None,
             "flood_vh_db": None,
+            "vh_drop_db": None,
+            "rice": None,
             "harvest_date": None,
             "start_truncated": start_truncated,
             "end_truncated": False,
@@ -120,6 +136,11 @@ def seasons_for_cell(dates: np.ndarray, ndvi: np.ndarray, vh: np.ndarray) -> lis
                 if window.any():
                     f = int(np.flatnonzero(window)[np.argmin(vh[window])])
                     row["flood_date"], row["flood_vh_db"] = dates[f], float(vh[f])
+                    far, near = (dates[g] - timedelta(days=d) for d in PRE_SEASON_DAYS)
+                    pre = (dates >= far) & (dates <= near) & np.isfinite(vh)
+                    drop = float(np.median(vh[pre])) - float(vh[f]) if pre.any() else None
+                    row["vh_drop_db"] = drop
+                    row["rice"] = float(vh[f]) <= RICE_FLOOD_VH_DB or (drop is not None and drop >= RICE_VH_DROP_DB)
             idx = np.arange(len(ndvi))
             h = _first((idx > p) & (idx < stop) & (ndvi <= float(ndvi[p]) - EOS_FRAC * amp))
             # A null run between peak and the drop means the drop date is unknown
@@ -145,11 +166,52 @@ def build_gold(silver: pl.DataFrame) -> pl.DataFrame:
     )
 
 
+def _date_quantile(col: str, q: float) -> pl.Expr:
+    return pl.col(col).cast(pl.Int32).quantile(q).round().cast(pl.Int32).cast(pl.Date)
+
+
+def summarize_units(gold: pl.DataFrame) -> pl.DataFrame:
+    """Per unit, year and planting season (MT1-MT3 by peak month): area and date windows.
+
+    Seasons cut by the edge of the covered period are left out, since their dates are
+    incomplete. Areas weight each cell by its paddy share when known, else count it as
+    1 ha. Date windows are the 10th, 50th and 90th percentile across cells.
+    """
+    weight = pl.col("paddy_frac").fill_null(0.0) if "paddy_frac" in gold.columns else pl.lit(1.0)
+    month = pl.col("peak_date").dt.month()
+    return (
+        gold.filter(~pl.col("start_truncated") & ~pl.col("end_truncated"))
+        .with_columns(
+            weight.alias("w"),
+            pl.col("peak_date").dt.year().alias("tahun"),
+            pl.when(month <= 4)
+            .then(pl.lit("MT1"))
+            .when(month <= 8)
+            .then(pl.lit("MT2"))
+            .otherwise(pl.lit("MT3"))
+            .alias("musim"),
+        )
+        .group_by("unit", "tahun", "musim")
+        .agg(
+            pl.len().alias("sel"),
+            pl.col("w").sum().alias("luas_ha"),
+            (pl.col("w") * pl.col("rice").fill_null(False)).sum().alias("luas_padi_ha"),
+            *[
+                _date_quantile(col, q).alias(f"{prefix}_{name}")
+                for col, prefix in (("flood_date", "genang"), ("harvest_date", "panen"))
+                for name, q in (("awal", 0.1), ("median", 0.5), ("akhir", 0.9))
+            ],
+            pl.col("peak_ndvi").median().alias("puncak_ndvi"),
+        )
+        .sort("unit", "tahun", "musim")
+    )
+
+
 def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dict[str, Any]:
-    """Detect seasons for an AOI from its silver table.
+    """Detect seasons for an AOI from its silver table, then summarise them per unit.
 
     Returns:
-        Season and cell counts, completeness of each date and the output path.
+        Season, cell and unit-summary counts, completeness of each date and the output paths.
     """
     slug = slugify(aoi_spec)
     silver = pl.read_parquet(Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet")
@@ -159,14 +221,18 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
     if (cells_dir / "paddy.parquet").exists():
         cells = cells.join(pl.read_parquet(cells_dir / "paddy.parquet"), on="cell_id", how="left")
     gold = build_gold(silver).join(cells, on="cell_id", how="left")
+    units = summarize_units(gold)
+    gold_dir = Path(data_dir) / "gold" / "sentinel"
     return {
         "seasons": gold.height,
         "cells": gold["cell_id"].n_unique(),
+        "unit_seasons": units.height,
         "complete": {
             c: round(1 - gold[c].null_count() / max(gold.height, 1), 2)
             for c in ("flood_date", "greenup_date", "harvest_date")
         },
-        "path": save(gold, Path(data_dir) / "gold" / "sentinel" / f"{slug}_seasons.parquet"),
+        "path": save(gold, gold_dir / f"{slug}_seasons.parquet"),
+        "units_path": save(units, gold_dir / f"{slug}_units.parquet"),
     }
 
 

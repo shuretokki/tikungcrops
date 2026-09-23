@@ -2,9 +2,9 @@
 
 Run with `just app` (or `uv run streamlit run app.py`).
 
-Shows real BPS figures aggregated in MongoDB and the mitra input forms: harvests go to
-MongoDB, distribution records to SQLite (see `jotosanur_agri.store`). The earlier version
-with synthetic data and yield predictors is kept in archives/app.py.
+Shows satellite planting seasons per desa (MongoDB `musim_tanam`) and the mitra input
+forms: harvests go to MongoDB, distribution records to SQLite (see `jotosanur_agri.store`). The earlier version with synthetic data
+and yield predictors is kept in archives/app.py.
 """
 
 from __future__ import annotations
@@ -13,12 +13,13 @@ import datetime as dt
 import sqlite3
 
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError, PyMongoError, WriteError
 
-from jotosanur_agri import mongo, mongo_agg, store
+from jotosanur_agri import mongo, store
 
 st.set_page_config(page_title="Kampung Pandu Sakti", page_icon="🌾", layout="wide")
 
@@ -36,12 +37,12 @@ def mongo_db() -> Database:
     return mongo.connect(timeout_ms=3000)
 
 
-def get_panen_collection() -> Collection | None:
-    """Mongo `panen`, or None when the server is down so the rest of the dashboard still works."""
+def get_db() -> Database | None:
+    """The project database, or None when the server is down so the rest of the dashboard still works."""
     try:
         db = mongo_db()
         db.client.admin.command("ping")
-        return db["panen"]
+        return db
     except (KeyError, PyMongoError):
         return None
 
@@ -49,18 +50,61 @@ def get_panen_collection() -> Collection | None:
 MONGO_DOWN_MSG = "MongoDB tidak aktif - jalankan `just up` (atau `docker compose up -d`), lalu muat ulang halaman."
 
 
-def render_data_riil(panen: Collection | None):
-    """Real BPS production per commodity and year, aggregated in MongoDB."""
-    st.subheader("Data Riil BPS (Agregasi MongoDB)")
+AOI = "lamongan-tikung"
+MUSIM_LABEL = {"MT1": "MT1 (musim hujan)", "MT2": "MT2 (kemarau I)", "MT3": "MT3 (kemarau II)"}
+
+
+def render_musim_tanam(musim: Collection | None):
+    """Satellite planting seasons per desa: planted and rice area, flooding and harvest windows."""
+    st.subheader("Musim Tanam per Desa (Sentinel-1/2)")
     st.caption(
-        "Produksi 13 desa Kecamatan Tikung dari BPS Tikung Dalam Angka 2014 dan 2021, dijumlahkan "
-        "di MongoDB (`mongo_agg.produksi_per_tahun_pipeline`). Produktivitas = total produksi / total luas."
+        "Dideteksi dari citra satelit per sel 100 m lahan sawah: tanggal penggenangan dari radar Sentinel-1, "
+        "panen dari penurunan NDVI Sentinel-2. Luas padi = musim dengan tanda penggenangan; sisanya "
+        "kemungkinan palawija. Jendela tanggal = persentil 10-90% antar sel. Metode dan validasi terhadap "
+        "BPS: `archives/temuan-teknis.md`."
     )
-    if panen is None:
+    if musim is None:
         st.info(MONGO_DOWN_MSG)
         return
-    rows = list(panen.aggregate(mongo_agg.produksi_per_tahun_pipeline(["padi", "jagung_hibrida"])))
-    st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
+    docs = list(musim.find({"aoi": AOI}, {"_id": 0, "sumber": 0, "schema_version": 0}))
+    if not docs:
+        st.info("Belum ada data musim tanam - jalankan `just gold` lalu `just mongo`.")
+        return
+    df = pd.json_normalize(docs)
+    tahun = st.selectbox("Tahun", sorted(df["tahun"].unique(), reverse=True))
+    view = df[df["tahun"] == tahun].sort_values(["unit", "musim"])
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Desa", view["unit"].nunique())
+    col2.metric("Luas tanam (ha, semua musim)", f"{view['luas_ha'].sum():,.0f}")
+    col3.metric("Luas padi (ha, semua musim)", f"{view['luas_padi_ha'].sum():,.0f}")
+
+    fig = px.bar(
+        view,
+        x="unit",
+        y="luas_padi_ha",
+        color="musim",
+        barmode="group",
+        labels={"unit": "Desa", "luas_padi_ha": "Luas padi (ha)", "musim": "Musim"},
+        title=f"Luas padi per desa dan musim, {tahun}",
+    )
+    st.plotly_chart(fig, width="stretch")
+
+    windows = view.dropna(subset=["genang.median", "panen.median"])
+    if not windows.empty:
+        timeline = px.timeline(
+            windows.assign(musim=windows["musim"].map(MUSIM_LABEL)),
+            x_start="genang.median",
+            x_end="panen.median",
+            y="unit",
+            color="musim",
+            labels={"unit": "Desa", "musim": "Musim"},
+            title="Median penggenangan (tanam) sampai median panen",
+        )
+        st.plotly_chart(timeline, width="stretch")
+
+    with st.expander("Tabel"):
+        st.dataframe(view, width="stretch", hide_index=True)
 
 
 def render_input_panen(panen: Collection | None):
@@ -203,11 +247,12 @@ def main():
     """Lay out the tabs."""
     st.title("🌾 Sistem Informasi Manajemen Kampung Pandu Sakti")
     init_sqlite()
-    panen = get_panen_collection()
+    db = get_db()
+    panen = db["panen"] if db is not None else None
 
-    tab_riil, tab_panen, tab_distribusi = st.tabs(["Data Riil BPS", "Catat Panen", "Distribusi"])
-    with tab_riil:
-        render_data_riil(panen)
+    tab_musim, tab_panen, tab_distribusi = st.tabs(["Musim Tanam (Satelit)", "Catat Panen", "Distribusi"])
+    with tab_musim:
+        render_musim_tanam(db["musim_tanam"] if db is not None else None)
     with tab_panen:
         render_input_panen(panen)
     with tab_distribusi:

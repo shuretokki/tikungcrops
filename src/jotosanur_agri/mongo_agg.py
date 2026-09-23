@@ -1,9 +1,8 @@
-"""MongoDB aggregation pipelines for the access patterns in the hybrid schema.
+"""MongoDB aggregation pipelines for the dashboard and API access patterns.
 
-Spec: documents/local/skema-hibrida.md section 3.3. Each pipeline starts with
-a `$match` on the leading key of its index so the planner can use an IXSCAN
-instead of a full collection scan; `explain_stages` reports which one it
-picked.
+Each pipeline starts with a `$match` on the leading key of its index (see
+`mongo.INDEXES`) so the planner can use an IXSCAN instead of a full collection scan;
+`explain_stages` reports which one it picked.
 
 Run `just agg` (or `uv run python -m jotosanur_agri.mongo_agg`) to print every
 pipeline's result and plan.
@@ -70,7 +69,7 @@ def deret_panen_pipeline(komoditas: str, lokasi: str) -> list[dict[str, Any]]:
 
     Args:
         komoditas: Commodity, e.g. ``"padi"``.
-        lokasi: ``lokasi.nama``, e.g. a plot id such as ``"P01"``.
+        lokasi: ``lokasi.nama``, e.g. a desa such as ``"Jotosanur"`` or a mitra plot.
 
     Returns:
         The aggregation pipeline.
@@ -110,6 +109,33 @@ def tren_ternak_pipeline(jenis_ternak: list[str], lokasi: str) -> list[dict[str,
                 "jenis_ternak": 1,
                 "jumlah_ekor": 1,
                 "sumber": "$sumber.kode",
+            }
+        },
+    ]
+
+
+def musim_unit_pipeline(aoi: str, unit: str) -> list[dict[str, Any]]:
+    """A5: satellite planting seasons of one AOI unit, oldest first.
+
+    Args:
+        aoi: AOI slug, e.g. ``"lamongan-tikung"``.
+        unit: Unit name, e.g. ``"Jotosanur"``.
+
+    Returns:
+        The aggregation pipeline.
+    """
+    return [
+        {"$match": {"aoi": aoi, "unit": unit}},
+        {"$sort": {"tahun": 1, "musim": 1}},
+        {
+            "$project": {
+                "_id": 0,
+                "tahun": 1,
+                "musim": 1,
+                "luas_ha": {"$round": ["$luas_ha", 1]},
+                "luas_padi_ha": {"$round": ["$luas_padi_ha", 1]},
+                "genang_median": "$genang.median",
+                "panen_median": "$panen.median",
             }
         },
     ]
@@ -163,15 +189,16 @@ def _stage_names(node: dict[str, Any]) -> list[str]:
 
 
 def queries(db: Database) -> dict[str, tuple[Collection, list[dict[str, Any]]]]:
-    """The four access patterns, keyed by their spec id, with example arguments."""
+    """The access patterns A1-A5, with example arguments."""
     return {
         "A1 produksi per komoditas per tahun (riil)": (
             db["panen"],
             produksi_per_tahun_pipeline(["padi", "jagung_hibrida"]),
         ),
-        "A2 deret panen padi plot P01": (db["panen"], deret_panen_pipeline("padi", "P01")),
+        "A2 deret panen padi Jotosanur": (db["panen"], deret_panen_pipeline("padi", "Jotosanur")),
         "A3 tren sapi Jotosanur": (db["ternak"], tren_ternak_pipeline(JENIS_SAPI, "Jotosanur")),
         "A4 dokumen per sumber": (db["panen"], ringkasan_sumber_pipeline()),
+        "A5 musim tanam satelit Jotosanur": (db["musim_tanam"], musim_unit_pipeline("lamongan-tikung", "Jotosanur")),
     }
 
 

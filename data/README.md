@@ -11,9 +11,10 @@ README are tracked in git.
 | `bronze/sentinel/<aoi>/paddy.parquet` | no | `just paddy AOI` | share of each cell inside official paddy fields (Lahan Baku Sawah, BIG) |
 | `external/lbs/` | no | `just paddy AOI` | Lahan Baku Sawah polygons for the AOI (redistribution terms not stated) |
 | `silver/sentinel/<aoi>.parquet` | no | `just silver AOI` | cleaned per-cell series on a 5-day calendar |
-| `gold/sentinel/<aoi>_seasons.parquet` | no | `just gold AOI` | one row per cell per rice season: flooding, green-up, peak, harvest dates |
-| `bronze\|silver/chirps/` | no | `just chirps` | CHIRPS v3 monthly rainfall at Jotosanur, 1981-now, and annual totals |
-| `bronze\|silver/soilgrids/` | no | `just soilgrids` | SoilGrids 2.0 soil properties at Jotosanur (one-time pull, raw JSON cached) |
+| `gold/sentinel/<aoi>_seasons.parquet` | no | `just gold AOI` | one row per cell per season: flooding, green-up, peak, harvest dates, rice flag |
+| `gold/sentinel/<aoi>_units.parquet` | no | `just gold AOI` | per unit, year and season (MT1-MT3): area, rice area, flooding and harvest windows; loaded into MongoDB `musim_tanam` |
+| `bronze\|silver/chirps/<aoi>_*.parquet` | no | `just chirps AOI` | CHIRPS v3 monthly rainfall per unit, 1981-now, with 1991-2020 normals, anomalies and annual totals |
+| `silver/soilgrids/<aoi>_*.parquet` | no | `just soilgrids AOI` | SoilGrids 2.0 properties (0-30 cm) per cell and median per unit, read from ISRIC's global rasters |
 | `relasional.db` | no | dashboard forms (`jotosanur_agri.store`) | SQLite: users, destinations, distribution records entered by the mitra |
 
 `<aoi>` is the area slug, e.g. `lamongan-tikung` for `Lamongan/Tikung`.
@@ -21,10 +22,9 @@ README are tracked in git.
 ## Rebuild
 
 ```sh
-just etl                                    # soilgrids, chirps, BPS/Dinas into MongoDB
-just sentinel Lamongan/Tikung 2019-09 2020-12
-just silver Lamongan/Tikung
-just gold Lamongan/Tikung
+just sentinel Lamongan/Tikung 2019-09 2020-12   # satellite bronze for a month range
+just setup Lamongan/Tikung                      # paddy mask, soil, rain, silver, gold, MongoDB
+just monthly Lamongan/Tikung                    # later: last month only, then rebuild
 ```
 
 Sentinel extraction takes about 30 s per month for Kecamatan Tikung (13 desa); silver and

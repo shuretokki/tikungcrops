@@ -56,11 +56,12 @@ jobs:
       - name: Install runtime dependencies
         run: uv sync --locked --no-dev
 
-      - name: CHIRPS monthly rainfall
-        run: uv run --no-sync python -m jotosanur_agri.pipeline.load_chirps
-
       - name: Sentinel-1/2 bronze
         run: uv run --no-sync python -m jotosanur_agri.pipeline.load_sentinel "$AOI" "$START" "$END"
+
+      # Needs the cells table written by the Sentinel step
+      - name: CHIRPS monthly rainfall
+        run: uv run --no-sync python -m jotosanur_agri.pipeline.load_chirps "$AOI"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:

@@ -1,4 +1,5 @@
-# Task runner. `just` lists recipes.
+# Task runner. `just` lists recipes. AOI arguments are GADM name paths (e.g. Lamongan/Tikung)
+# or GeoJSON files; see src/jotosanur_agri/pipeline/aoi.py.
 
 set dotenv-load
 set default-list := true
@@ -23,43 +24,43 @@ down: docker-check
 mongosh:
     {{require("mongosh")}} "$MONGO_URI" --eval 'db = db.getSiblingDB("'"$MONGO_DB"'")' --shell
 
-# SoilGrids pull; pass --refresh to refetch
-soilgrids *args:
-    {{py}}.pipeline.load_soilgrids {{args}}
-
-# CHIRPS monthly rainfall; pass --refresh to refetch all months
-chirps *args:
-    {{py}}.pipeline.load_chirps {{args}}
-
 # Sentinel-1/2 bronze for an area and month range, e.g. `just sentinel Lamongan/Tikung 2020-01 2020-12`; no months = previous month
 sentinel aoi="Lamongan/Tikung" start="" end="":
     {{py}}.pipeline.load_sentinel "{{aoi}}" {{start}} {{end}}
 
-# Paddy share per cell from the official Lahan Baku Sawah map (run after `just sentinel`)
+# Paddy share per cell from the official Lahan Baku Sawah map (needs the Sentinel cells)
 paddy aoi="Lamongan/Tikung":
     {{py}}.pipeline.load_paddy "{{aoi}}"
+
+# Soil properties per cell and unit from SoilGrids (needs the Sentinel cells; one-time)
+soilgrids aoi="Lamongan/Tikung":
+    {{py}}.pipeline.load_soilgrids "{{aoi}}"
+
+# CHIRPS monthly rainfall per unit (needs the Sentinel cells); add --refresh to refetch all months
+chirps aoi="Lamongan/Tikung" *args:
+    {{py}}.pipeline.load_chirps "{{aoi}}" {{args}}
 
 # Rebuild the 5-day silver time series for an area from all bronze months
 silver aoi="Lamongan/Tikung":
     {{py}}.pipeline.silver_sentinel "{{aoi}}"
 
-# Detect rice seasons (flooding, green-up, peak, harvest) per cell from silver
+# Detect seasons per cell (flooding, green-up, peak, harvest, rice) and summarise per unit
 gold aoi="Lamongan/Tikung":
     {{py}}.pipeline.gold_sentinel "{{aoi}}"
 
-# What the scheduled job runs: CHIRPS update, last month's Sentinel scenes, silver and gold rebuild
-monthly aoi="Lamongan/Tikung": chirps (sentinel aoi) (silver aoi) (gold aoi)
-
-# Load harvest/livestock into MongoDB
-mongo: up
-    {{py}}.pipeline.load_mongo
+# Sync BPS/Dinas tables and the area's season summaries into MongoDB
+mongo aoi="Lamongan/Tikung": up
+    {{py}}.pipeline.load_mongo "{{aoi}}"
 
 # Print aggregation results and query plans (IXSCAN vs COLLSCAN)
 agg: up
     {{py}}.mongo_agg
 
-# Full batch ETL, in dependency order
-etl: soilgrids chirps mongo
+# What the scheduled job runs: last month's scenes, CHIRPS, silver, gold, MongoDB
+monthly aoi="Lamongan/Tikung": (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (mongo aoi)
+
+# One-time setup of an area after its first `just sentinel` run
+setup aoi="Lamongan/Tikung": (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (mongo aoi)
 
 # Run the dashboard
 app:

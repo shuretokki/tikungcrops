@@ -1,8 +1,14 @@
 """MongoDB connection, schema and document builders for the `jotosanur` database.
 
 Shared by the batch ETL (`pipeline.load_mongo`), the dashboard forms (`store`)
-and the aggregations (`mongo_agg`). Spec: documents/local/skema-hibrida.md
-section 3.
+and the aggregations (`mongo_agg`).
+
+Collections:
+    - panen: harvests, polymorphic by `sektor` (BPS desa tables, Dinas kabupaten
+      totals, mitra input).
+    - ternak: livestock censuses (BPS).
+    - musim_tanam: satellite planting seasons per AOI unit, year and season (MT1-MT3),
+      from `pipeline.gold_sentinel.summarize_units`.
 """
 
 from __future__ import annotations
@@ -22,8 +28,8 @@ SUMBER_KODE = [
     "bps_tikung_2014",
     "bps_tikung_2021",
     "dinas_perikanan_2021",
-    "sintetis_pandu",
     "input_mitra",
+    "sentinel",
 ]
 
 _LOKASI_SCHEMA = {
@@ -40,6 +46,10 @@ _SUMBER_SCHEMA = {
     },
 }
 _TAHUN_SCHEMA = {"bsonType": "int", "minimum": 2000, "maximum": 2100}
+_WINDOW_SCHEMA = {
+    "bsonType": "object",
+    "properties": {k: {"bsonType": ["date", "null"]} for k in ("awal", "median", "akhir")},
+}
 
 VALIDATORS = {
     "panen": {
@@ -77,9 +87,27 @@ VALIDATORS = {
             "sumber": _SUMBER_SCHEMA,
         },
     },
+    "musim_tanam": {
+        "bsonType": "object",
+        "required": ["schema_version", "aoi", "unit", "tahun", "musim", "sel", "luas_ha", "luas_padi_ha", "sumber"],
+        "properties": {
+            "schema_version": {"enum": [SCHEMA_VERSION]},
+            "aoi": {"bsonType": "string", "minLength": 1},
+            "unit": {"bsonType": "string", "minLength": 1},
+            "tahun": _TAHUN_SCHEMA,
+            "musim": {"enum": ["MT1", "MT2", "MT3"]},
+            "sel": {"bsonType": "int", "minimum": 0},
+            "luas_ha": {"bsonType": "double", "minimum": 0},
+            "luas_padi_ha": {"bsonType": "double", "minimum": 0},
+            "genang": _WINDOW_SCHEMA,
+            "panen": _WINDOW_SCHEMA,
+            "puncak_ndvi": {"bsonType": ["double", "null"]},
+            "sumber": _SUMBER_SCHEMA,
+        },
+    },
 }
 
-# One index per access pattern A1-A3 (spec section 3.3); A4/A5 need none.
+# One index per access pattern: A1-A3 on panen/ternak, A5 on musim_tanam; A4 needs none.
 INDEXES = {
     "panen": [
         [("komoditas", ASCENDING), ("periode.tahun", ASCENDING)],
@@ -87,6 +115,9 @@ INDEXES = {
     ],
     "ternak": [
         [("jenis_ternak", ASCENDING), ("lokasi.nama", ASCENDING), ("tanggal", ASCENDING)],
+    ],
+    "musim_tanam": [
+        [("aoi", ASCENDING), ("unit", ASCENDING), ("tahun", ASCENDING)],
     ],
 }
 
@@ -120,7 +151,7 @@ def connect(timeout_ms: int = 5000) -> Database:
 
 
 def ensure_collections(db: Database) -> None:
-    """Create `panen` and `ternak` with strict validators and their indexes.
+    """Create every collection in `VALIDATORS` with its strict validator and indexes.
 
     Idempotent: existing collections get the validator re-applied via `collMod`.
     """

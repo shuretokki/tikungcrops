@@ -146,9 +146,30 @@ atau padi tanam benih langsung. Korelasi selisih musim dengan luas jagung BPS pe
 BPS setara 3,33 kali panen di sawah LBS-nya, kemungkinan karena poligon LBS di desa itu lebih
 kecil dari sawah sebenarnya.
 
-## 9. Langkah berikutnya
+## 9. Klasifikasi padi/non-padi per musim
 
+Aturan di `gold_sentinel`: sebuah musim dianggap padi bila sawah tergenang saat tanam,
+yaitu VH saat penggenangan ≤ -17 dB **atau** VH turun ≥ 1,5 dB dari median VH lahan itu
+30-75 hari sebelum awal tumbuh. Dua syarat diperlukan karena kondisi awalnya berbeda:
 
-Klasifikasi padi/non-padi per musim dari tanda penggenangan radar (lalu uji ulang terhadap
-BPS), data 2023-2026 untuk melihat perubahan sejak program 2025, dan tampilan hasil per desa
-di dashboard.
+| | Median VH sebelum musim | Median VH saat genang | Median penurunan |
+|---|---|---|---|
+| MT1 (hujan) | -17,9 dB | -18,4 dB | 0,4 dB |
+| MT2 (kemarau) | -13,7 dB | -15,6 dB | 1,8 dB |
+
+Sawah musim hujan sudah basah sebelum tanam (VH rendah, hampir tidak turun); sawah musim
+kemarau kering setelah panen MT1 (VH tinggi, turun jelas saat digenangi). Genangan air yang
+terlihat optik (LSWI > NDVI) hampir tidak pernah tertangkap (3-6% musim) karena awan dan
+genangan yang singkat.
+
+Hasil 2020: 87% musim MT1 dan 63% musim MT2 terklasifikasi padi. Total luas musim padi
+7.248 ha vs luas panen padi BPS 7.145 ha (1,01), tetapi korelasi antardesa tidak membaik
+(r = 0,77; rasio per desa 0,72-1,51). **Kecocokan total ini sebagian karena ambang dipilih
+dengan melihat data 2020 yang sama**, jadi belum menjadi validasi independen; perlu tahun
+BPS kedua dalam rentang Sentinel untuk mengujinya.
+
+## 10. Langkah berikutnya
+
+Transkripsi tabel BPS Kecamatan Tikung tahun lain dalam rentang Sentinel (2017-2025) untuk
+menguji ambang padi secara independen, data 2023-2026 untuk melihat perubahan sejak program
+2025, dan model prediksi waktu panen serta luas tanam per desa.

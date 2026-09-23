@@ -1,8 +1,9 @@
-"""Batch pipelines: synthetic generators, external sources (SoilGrids, CHIRPS, CIMMYT) and the MongoDB load.
+"""Batch pipelines.
 
-Synthetic data is a stand-in while the mitra has not supplied real records. Its
-parameters come from sources (data/raw/sumber-data/README.md), and every row carries
-its seed and generation time.
+- Satellite crop monitoring for an area of interest: `aoi`, `load_sentinel` (bronze),
+  `silver_sentinel`, `gold_sentinel`, `load_paddy` (official paddy map).
+- Context layers: `load_chirps` (rainfall), `load_soilgrids` (soil).
+- `load_mongo`: syncs BPS/Dinas tables and satellite season summaries into MongoDB.
 """
 
 from pathlib import Path

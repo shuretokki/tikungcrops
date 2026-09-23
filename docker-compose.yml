@@ -1,7 +1,8 @@
 # Local dev services. Credentials come from .env (gitignored).
 services:
   mongo:
-    image: mongo:8.0
+    # Pinned by digest (MongoDB 8.0.32) so every machine runs the same build
+    image: mongo:8.0@sha256:4968f22d0c6c10ef29952f3e807f62872ba22b3312f25803564fbfc08255efc2
     ports:
       - "127.0.0.1:27017:27017"   # host-only
     environment:
