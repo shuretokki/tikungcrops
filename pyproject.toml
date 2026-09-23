@@ -1,0 +1,64 @@
+[project]
+name = "jotosanur-agri"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Tri Rianto Utomo", email = "tri.r.utomo@proton.me" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "copulas>=0.14.0",
+    "doi2bib>=0.4.0",
+    "numpy>=2.5.3",
+    "pandas>=3.0.6",
+    "plotly>=7.1.0",
+    "polars>=1.44.2",
+    "pyarrow>=25.0.1",
+    "pymongo>=4.18.1",
+    "rasterio>=1.5.1",
+    "scikit-learn>=1.9.1",
+    "streamlit>=1.64.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.11,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.40.1",
+    "pandas-stubs>=3.0.5.260914",
+    "ruff>=0.16.8",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+extend-exclude = ["typings", "archives"]  # generated stubs, parked code
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "D",    # pydocstyle
+]
+ignore = ["E501"]  # line length handled by the formatter
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.basedpyright]
+include = ["src", "app.py"]
+pythonVersion = "3.13"
+typeCheckingMode = "standard"

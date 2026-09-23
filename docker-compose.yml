@@ -1,0 +1,19 @@
+# Local dev services. Credentials come from .env (gitignored).
+services:
+  mongo:
+    image: mongo:8.0
+    ports:
+      - "127.0.0.1:27017:27017"   # host-only
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  mongodata:

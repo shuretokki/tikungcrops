@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "skills": {
+    "analyzing-data": {
+      "source": "legout/data-platform-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/analyzing-data/SKILL.md",
+      "computedHash": "fe508fc7fef0463131cb159749e16514ba277a3b0a142b60e60bde4db863bad8"
+    },
+    "building-data-apps": {
+      "source": "legout/data-platform-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/building-data-apps/SKILL.md",
+      "computedHash": "9d983effd9df76001b78981d80139a24e5b8522b067464d47384e8d70aec03d2"
+    },
+    "building-data-pipelines": {
+      "source": "legout/data-platform-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/building-data-pipelines/SKILL.md",
+      "computedHash": "6a5f08b3edec35d1df3afbb01a1cf7097b6cff9fc4286035e37151ef1850e53e"
+    },
+    "data-visualization": {
+      "source": "anthropics/knowledge-work-plugins",
+      "sourceType": "github",
+      "skillPath": "data/skills/data-visualization/SKILL.md",
+      "computedHash": "64055493de5ff4afed716cc871018cf6e020338b76d3e7ed5c2985707cb43cec"
+    },
+    "designing-data-storage": {
+      "source": "legout/data-platform-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/designing-data-storage/SKILL.md",
+      "computedHash": "3e218048b0150db0df3d780dbda3b2de24e665ad4f358ab8a80ae95c4f5f7bfd"
+    },
+    "feature-engineering": {
+      "source": "param087/agent-ml-skills",
+      "sourceType": "github",
+      "skillPath": "skills/feature-engineering/SKILL.md",
+      "computedHash": "95b7545fe900ddf98251d0828fc5671d657ddf2902e756eb9a9b97fa00e4ff34"
+    },
+    "machine-learning": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "machine-learning/SKILL.md",
+      "computedHash": "b0fe8b1636aa174bda1bab2aa3e4d287adc1888d79011d938e1319aee8fc6763"
+    },
+    "model-evaluation": {
+      "source": "param087/agent-ml-skills",
+      "sourceType": "github",
+      "skillPath": "skills/model-evaluation/SKILL.md",
+      "computedHash": "36c221c5b0a500abd549af21c44c7366d31ef19695a499205572d31b6026b50b"
+    },
+    "pptx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pptx/SKILL.md",
+      "computedHash": "82eaf5daede5a1779aa17ccf06597cb209a0c2bd41d3a2f18bd45e0301a387fb"
+    },
+    "senior-data-engineer": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "engineering-team/skills/senior-data-engineer/SKILL.md",
+      "computedHash": "f5f6d4ffc53d96c6ebe871b71518743e2a4284a0ead3a7473c341bd88ca3fa54"
+    },
+    "sklearn-pipelines": {
+      "source": "param087/agent-ml-skills",
+      "sourceType": "github",
+      "skillPath": "skills/sklearn-pipelines/SKILL.md",
+      "computedHash": "273f84b0e9687b735a5e1ad0d8d23af14fb85b88c599eb281701264897080bf6"
+    },
+    "typst": {
+      "source": "lucifer1004/claude-skill-typst",
+      "sourceType": "github",
+      "skillPath": "skills/typst/SKILL.md",
+      "computedHash": "74eb5b0481a869a49acad49a71f73d76f32ed80c1f2ca993607ac5348c6ae689"
+    }
+  }
+}
