@@ -14,7 +14,8 @@ A date is null when the series has no data there (clouds beyond the gap limit), 
 the season runs past the edge of the covered period; `start_truncated` and
 `end_truncated` mark the latter. Seasons are never dropped, so gaps stay visible.
 
-Output: data/gold/sentinel/<desa>_seasons.parquet, one row per cell per season.
+Output: data/gold/sentinel/<aoi-slug>_seasons.parquet, one row per cell per season, with
+the cell's AOI unit (e.g. its desa).
 """
 
 from __future__ import annotations
@@ -28,6 +29,8 @@ import numpy as np
 import polars as pl
 
 from jotosanur_agri.pipeline import save
+from jotosanur_agri.pipeline.aoi import slugify
+from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
 
 PEAK_MIN = 0.6
 MIN_SEASON_GAP_DAYS = 60
@@ -142,14 +145,16 @@ def build_gold(silver: pl.DataFrame) -> pl.DataFrame:
     )
 
 
-def run_gold_sentinel(desa: str = "Jotosanur", data_dir: str | Path = "data") -> dict[str, Any]:
-    """Detect seasons for one desa from its silver table.
+def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dict[str, Any]:
+    """Detect seasons for an AOI from its silver table.
 
     Returns:
         Season and cell counts, completeness of each date and the output path.
     """
-    silver = pl.read_parquet(Path(data_dir) / "silver" / "sentinel" / f"{desa.lower()}.parquet")
-    gold = build_gold(silver)
+    slug = slugify(aoi_spec)
+    silver = pl.read_parquet(Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet")
+    cells = pl.read_parquet(Path(data_dir) / "bronze" / "sentinel" / slug / "cells.parquet")
+    gold = build_gold(silver).join(cells.select("cell_id", "unit"), on="cell_id", how="left")
     return {
         "seasons": gold.height,
         "cells": gold["cell_id"].n_unique(),
@@ -157,9 +162,9 @@ def run_gold_sentinel(desa: str = "Jotosanur", data_dir: str | Path = "data") ->
             c: round(1 - gold[c].null_count() / max(gold.height, 1), 2)
             for c in ("flood_date", "greenup_date", "harvest_date")
         },
-        "path": save(gold, Path(data_dir) / "gold" / "sentinel" / f"{desa.lower()}_seasons.parquet"),
+        "path": save(gold, Path(data_dir) / "gold" / "sentinel" / f"{slug}_seasons.parquet"),
     }
 
 
 if __name__ == "__main__":
-    print(run_gold_sentinel(sys.argv[1] if len(sys.argv) > 1 else "Jotosanur"))
+    print(run_gold_sentinel(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_AOI))

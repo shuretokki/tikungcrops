@@ -1,23 +1,24 @@
-"""Bronze pipeline turning Sentinel-1 and Sentinel-2 scenes into a cell x date table for one desa.
+"""Bronze pipeline turning Sentinel-1 and Sentinel-2 scenes into a cell x date table for an area of interest.
 
 Sources, all public and read over HTTP as Cloud-Optimized GeoTIFFs (no login):
     - Sentinel-2 L2A, Earth Search STAC (AWS, Element84).
     - Sentinel-1 RTC (terrain-corrected radar backscatter), Microsoft Planetary
       Computer STAC; asset URLs need a short-lived anonymous SAS token.
     - ESA WorldCover 2021 v200, cropland mask (class 40).
-    - GADM 4.1 desa boundaries (free for non-commercial use, not redistributed:
-      cached under data/external/, which is not tracked).
+    - Area boundaries from `aoi` (GADM or a user GeoJSON).
 
-Rows are 100 m cells (10 x 10 Sentinel-2 pixels) inside the desa that are at least half
-cropland. Each scene becomes one row per cell with per-cell statistics:
+Rows are 100 m cells (10 x 10 Sentinel-2 pixels) inside the AOI that are at least half
+cropland; each cell belongs to the AOI unit covering most of it. Each scene becomes one
+row per cell with per-cell statistics:
     - S2: median NDVI and LSWI over pixels the scene classification marks clear,
       plus the clear fraction.
     - S1: mean VV and VH backscatter in dB. Flooded paddy at transplanting shows as
       a sharp VH drop, visible through the rainy-season clouds that block S2.
 
-Output: data/bronze/sentinel/<desa>/<YYYY-MM>.parquet plus cells.parquet.
-Usage: `python -m jotosanur_agri.pipeline.load_sentinel [DESA] [START_MONTH] [END_MONTH]`;
-without months it processes the previous calendar month (the scheduled case).
+Output: data/bronze/sentinel/<aoi-slug>/<YYYY-MM>.parquet plus cells.parquet.
+Usage: `python -m jotosanur_agri.pipeline.load_sentinel [AOI] [START_MONTH] [END_MONTH]`,
+e.g. `Lamongan/Tikung 2020-01 2020-12`; without months it processes the previous
+calendar month (the scheduled case).
 """
 
 from __future__ import annotations
@@ -25,8 +26,8 @@ from __future__ import annotations
 import json
 import sys
 import urllib.request
-import zipfile
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
@@ -39,17 +40,13 @@ from rasterio.features import rasterize
 from rasterio.warp import Resampling, reproject, transform, transform_geom
 
 from jotosanur_agri.pipeline import save
+from jotosanur_agri.pipeline.aoi import Aoi, resolve
 
+DEFAULT_AOI = "Lamongan/Tikung"
 EARTH_SEARCH = "https://earth-search.aws.element84.com/v1/search"
 PLANETARY = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
 PC_TOKEN = "https://planetarycomputer.microsoft.com/api/sas/v1/token/sentinel-1-rtc"
-WORLDCOVER = (
-    "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_S09E111_Map.tif"
-)
-GADM_URL = "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_IDN_4.json.zip"
-GADM_DIR = Path("data/external/gadm")
 
-CRS = "EPSG:32749"  # UTM 49S, the Sentinel-2 tile CRS over Lamongan
 PIXEL_M = 10
 CELL_PX = 10  # 100 m cells
 MIN_CROP_FRAC = 0.5
@@ -67,8 +64,6 @@ GDAL_ENV: dict[str, Any] = {
     "GDAL_HTTP_RETRY_DELAY": "5",
 }
 
-Grid = tuple[Affine, tuple[int, int]]
-
 BRONZE_SCHEMA = {
     "cell_id": pl.Int64,
     "date": pl.Date,
@@ -82,33 +77,27 @@ BRONZE_SCHEMA = {
 }
 
 
-def desa_geometry(desa: str, kecamatan: str = "Tikung") -> dict[str, Any]:
-    """GeoJSON geometry (lon/lat) of one desa from GADM level 4, downloading GADM once."""
-    cached = GADM_DIR / f"{kecamatan.lower()}_desa.geojson"
-    if not cached.exists():
-        GADM_DIR.mkdir(parents=True, exist_ok=True)
-        archive = GADM_DIR / "gadm41_IDN_4.json.zip"
-        urllib.request.urlretrieve(GADM_URL, archive)
-        with zipfile.ZipFile(archive) as z:
-            features = json.loads(z.read("gadm41_IDN_4.json"))["features"]
-        kec = [
-            f for f in features if f["properties"]["NAME_2"] == "Lamongan" and f["properties"]["NAME_3"] == kecamatan
-        ]
-        cached.write_text(json.dumps({"type": "FeatureCollection", "features": kec}))
-        archive.unlink()
-    for feature in json.loads(cached.read_text())["features"]:
-        if feature["properties"]["NAME_4"] == desa:
-            return feature["geometry"]
-    raise ValueError(f"desa {desa!r} not found in GADM for kecamatan {kecamatan}")
+@dataclass(frozen=True)
+class Grid:
+    """10 m pixel grid in a UTM CRS, sized to whole cells."""
+
+    transform: Affine
+    shape: tuple[int, int]
+    crs: str
+
+    @property
+    def cells_wide(self) -> int:
+        """Number of cells per grid row."""
+        return self.shape[1] // CELL_PX
 
 
-def stac_search(url: str, collection: str, geometry: dict[str, Any], month: str) -> list[dict[str, Any]]:
-    """All items of `collection` intersecting `geometry` in `month` (``YYYY-MM``), one per acquisition date."""
+def stac_search(url: str, collection: str, bbox: tuple[float, ...], month: str) -> list[dict[str, Any]]:
+    """All items of `collection` intersecting `bbox` in `month` (``YYYY-MM``), one per acquisition date."""
     first = date.fromisoformat(f"{month}-01")
     last = date(first.year + first.month // 12, first.month % 12 + 1, 1) - timedelta(days=1)
     body = {
         "collections": [collection],
-        "intersects": geometry,
+        "bbox": list(bbox),
         "datetime": f"{first.isoformat()}T00:00:00Z/{last.isoformat()}T23:59:59Z",
         "limit": 100,
     }
@@ -130,61 +119,80 @@ def stac_search(url: str, collection: str, geometry: dict[str, Any], month: str)
     return list(by_date.values())
 
 
-def make_grid(geometry: dict[str, Any]) -> tuple[Grid, np.ndarray]:
-    """10 m grid over the desa bounding box, snapped to whole cells, plus the desa mask."""
-    utm = transform_geom("EPSG:4326", CRS, geometry)
-    rings = utm["coordinates"] if utm["type"] == "MultiPolygon" else [utm["coordinates"]]
-    xs = [x for poly in rings for x, _ in poly[0]]
-    ys = [y for poly in rings for _, y in poly[0]]
+def make_grid(aoi: Aoi) -> tuple[Grid, np.ndarray]:
+    """Grid over the AOI bounds, snapped to whole cells, plus a raster of unit numbers (1-based, 0 outside)."""
+    crs = aoi.utm_crs()
+    utm = [transform_geom("EPSG:4326", crs, geometry) for _, geometry in aoi.units]
+    points = [
+        (x, y)
+        for g in utm
+        for polygon in (g["coordinates"] if g["type"] == "MultiPolygon" else [g["coordinates"]])
+        for x, y in polygon[0]
+    ]
+    xs, ys = [p[0] for p in points], [p[1] for p in points]
     step = PIXEL_M * CELL_PX
     x0, y1 = np.floor(min(xs) / step) * step, np.ceil(max(ys) / step) * step
     width = int(np.ceil((max(xs) - x0) / step)) * CELL_PX
     height = int(np.ceil((y1 - min(ys)) / step)) * CELL_PX
-    grid = (Affine(PIXEL_M, 0, x0, 0, -PIXEL_M, y1), (height, width))
-    inside = np.asarray(rasterize([(utm, 1)], out_shape=grid[1], transform=grid[0], dtype="uint8"), dtype=bool)
-    return grid, inside
+    grid = Grid(Affine(PIXEL_M, 0, x0, 0, -PIXEL_M, y1), (height, width), crs)
+    units = rasterize(
+        [(g, k + 1) for k, g in enumerate(utm)], out_shape=grid.shape, transform=grid.transform, dtype="int32"
+    )
+    return grid, np.asarray(units)
 
 
 def read_to_grid(href: str, grid: Grid, resampling: Resampling = Resampling.nearest) -> np.ndarray:
     """Read band 1 of a raster warped onto `grid`; nodata becomes NaN."""
-    tf, shape = grid
-    out = np.full(shape, np.nan, dtype="float32")
+    out = np.full(grid.shape, np.nan, dtype="float32")
     with rasterio.Env(**GDAL_ENV), rasterio.open(href) as src:
         reproject(
             rasterio.band(src, 1),
             out,
             src_nodata=src.nodata,
-            dst_transform=tf,
-            dst_crs=CRS,
+            dst_transform=grid.transform,
+            dst_crs=grid.crs,
             dst_nodata=np.nan,
             resampling=resampling,
         )
     return out
 
 
+def read_cropland(aoi: Aoi, grid: Grid) -> np.ndarray:
+    """WorldCover cropland mask on `grid`, merged across every tile the AOI touches."""
+    cover = np.full(grid.shape, np.nan, dtype="float32")
+    for url in aoi.worldcover_tiles():
+        tile = read_to_grid(url, grid)
+        cover = np.where(np.isnan(cover), tile, cover)
+    return cover == WORLDCOVER_CROPLAND
+
+
 def cell_ids(grid: Grid, keep: np.ndarray) -> np.ndarray:
     """Cell id per pixel (row-major over cells), -1 where `keep` is False."""
-    height, width = grid[1]
-    rows, cols = np.indices((height, width))
-    ids = (rows // CELL_PX) * (width // CELL_PX) + cols // CELL_PX
+    rows, cols = np.indices(grid.shape)
+    ids = (rows // CELL_PX) * grid.cells_wide + cols // CELL_PX
     return np.where(keep, ids, -1)
 
 
-def cells_table(grid: Grid, inside: np.ndarray, cropland: np.ndarray) -> pl.DataFrame:
-    """Cells that are inside the desa and at least `MIN_CROP_FRAC` cropland, with centre coordinates."""
+def cells_table(aoi: Aoi, grid: Grid, units: np.ndarray, cropland: np.ndarray) -> pl.DataFrame:
+    """Cells inside the AOI that are at least `MIN_CROP_FRAC` cropland, with centre coordinates and unit."""
+    inside = units > 0
     ids = cell_ids(grid, inside)
-    n = (grid[1][0] // CELL_PX) * (grid[1][1] // CELL_PX)
-    total = np.bincount(ids[ids >= 0], minlength=n)
-    crop = np.bincount(ids[(ids >= 0) & cropland], minlength=n)
+    n = (grid.shape[0] // CELL_PX) * grid.cells_wide
+    total = np.bincount(ids[inside], minlength=n)
+    crop = np.bincount(ids[inside & cropland], minlength=n)
+    # Majority unit per cell: count (cell, unit) pairs, then take the most frequent unit
+    n_units = len(aoi.units) + 1
+    pairs = np.bincount(ids[inside] * n_units + units[inside], minlength=n * n_units).reshape(n, n_units)
     cell = np.arange(n)
     keep = (total > 0) & (crop / np.maximum(total, 1) >= MIN_CROP_FRAC)
-    width_cells = grid[1][1] // CELL_PX
-    x = grid[0].c + (cell % width_cells + 0.5) * PIXEL_M * CELL_PX
-    y = grid[0].f - (cell // width_cells + 0.5) * PIXEL_M * CELL_PX
-    lon, lat = transform(CRS, "EPSG:4326", x[keep].tolist(), y[keep].tolist())[:2]
+    x = grid.transform.c + (cell % grid.cells_wide + 0.5) * PIXEL_M * CELL_PX
+    y = grid.transform.f - (cell // grid.cells_wide + 0.5) * PIXEL_M * CELL_PX
+    lon, lat = transform(grid.crs, "EPSG:4326", x[keep].tolist(), y[keep].tolist())[:2]
+    names = [name for name, _ in aoi.units]
     return pl.DataFrame(
         {
             "cell_id": cell[keep],
+            "unit": [names[u - 1] for u in pairs[keep].argmax(axis=1)],
             "x": x[keep],
             "y": y[keep],
             "lon": lon,
@@ -282,50 +290,51 @@ def previous_month(today: date | None = None) -> str:
 
 
 def run_sentinel_pipeline(
-    desa: str = "Jotosanur", start: str | None = None, end: str | None = None, out_dir: str | Path = "data"
+    aoi_spec: str = DEFAULT_AOI, start: str | None = None, end: str | None = None, out_dir: str | Path = "data"
 ) -> dict[str, Any]:
-    """Build bronze cell x date tables for one desa, one parquet file per month.
+    """Build bronze cell x date tables for an AOI, one parquet file per month.
 
     Each month is written on its own, so a scheduled run can process only the month it
     needs without reading earlier output, and a rerun overwrites the same file.
 
     Args:
-        desa: Desa name as spelled in GADM.
+        aoi_spec: GADM path (e.g. ``Lamongan/Tikung``) or GeoJSON path; see `aoi.resolve`.
         start: First month, ``YYYY-MM``. Defaults to the previous calendar month.
         end: Last month, ``YYYY-MM``. Defaults to `start`.
         out_dir: Data root.
 
     Returns:
-        Cell count and, per month, scene and row counts.
+        Cell and unit counts and, per month, scene and row counts.
     """
     start = start or previous_month()
     end = end or start
-    geometry = desa_geometry(desa)
-    grid, inside = make_grid(geometry)
-    cropland = read_to_grid(WORLDCOVER, grid) == WORLDCOVER_CROPLAND
-    cells = cells_table(grid, inside, cropland)
-    keep = np.isin(cell_ids(grid, np.ones_like(inside)), cells["cell_id"].to_numpy())
-    ids = cell_ids(grid, inside & cropland & keep)
+    aoi = resolve(aoi_spec)
+    grid, units = make_grid(aoi)
+    cropland = read_cropland(aoi, grid)
+    cells = cells_table(aoi, grid, units, cropland)
+    keep = np.isin(cell_ids(grid, np.ones(grid.shape, dtype=bool)), cells["cell_id"].to_numpy())
+    ids = cell_ids(grid, (units > 0) & cropland & keep)
 
-    desa_dir = Path(out_dir) / "bronze" / "sentinel" / desa.lower()
-    save(cells, desa_dir / "cells.parquet")
+    aoi_dir = Path(out_dir) / "bronze" / "sentinel" / aoi.slug
+    save(cells, aoi_dir / "cells.parquet")
     token = pc_token()
-    summary: dict[str, Any] = {"cells": cells.height, "months": {}}
+    bbox = aoi.bounds()
+    summary: dict[str, Any] = {"aoi": aoi.slug, "units": len(aoi.units), "cells": cells.height, "months": {}}
     for month in month_range(start, end):
-        s2_items = stac_search(EARTH_SEARCH, "sentinel-2-l2a", geometry, month)
-        s1_items = stac_search(PLANETARY, "sentinel-1-rtc", geometry, month)
+        s2_items = stac_search(EARTH_SEARCH, "sentinel-2-l2a", bbox, month)
+        s1_items = stac_search(PLANETARY, "sentinel-1-rtc", bbox, month)
         with ThreadPoolExecutor(WORKERS) as pool:
             s2 = pool.map(lambda i: s2_rows(i, grid, ids), s2_items)
             s1 = pool.map(lambda i: s1_rows(i, grid, ids, token), s1_items)
             rows = [row for batch in (*s2, *s1) for row in batch]
         bronze = pl.DataFrame(rows, schema=BRONZE_SCHEMA).sort("sensor", "date", "cell_id")
-        save(bronze, desa_dir / f"{month}.parquet")
+        save(bronze, aoi_dir / f"{month}.parquet")
         summary["months"][month] = {"s2": len(s2_items), "s1": len(s1_items), "rows": bronze.height}
-        print(f"[sentinel] {desa} {month}: {len(s2_items)} S2, {len(s1_items)} S1, {bronze.height} rows")
+        print(f"[sentinel] {aoi.slug} {month}: {len(s2_items)} S2, {len(s1_items)} S1, {bronze.height} rows")
     return summary
 
 
 if __name__ == "__main__":
-    # load_sentinel [DESA] [START_MONTH] [END_MONTH]; no months = previous month
+    # load_sentinel [AOI] [START_MONTH] [END_MONTH]; no months = previous month
     args = sys.argv[1:] + [None] * 3
-    print(run_sentinel_pipeline(args[0] or "Jotosanur", args[1], args[2]))
+    print(run_sentinel_pipeline(args[0] or DEFAULT_AOI, args[1], args[2]))

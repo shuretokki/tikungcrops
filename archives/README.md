@@ -11,6 +11,8 @@ monitoring (Sentinel-1/2). Kept for reference and for the final report; nothing 
   copula baseline fitted to BPS data, the CIMMYT bronze/silver pipeline, and the
   previous `load_mongo.py` that also loaded the synthetic data.
 - `app.py`: previous dashboard with synthetic charts and both predictors.
+- `temuan-teknis.md`: technical findings (Indonesian), from the yield-model evidence to
+  the Sentinel prototype and the 13-desa Tikung validation against BPS.
 - `data/`, `models/` (not tracked): CIMMYT CSVs and trained model files.
 
 Why it was parked: a CIMMYT model restricted to inputs available for Jotosanur did not

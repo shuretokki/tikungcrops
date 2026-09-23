@@ -31,20 +31,20 @@ soilgrids *args:
 chirps *args:
     {{py}}.pipeline.load_chirps {{args}}
 
-# Sentinel-1/2 bronze for a month range, e.g. `just sentinel Jotosanur 2020-01 2020-12`; no months = previous month
-sentinel desa="Jotosanur" start="" end="":
-    {{py}}.pipeline.load_sentinel {{desa}} {{start}} {{end}}
+# Sentinel-1/2 bronze for an area and month range, e.g. `just sentinel Lamongan/Tikung 2020-01 2020-12`; no months = previous month
+sentinel aoi="Lamongan/Tikung" start="" end="":
+    {{py}}.pipeline.load_sentinel "{{aoi}}" {{start}} {{end}}
 
-# Rebuild the 5-day silver time series for one desa from all bronze months
-silver desa="Jotosanur":
-    {{py}}.pipeline.silver_sentinel {{desa}}
+# Rebuild the 5-day silver time series for an area from all bronze months
+silver aoi="Lamongan/Tikung":
+    {{py}}.pipeline.silver_sentinel "{{aoi}}"
 
 # Detect rice seasons (flooding, green-up, peak, harvest) per cell from silver
-gold desa="Jotosanur":
-    {{py}}.pipeline.gold_sentinel {{desa}}
+gold aoi="Lamongan/Tikung":
+    {{py}}.pipeline.gold_sentinel "{{aoi}}"
 
 # What the scheduled job runs: CHIRPS update, last month's Sentinel scenes, silver and gold rebuild
-monthly desa="Jotosanur": chirps (sentinel desa) (silver desa) (gold desa)
+monthly aoi="Lamongan/Tikung": chirps (sentinel aoi) (silver aoi) (gold aoi)
 
 # Load harvest/livestock into MongoDB
 mongo: up

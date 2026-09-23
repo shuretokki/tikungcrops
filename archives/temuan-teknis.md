@@ -93,7 +93,37 @@ musim kemarau; musim 2 belum divalidasi dengan kalender.
   perubahan 2 → 3 kali panen pada lahan program tidak akan terlihat di tingkat desa
   tanpa lokasi petak program.
 
-## 7. Langkah berikutnya
+## 7. Skala ke seluruh Kecamatan Tikung (13 desa, Sep 2019 - Des 2020)
 
-Skala ke seluruh 13 desa Tikung dengan area of interest umum (bukan hanya desa), validasi
-luas dan jumlah musim terhadap BPS, lalu tahun-tahun lain untuk melihat tren.
+Pipeline memakai area of interest umum (`Lamongan/Tikung`, unit = desa), bukan satu desa.
+Ekstraksi 16 bulan: 8,5 menit, 4.954 sel lahan pertanian, ~846 ribu baris bronze (8 MB).
+Silver 0,8 detik, gold 4 detik, 10.942 musim.
+
+**Validasi luas terhadap BPS 2020 (n = 13 desa):**
+
+| Ukuran satelit | vs luas panen padi BPS | vs padi + jagung BPS |
+|---|---|---|
+| Luas lahan pertanian | r = 0,77 | **r = 0,90** |
+| Luas panen (lahan × jumlah musim 2020) | r = 0,78 | **r = 0,90** |
+| Rasio satelit/BPS untuk luas panen | 1,37 | 1,25 |
+
+- Korelasi naik saat jagung ikut dihitung, konsisten dengan WorldCover yang tidak
+  membedakan padi dan jagung.
+- Urutan antardesa terukur baik, tetapi levelnya lebih tinggi 25-37% dari BPS.
+  Penyebab yang mungkin: lahan pertanian WorldCover mencakup tegalan dan tanaman lain,
+  sebagian puncak ketiga adalah palawija atau derau, dan batas GADM tidak persis sama
+  dengan batas administrasi BPS. Jotosanur sendiri justru lebih rendah (324 vs 459 ha).
+- Musim per sel pada 2020: 2 musim 79% sel, 3 musim 19%.
+
+**Waktu tanam seluruh Tikung (musim 1, dari radar):** penggenangan November 1.769 sel dan
+Desember 2.581 sel (88% dari musim yang terdeteksi), Oktober 197; panen Maret 1.977 dan
+April 1.256. Median penggenangan per desa berkisar dari 15 November (Soko) sampai
+20 Desember (Tambakrigadung), selisih sekitar 5 minggu antardesa. Ini konsisten dengan
+pernyataan DKPP bahwa sawah irigasi menanam lebih dulu dan puncak tanam November-Desember.
+Musim 2: penggenangan terutama April (3.239 sel) dan Mei (1.235).
+
+## 8. Langkah berikutnya
+
+Tahun-tahun lain (2017-2026) untuk melihat tren jumlah musim dan waktu tanam, masker padi
+yang lebih spesifik daripada WorldCover untuk menurunkan selisih level, dan tampilan
+hasil per desa di dashboard.

@@ -9,6 +9,7 @@ wheels/
 
 /data/*
 !/data/raw/
+!/data/README.md
 /models/
 /archives/data/
 /archives/models/

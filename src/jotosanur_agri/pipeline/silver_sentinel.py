@@ -15,7 +15,7 @@ geometries. Silver puts every cell on one 5-day calendar:
 Silver is rebuilt from all bronze months each run; it is small, and rebuilding keeps
 it consistent when a month is reprocessed.
 
-Output: data/silver/sentinel/<desa>.parquet, one row per cell per 5-day step.
+Output: data/silver/sentinel/<aoi-slug>.parquet, one row per cell per 5-day step.
 """
 
 from __future__ import annotations
@@ -28,6 +28,8 @@ from typing import Any
 import polars as pl
 
 from jotosanur_agri.pipeline import save
+from jotosanur_agri.pipeline.aoi import slugify
+from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
 
 STEP_DAYS = 5
 MAX_GAP_DAYS = 30
@@ -139,13 +141,14 @@ def build_silver(bronze: pl.DataFrame) -> pl.DataFrame:
     )
 
 
-def run_silver_sentinel(desa: str = "Jotosanur", data_dir: str | Path = "data") -> dict[str, Any]:
-    """Rebuild the silver table for one desa from all its bronze months.
+def run_silver_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dict[str, Any]:
+    """Rebuild the silver table for an AOI from all its bronze months.
 
     Returns:
         Row and cell counts, the covered range, null shares and the output path.
     """
-    bronze = pl.read_parquet(Path(data_dir) / "bronze" / "sentinel" / desa.lower() / "[0-9]*.parquet")
+    slug = slugify(aoi_spec)
+    bronze = pl.read_parquet(Path(data_dir) / "bronze" / "sentinel" / slug / "[0-9]*.parquet")
     silver = build_silver(bronze)
     return {
         "rows": silver.height,
@@ -153,9 +156,9 @@ def run_silver_sentinel(desa: str = "Jotosanur", data_dir: str | Path = "data") 
         "range": f"{silver['date'].min()}..{silver['date'].max()}",
         "ndvi_null_share": round(silver["ndvi"].null_count() / silver.height, 3),
         "vh_null_share": round(silver["vh_db"].null_count() / silver.height, 3),
-        "path": save(silver, Path(data_dir) / "silver" / "sentinel" / f"{desa.lower()}.parquet"),
+        "path": save(silver, Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet"),
     }
 
 
 if __name__ == "__main__":
-    print(run_silver_sentinel(sys.argv[1] if len(sys.argv) > 1 else "Jotosanur"))
+    print(run_silver_sentinel(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_AOI))
