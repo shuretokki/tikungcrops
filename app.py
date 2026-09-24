@@ -75,8 +75,7 @@ def render_musim_tanam(musim: Collection | None):
     st.caption(
         "Dideteksi dari citra satelit per sel 100 m lahan sawah: tanggal penggenangan dari radar Sentinel-1, "
         "panen dari penurunan NDVI Sentinel-2. Luas padi = musim dengan tanda penggenangan; sisanya "
-        "kemungkinan palawija. Jendela tanggal = persentil 10-90% antar sel. Metode dan validasi terhadap "
-        "BPS: `archives/temuan-teknis.md`."
+        "kemungkinan palawija. Jendela tanggal = persentil 10-90% antar sel."
     )
     if musim is None:
         st.info(MONGO_DOWN_MSG)
