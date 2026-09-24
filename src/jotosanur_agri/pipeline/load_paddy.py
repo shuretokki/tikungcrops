@@ -29,7 +29,7 @@ from rasterio.warp import transform_geom
 
 from jotosanur_agri.pipeline import save
 from jotosanur_agri.pipeline.aoi import Aoi, resolve
-from jotosanur_agri.pipeline.load_sentinel import CELL_PX, DEFAULT_AOI, cell_ids, make_grid
+from jotosanur_agri.pipeline.load_sentinel import CELL_PX, DEFAULT_AOI, cell_ids, make_grid, unit_raster
 
 LBS_URL = (
     "https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/SUMBER_DAYA_ALAM_DAN_LINGKUNGAN/MapServer/36/query"
@@ -76,29 +76,44 @@ def run_paddy(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dic
         and the output path.
     """
     aoi = resolve(aoi_spec)
-    grid, units = make_grid(aoi)
-    features = fetch_lbs(aoi)
-    shapes = [(transform_geom("EPSG:4326", grid.crs, f["geometry"]), 1) for f in features if f.get("geometry")]
-    paddy = np.asarray(rasterize(shapes, out_shape=grid.shape, transform=grid.transform, dtype="uint8"), dtype=bool)
-    paddy &= units > 0
-
     cells_dir = Path(data_dir) / "bronze" / "sentinel" / aoi.slug
+    out = cells_dir / "paddy.parquet"
     cells = pl.read_parquet(cells_dir / "cells.parquet")
-    ids = cell_ids(grid, np.ones(grid.shape, dtype=bool))
-    n = int(ids.max()) + 1
-    frac = np.bincount(ids[paddy], minlength=n) / CELL_PX**2
-    table = cells.select("cell_id").with_columns(pl.Series("paddy_frac", frac[cells["cell_id"].to_numpy()]))
+    full = make_grid(aoi)
+    features = [f for f in fetch_lbs(aoi) if f.get("geometry")]
+    if not features:
+        # No LBS coverage (outside Indonesia, or no mapped paddy): gold then weights cells by 1
+        out.unlink(missing_ok=True)
+        return {"polygons": 0, "cells": cells.height, "path": None}
+    shapes = [(transform_geom("EPSG:4326", full.crs, f["geometry"]), 1) for f in features]
 
-    # How much LBS paddy the cropland cells miss (cells were chosen from WorldCover)
-    monitored = np.isin(ids, cells["cell_id"].to_numpy())
-    pixel_ha = (grid.transform.a**2) / 10_000
+    wanted = cells["cell_id"].to_numpy()
+    counts: dict[int, int] = {}
+    inside_px = outside_px = 0
+    for grid in full.blocks():
+        units = unit_raster(aoi, grid)
+        if not units.any():
+            continue
+        paddy = np.asarray(rasterize(shapes, out_shape=grid.shape, transform=grid.transform, dtype="uint8"), dtype=bool)
+        paddy &= units > 0
+        ids = cell_ids(grid, paddy)
+        monitored = np.isin(ids, wanted)
+        # How much LBS paddy the cropland cells miss (cells were chosen from WorldCover)
+        inside_px += int(monitored.sum())
+        outside_px += int((paddy & ~monitored).sum())
+        cell, n = np.unique(ids[monitored], return_counts=True)
+        counts.update(zip(cell.tolist(), n.tolist(), strict=True))
+
+    frac = [counts.get(int(c), 0) / CELL_PX**2 for c in wanted]
+    table = cells.select("cell_id").with_columns(pl.Series("paddy_frac", frac, dtype=pl.Float64))
+    pixel_ha = (full.transform.a**2) / 10_000
     return {
         "polygons": len(shapes),
         "cells": cells.height,
         "cells_mostly_paddy": int((table["paddy_frac"] >= 0.5).sum()),
-        "paddy_ha_in_cells": round(float((paddy & monitored).sum() * pixel_ha), 1),
-        "paddy_ha_outside_cells": round(float((paddy & ~monitored).sum() * pixel_ha), 1),
-        "path": save(table, cells_dir / "paddy.parquet"),
+        "paddy_ha_in_cells": round(inside_px * pixel_ha, 1),
+        "paddy_ha_outside_cells": round(outside_px * pixel_ha, 1),
+        "path": save(table, out),
     }
 
 

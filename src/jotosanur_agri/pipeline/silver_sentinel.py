@@ -28,7 +28,7 @@ from typing import Any
 import polars as pl
 
 from jotosanur_agri.pipeline import save
-from jotosanur_agri.pipeline.aoi import slugify
+from jotosanur_agri.pipeline.aoi import resolve
 from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
 
 STEP_DAYS = 5
@@ -146,9 +146,18 @@ def run_silver_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "dat
 
     Returns:
         Row and cell counts, the covered range, null shares and the output path.
+
+    Raises:
+        ValueError: If the AOI has no bronze months or no NDVI at all (e.g. only months
+            before Sentinel-2 L2A coverage starts).
     """
-    slug = slugify(aoi_spec)
-    bronze = pl.read_parquet(Path(data_dir) / "bronze" / "sentinel" / slug / "[0-9]*.parquet")
+    slug = resolve(aoi_spec).slug
+    months = sorted((Path(data_dir) / "bronze" / "sentinel" / slug).glob("[0-9]*.parquet"))
+    if not months:
+        raise ValueError(f"{slug}: no bronze months; run load_sentinel first")
+    bronze = pl.read_parquet(months)
+    if bronze.filter(pl.col("ndvi").is_not_null()).is_empty():
+        raise ValueError(f"{slug}: bronze has no Sentinel-2 NDVI; seasons cannot be detected from radar alone")
     silver = build_silver(bronze)
     return {
         "rows": silver.height,

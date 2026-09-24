@@ -50,7 +50,7 @@ def get_db() -> Database | None:
 MONGO_DOWN_MSG = "MongoDB tidak aktif - jalankan `just up` (atau `docker compose up -d`), lalu muat ulang halaman."
 
 
-AOI = "lamongan-tikung"
+DEFAULT_AOI = "idn-jawatimur-lamongan-tikung"
 MUSIM_LABEL = {"MT1": "MT1 (musim hujan)", "MT2": "MT2 (kemarau I)", "MT3": "MT3 (kemarau II)"}
 
 
@@ -66,7 +66,12 @@ def render_musim_tanam(musim: Collection | None):
     if musim is None:
         st.info(MONGO_DOWN_MSG)
         return
-    docs = list(musim.find({"aoi": AOI}, {"_id": 0, "sumber": 0, "schema_version": 0}))
+    aois = sorted(musim.distinct("aoi"))
+    if not aois:
+        st.info("Belum ada data musim tanam - jalankan `just gold` lalu `just mongo`.")
+        return
+    aoi = st.selectbox("Wilayah", aois, index=aois.index(DEFAULT_AOI) if DEFAULT_AOI in aois else 0)
+    docs = list(musim.find({"aoi": aoi}, {"_id": 0, "sumber": 0, "schema_version": 0}))
     if not docs:
         st.info("Belum ada data musim tanam - jalankan `just gold` lalu `just mongo`.")
         return

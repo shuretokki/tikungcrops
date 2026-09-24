@@ -27,7 +27,7 @@ from pymongo import ReplaceOne
 from pymongo.database import Database
 
 from jotosanur_agri.mongo import SCHEMA_VERSION, as_datetime, connect, ensure_collections, panen_doc, sumber
-from jotosanur_agri.pipeline.aoi import slugify
+from jotosanur_agri.pipeline.aoi import resolve
 from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
 
 SRC = Path("data/raw/sumber-data")
@@ -193,7 +193,7 @@ def main(aoi_spec: str = DEFAULT_AOI) -> None:
     )
     report = {"panen": sync(db, "panen", panen, owned), "ternak": sync(db, "ternak", ternak, owned)}
 
-    aoi = slugify(aoi_spec)
+    aoi = resolve(aoi_spec).slug
     units = GOLD / f"{aoi}_units.parquet"
     if units.exists():
         report["musim_tanam"] = sync(db, "musim_tanam", musim_tanam(units, aoi, now), ["sentinel"], {"aoi": aoi})

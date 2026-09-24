@@ -4,10 +4,10 @@ Source: Climate Hazards Center, UCSB. CHIRPS v3.0 global monthly (final, not pre
 0.05 deg (~5.5 km), 1981-now, public domain. Final data for a month is typically
 complete in the third week of the following month.
 
-Each monthly file is a Cloud-Optimized GeoTIFF, so only the tiles over the AOI are
-range-read over HTTP. The raster is warped onto the AOI's 10 m Sentinel grid and
-averaged over each unit's monitored cells, so a desa spanning two CHIRPS pixels gets
-their area-weighted mean.
+Each monthly file is a Cloud-Optimized GeoTIFF, so only the window over the AOI is
+range-read over HTTP. The raster is sampled at the centre of every monitored 100 m cell
+and averaged per unit, so a desa spanning two CHIRPS pixels gets their area-weighted
+mean. CHIRPS covers 50S-50N only; an AOI outside that band is rejected.
 
 Incremental batch: the bronze parquet is the cache. A run fetches months not yet in
 bronze, plus the last `REFETCH_LAST` months in case CHC revised them; --refresh
@@ -33,10 +33,13 @@ from typing import Any
 
 import numpy as np
 import polars as pl
+import rasterio
+from rasterio.transform import rowcol
+from rasterio.windows import from_bounds
 
 from jotosanur_agri.pipeline import save
 from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI, Grid, cell_ids, make_grid, read_to_grid
+from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI, GDAL_ENV
 
 BASE_URL = "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs"
 FILE_RE = re.compile(r"chirps-v3\.0\.(\d{4})\.(\d{2})\.cog")
@@ -44,6 +47,7 @@ FILE_RE = re.compile(r"chirps-v3\.0\.(\d{4})\.(\d{2})\.cog")
 NORMAL_YEARS = (1991, 2020)  # WMO standard normal period
 REFETCH_LAST = 2
 WORKERS = 4
+MAX_LAT = 50
 
 BRONZE_SCHEMA = {"unit": pl.Utf8, "year": pl.Int64, "month": pl.Int64, "precip_mm": pl.Float64, "fetched_on": pl.Utf8}
 
@@ -55,40 +59,38 @@ def list_months() -> list[tuple[int, int]]:
     return sorted({(int(y), int(m)) for y, m in FILE_RE.findall(html)})
 
 
-def fetch_month(year: int, month: int, grid: Grid, unit_px: np.ndarray, names: list[str]) -> list[dict[str, Any]]:
+def fetch_month(year: int, month: int, points: pl.DataFrame, names: list[str]) -> list[dict[str, Any]]:
     """Mean rainfall per unit for one month.
 
     Args:
         year: Year.
         month: Month.
-        grid: AOI grid.
-        unit_px: 1-based unit number per pixel, 0 outside the monitored cells.
-        names: Unit names, in unit-number order.
+        points: Monitored cells with ``lon``, ``lat`` and ``unit``.
+        names: Unit names; each gets a row.
 
     Returns:
-        One bronze row per unit; `precip_mm` is None when every pixel is no-data.
+        One bronze row per unit; `precip_mm` is None when the unit has no cell with data.
     """
-    values = read_to_grid(f"/vsicurl/{BASE_URL}/chirps-v3.0.{year}.{month:02d}.cog", grid)
+    lon, lat = points["lon"].to_numpy(), points["lat"].to_numpy()
+    url = f"/vsicurl/{BASE_URL}/chirps-v3.0.{year}.{month:02d}.cog"
+    with rasterio.Env(**GDAL_ENV), rasterio.open(url) as src:
+        pad = abs(src.transform.a)
+        bounds = (lon.min() - pad, lat.min() - pad, lon.max() + pad, lat.max() + pad)
+        window = from_bounds(*bounds, transform=src.transform).round_offsets().round_lengths()
+        data = src.read(1, window=window, boundless=True, fill_value=-9999)
+        rows, cols = rowcol(src.window_transform(window), lon, lat)
+    values = data[np.asarray(rows), np.asarray(cols)].astype("float64")
     # Ocean/no-data pixels are negative (-9999)
-    ok = (unit_px > 0) & np.isfinite(values) & (values >= 0)
-    total = np.bincount(unit_px[ok], weights=values[ok], minlength=len(names) + 1)
-    count = np.bincount(unit_px[ok], minlength=len(names) + 1)
+    frame = points.select("unit").with_columns(pl.Series("v", np.where(values >= 0, values, np.nan)).fill_nan(None))
+    means = dict(frame.group_by("unit").agg(pl.col("v").mean()).iter_rows())
     fetched_on = date.today().isoformat()
     return [
-        {
-            "unit": name,
-            "year": year,
-            "month": month,
-            "precip_mm": float(total[k] / count[k]) if count[k] else None,
-            "fetched_on": fetched_on,
-        }
-        for k, name in enumerate(names, start=1)
+        {"unit": name, "year": year, "month": month, "precip_mm": means.get(name), "fetched_on": fetched_on}
+        for name in names
     ]
 
 
-def load_bronze(
-    bronze_path: Path, grid: Grid, unit_px: np.ndarray, names: list[str], refresh: bool = False
-) -> pl.DataFrame:
+def load_bronze(bronze_path: Path, points: pl.DataFrame, names: list[str], refresh: bool = False) -> pl.DataFrame:
     """Return the full bronze table, fetching only months missing from the cache.
 
     The last `REFETCH_LAST` published months are always refetched, since CHC may
@@ -96,9 +98,8 @@ def load_bronze(
 
     Args:
         bronze_path: Cached bronze parquet.
-        grid: AOI grid.
-        unit_px: 1-based unit number per pixel, 0 outside the monitored cells.
-        names: Unit names, in unit-number order.
+        points: Monitored cells with ``lon``, ``lat`` and ``unit``.
+        names: Unit names.
         refresh: Ignore the cache and refetch every month.
 
     Returns:
@@ -116,7 +117,7 @@ def load_bronze(
     if todo:
         print(f"[chirps] fetching {len(todo)} months ({todo[0]} .. {todo[-1]})")
         with ThreadPoolExecutor(WORKERS) as pool:
-            for batch in pool.map(lambda ym: fetch_month(ym[0], ym[1], grid, unit_px, names), todo):
+            for batch in pool.map(lambda ym: fetch_month(ym[0], ym[1], points, names), todo):
                 rows.extend(batch)
     fresh = pl.DataFrame(rows, schema=BRONZE_SCHEMA)
     return pl.concat([cached, fresh]).sort("unit", "year", "month")
@@ -170,16 +171,19 @@ def run_chirps_pipeline(
 
     Returns:
         Row counts, null count, covered range and output paths.
+
+    Raises:
+        ValueError: If the AOI reaches beyond CHIRPS' 50S-50N coverage.
     """
     aoi = resolve(aoi_spec)
-    grid, units = make_grid(aoi)
-    cells = pl.read_parquet(Path(data_dir) / "bronze" / "sentinel" / aoi.slug / "cells.parquet")
-    monitored = np.isin(cell_ids(grid, np.ones(grid.shape, dtype=bool)), cells["cell_id"].to_numpy())
-    unit_px = np.where(monitored, units, 0)
+    _, south, _, north = aoi.bounds()
+    if north > MAX_LAT or south < -MAX_LAT:
+        raise ValueError(f"{aoi.slug}: CHIRPS covers {MAX_LAT}S-{MAX_LAT}N only (AOI spans {south:.1f}..{north:.1f})")
+    points = pl.read_parquet(Path(data_dir) / "bronze" / "sentinel" / aoi.slug / "cells.parquet")
     names = [name for name, _ in aoi.units]
 
     bronze_path = Path(data_dir) / "bronze" / "chirps" / f"{aoi.slug}_monthly.parquet"
-    bronze = load_bronze(bronze_path, grid, unit_px, names, refresh=refresh)
+    bronze = load_bronze(bronze_path, points, names, refresh=refresh)
     save(bronze, bronze_path)
     monthly, annual = to_silver(bronze)
 

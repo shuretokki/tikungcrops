@@ -17,8 +17,20 @@ from a higher neighbouring peak is one season. Around it:
       harvest (higher VH, clear drop), so either condition marks transplanted paddy.
       Seasons failing both are other crops (maize, pulses) or dry-seeded fields.
 A date is null when the series has no data there (clouds beyond the gap limit), or when
-the season runs past the edge of the covered period; `start_truncated` and
-`end_truncated` mark the latter. Seasons are never dropped, so gaps stay visible.
+the season runs past the edge of a covered period; `start_truncated` and
+`end_truncated` mark the latter. A stretch of `DATA_GAP_DAYS` without any Sentinel-1 or
+Sentinel-2 value (e.g. months never extracted) splits the series into separate periods.
+Seasons are never dropped, so gaps stay visible.
+
+Tuned for transplanted lowland rice in East Java; elsewhere the output runs but needs
+checking before use:
+    - the rice thresholds come from Tikung 2020 radar; dry-seeded or rainfed rice, other
+      soils and incidence angles shift VH;
+    - MT1-MT3 split seasons by NDVI peak month (Jan-Apr, May-Aug, Sep-Dec), which follows
+      the Javanese wet-season calendar; temperate regions or other monsoon timings
+      need their own split;
+    - `PEAK_MIN` and the season gap assume dense irrigated crops two to three times a year.
+Sentinel-2 L2A is sparse before late 2017, so earlier seasons are mostly undetectable.
 
 Outputs: data/gold/sentinel/<aoi-slug>_seasons.parquet, one row per cell per season, with
 the cell's AOI unit (e.g. its desa) and, after `load_paddy`, its LBS paddy share; and
@@ -36,7 +48,7 @@ import numpy as np
 import polars as pl
 
 from jotosanur_agri.pipeline import save
-from jotosanur_agri.pipeline.aoi import slugify
+from jotosanur_agri.pipeline.aoi import resolve
 from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
 
 PEAK_MIN = 0.6
@@ -51,6 +63,8 @@ FLOOD_AFTER_DAYS = 20
 RICE_FLOOD_VH_DB = -17.0
 RICE_VH_DROP_DB = 1.5
 PRE_SEASON_DAYS = (75, 30)
+# Longer than any cloud gap: S1 sees through clouds, so this only happens without bronze
+DATA_GAP_DAYS = 60
 
 SEASON_SCHEMA = {
     "cell_id": pl.Int64,
@@ -96,13 +110,19 @@ def seasons_for_cell(dates: np.ndarray, ndvi: np.ndarray, vh: np.ndarray) -> lis
     observed = np.flatnonzero(np.isfinite(ndvi))
     if not observed.size:
         return []
-    first_obs, last_obs = dates[observed[0]], dates[observed[-1]]
+    first_ndvi, last_ndvi = dates[observed[0]], dates[observed[-1]]
+    # Covered periods: runs of dates with any sensor value, split at long gaps
+    any_obs = dates[np.isfinite(ndvi) | np.isfinite(vh)]
+    breaks = np.flatnonzero(np.diff(any_obs) > timedelta(days=DATA_GAP_DAYS))
+    starts, ends = any_obs[np.r_[0, breaks + 1]], any_obs[np.r_[breaks, len(any_obs) - 1]]
     rows = []
     peaks = find_peaks(dates, ndvi)
     for season, p in enumerate(peaks, start=1):
         # Harvest must come before the next season's peak, or it belongs to that season
         stop = peaks[season] if season < len(peaks) else len(ndvi)
         peak_date = dates[p]
+        period = int(np.searchsorted(starts, peak_date, side="right")) - 1
+        first_obs, last_obs = max(starts[period], first_ndvi), min(ends[period], last_ndvi)
         back = (dates >= peak_date - timedelta(days=LOOKBACK_DAYS)) & (dates < peak_date) & np.isfinite(ndvi)
         # The look-back reaches before the first observation: the real base may be missing
         start_truncated = peak_date - timedelta(days=LOOKBACK_DAYS) < first_obs
@@ -146,7 +166,7 @@ def seasons_for_cell(dates: np.ndarray, ndvi: np.ndarray, vh: np.ndarray) -> lis
             # A null run between peak and the drop means the drop date is unknown
             if h is not None and np.isfinite(ndvi[p:h]).all():
                 row["harvest_date"] = dates[h]
-            elif h is None and stop == len(ndvi):
+            else:
                 row["end_truncated"] = last_obs - peak_date < timedelta(days=LOOKBACK_DAYS)
         rows.append(row)
     return rows
@@ -213,7 +233,7 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
     Returns:
         Season, cell and unit-summary counts, completeness of each date and the output paths.
     """
-    slug = slugify(aoi_spec)
+    slug = resolve(aoi_spec).slug
     silver = pl.read_parquet(Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet")
     cells_dir = Path(data_dir) / "bronze" / "sentinel" / slug
     cells = pl.read_parquet(cells_dir / "cells.parquet").select("cell_id", "unit")

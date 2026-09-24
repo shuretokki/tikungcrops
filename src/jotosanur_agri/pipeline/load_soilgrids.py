@@ -27,7 +27,7 @@ from rasterio.warp import Resampling
 
 from jotosanur_agri.pipeline import save
 from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI, cell_ids, make_grid, read_to_grid
+from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI, monitored_blocks, read_to_grid
 
 VRT_URL = "/vsicurl/https://files.isric.org/soilgrids/latest/data/{prop}/{prop}_{depth}_mean.vrt"
 
@@ -60,17 +60,18 @@ def run_soilgrids_pipeline(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "
         Cell and unit counts, the share of cells with complete values, and output paths.
     """
     aoi = resolve(aoi_spec)
-    grid, units = make_grid(aoi)
     cells = pl.read_parquet(Path(data_dir) / "bronze" / "sentinel" / aoi.slug / "cells.parquet")
-    ids = cell_ids(grid, np.isin(cell_ids(grid, np.ones(grid.shape, dtype=bool)), cells["cell_id"].to_numpy()))
-    member = ids >= 0
+    blocks = list(monitored_blocks(aoi, cells))
 
     def per_cell(layer: tuple[str, str]) -> tuple[str, dict[int, float]]:
         prop, depth = layer
-        values = read_to_grid(VRT_URL.format(prop=prop, depth=depth), grid, Resampling.nearest) / D_FACTOR[prop]
-        ok = member & np.isfinite(values)
-        frame = pl.DataFrame({"cell_id": ids[ok], "v": values[ok]})
-        return column(prop, depth), dict(frame.group_by("cell_id").agg(pl.col("v").mean()).iter_rows())
+        by_cell: dict[int, float] = {}
+        for grid, ids in blocks:
+            values = read_to_grid(VRT_URL.format(prop=prop, depth=depth), grid, Resampling.nearest) / D_FACTOR[prop]
+            ok = (ids >= 0) & np.isfinite(values)
+            frame = pl.DataFrame({"cell_id": ids[ok], "v": values[ok]})
+            by_cell.update(frame.group_by("cell_id").agg(pl.col("v").mean()).iter_rows())
+        return column(prop, depth), by_cell
 
     layers = [(prop, depth) for prop in D_FACTOR for depth in DEPTHS]
     with ThreadPoolExecutor(WORKERS) as pool:

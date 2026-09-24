@@ -17,7 +17,8 @@ README are tracked in git.
 | `silver/soilgrids/<aoi>_*.parquet` | no | `just soilgrids AOI` | SoilGrids 2.0 properties (0-30 cm) per cell and median per unit, read from ISRIC's global rasters |
 | `relasional.db` | no | dashboard forms (`jotosanur_agri.store`) | SQLite: users, destinations, distribution records entered by the mitra |
 
-`<aoi>` is the area slug, e.g. `lamongan-tikung` for `Lamongan/Tikung`.
+`<aoi>` is the area slug: ISO3 plus the full GADM name path, e.g. `idn-jawatimur-lamongan-tikung`
+for `Lamongan/Tikung`, or the file name for a GeoJSON AOI.
 
 ## Rebuild
 

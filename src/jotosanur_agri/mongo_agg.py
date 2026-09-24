@@ -118,7 +118,7 @@ def musim_unit_pipeline(aoi: str, unit: str) -> list[dict[str, Any]]:
     """A5: satellite planting seasons of one AOI unit, oldest first.
 
     Args:
-        aoi: AOI slug, e.g. ``"lamongan-tikung"``.
+        aoi: AOI slug, e.g. ``"idn-jawatimur-lamongan-tikung"``.
         unit: Unit name, e.g. ``"Jotosanur"``.
 
     Returns:
@@ -198,7 +198,10 @@ def queries(db: Database) -> dict[str, tuple[Collection, list[dict[str, Any]]]]:
         "A2 deret panen padi Jotosanur": (db["panen"], deret_panen_pipeline("padi", "Jotosanur")),
         "A3 tren sapi Jotosanur": (db["ternak"], tren_ternak_pipeline(JENIS_SAPI, "Jotosanur")),
         "A4 dokumen per sumber": (db["panen"], ringkasan_sumber_pipeline()),
-        "A5 musim tanam satelit Jotosanur": (db["musim_tanam"], musim_unit_pipeline("lamongan-tikung", "Jotosanur")),
+        "A5 musim tanam satelit Jotosanur": (
+            db["musim_tanam"],
+            musim_unit_pipeline("idn-jawatimur-lamongan-tikung", "Jotosanur"),
+        ),
     }
 
 

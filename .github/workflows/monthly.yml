@@ -48,7 +48,9 @@ jobs:
 
       - name: Validate inputs
         run: |
-          [[ "$AOI" =~ ^([A-Z]{3}:)?[A-Za-z][A-Za-z\ /]*$ ]] || { echo "bad aoi: $AOI"; exit 1; }
+          # Letters, digits, space and / . ( ) _ - only; no quotes or shell metacharacters
+          aoi_re='^([A-Z]{3}:)?[A-Za-z0-9][A-Za-z0-9 /.()_-]*$'
+          [[ "$AOI" =~ $aoi_re ]] || { echo "bad aoi: $AOI"; exit 1; }
           for m in "$START" "$END"; do
             [[ -z "$m" || "$m" =~ ^[0-9]{4}-[0-9]{2}$ ]] || { echo "bad month: $m"; exit 1; }
           done

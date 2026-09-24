@@ -8,12 +8,19 @@ Sources, all public and read over HTTP as Cloud-Optimized GeoTIFFs (no login):
     - Area boundaries from `aoi` (GADM or a user GeoJSON).
 
 Rows are 100 m cells (10 x 10 Sentinel-2 pixels) inside the AOI that are at least half
-cropland; each cell belongs to the AOI unit covering most of it. Each scene becomes one
-row per cell with per-cell statistics:
+cropland; each cell belongs to the AOI unit covering most of it. Each acquisition date
+becomes one row per cell with per-cell statistics:
     - S2: median NDVI and LSWI over pixels the scene classification marks clear,
       plus the clear fraction.
     - S1: mean VV and VH backscatter in dB. Flooded paddy at transplanting shows as
       a sharp VH drop, visible through the rainy-season clouds that block S2.
+
+An AOI can span several satellite tiles, and a single date often has several partial
+products (datastrips, reprocessings). All items of a date are mosaicked: each pixel
+comes from the newest product that covers it.
+
+The grid is processed in blocks of at most `BLOCK_PX` x `BLOCK_PX` pixels, so memory
+stays bounded for large areas; cell ids are global across blocks.
 
 Output: data/bronze/sentinel/<aoi-slug>/<YYYY-MM>.parquet plus cells.parquet.
 Usage: `python -m jotosanur_agri.pipeline.load_sentinel [AOI] [START_MONTH] [END_MONTH]`,
@@ -26,6 +33,7 @@ from __future__ import annotations
 import json
 import sys
 import urllib.request
+from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -37,7 +45,7 @@ import polars as pl
 import rasterio
 from affine import Affine
 from rasterio.features import rasterize
-from rasterio.warp import Resampling, reproject, transform, transform_geom
+from rasterio.warp import Resampling, reproject, transform, transform_bounds, transform_geom
 
 from jotosanur_agri.pipeline import save
 from jotosanur_agri.pipeline.aoi import Aoi, resolve
@@ -49,6 +57,7 @@ PC_TOKEN = "https://planetarycomputer.microsoft.com/api/sas/v1/token/sentinel-1-
 
 PIXEL_M = 10
 CELL_PX = 10  # 100 m cells
+BLOCK_PX = 1500  # multiple of CELL_PX; ~2.25 M pixels per block
 MIN_CROP_FRAC = 0.5
 WORLDCOVER_CROPLAND = 40
 # Sentinel-2 scene classes treated as clear: vegetation, bare soil, water
@@ -76,23 +85,63 @@ BRONZE_SCHEMA = {
     "orbit": pl.Utf8,
 }
 
+Item = dict[str, Any]
+
+CELLS_SCHEMA = {
+    "cell_id": pl.Int64,
+    "unit": pl.Utf8,
+    "x": pl.Float64,
+    "y": pl.Float64,
+    "lon": pl.Float64,
+    "lat": pl.Float64,
+    "crop_frac": pl.Float64,
+}
+
 
 @dataclass(frozen=True)
 class Grid:
-    """10 m pixel grid in a UTM CRS, sized to whole cells."""
+    """10 m pixel grid in a UTM CRS, or one block of it.
+
+    Attributes:
+        transform: Affine transform of the grid's top-left pixel.
+        shape: (rows, cols) in pixels, multiples of `CELL_PX`.
+        crs: UTM CRS.
+        cells_wide: Cells per row of the full grid; keeps cell ids global across blocks.
+        cell_row0: Cell row of this block's first row in the full grid.
+        cell_col0: Cell column of this block's first column in the full grid.
+    """
 
     transform: Affine
     shape: tuple[int, int]
     crs: str
+    cells_wide: int
+    cell_row0: int = 0
+    cell_col0: int = 0
 
-    @property
-    def cells_wide(self) -> int:
-        """Number of cells per grid row."""
-        return self.shape[1] // CELL_PX
+    def blocks(self, size: int = BLOCK_PX) -> Iterator[Grid]:
+        """Split into blocks of at most `size` x `size` pixels, row-major."""
+        rows, cols = self.shape
+        for r in range(0, rows, size):
+            for c in range(0, cols, size):
+                yield Grid(
+                    self.transform * Affine.translation(c, r),
+                    (min(size, rows - r), min(size, cols - c)),
+                    self.crs,
+                    self.cells_wide,
+                    self.cell_row0 + r // CELL_PX,
+                    self.cell_col0 + c // CELL_PX,
+                )
+
+    def lonlat_bounds(self) -> tuple[float, float, float, float]:
+        """(west, south, east, north) in degrees."""
+        rows, cols = self.shape
+        west, north = self.transform * (0, 0)
+        east, south = self.transform * (cols, rows)
+        return transform_bounds(self.crs, "EPSG:4326", west, south, east, north)
 
 
-def stac_search(url: str, collection: str, bbox: tuple[float, ...], month: str) -> list[dict[str, Any]]:
-    """All items of `collection` intersecting `bbox` in `month` (``YYYY-MM``), one per acquisition date."""
+def stac_search(url: str, collection: str, bbox: tuple[float, ...], month: str) -> dict[str, list[Item]]:
+    """Items of `collection` intersecting `bbox` in `month` (``YYYY-MM``), grouped by date, newest product first."""
     first = date.fromisoformat(f"{month}-01")
     last = date(first.year + first.month // 12, first.month % 12 + 1, 1) - timedelta(days=1)
     body = {
@@ -102,7 +151,7 @@ def stac_search(url: str, collection: str, bbox: tuple[float, ...], month: str) 
         "limit": 100,
     }
     request = urllib.request.Request(url, json.dumps(body).encode(), {"Content-Type": "application/json"})
-    items: list[dict[str, Any]] = []
+    items: list[Item] = []
     while True:
         with urllib.request.urlopen(request, timeout=120) as resp:
             page = json.load(resp)
@@ -112,21 +161,19 @@ def stac_search(url: str, collection: str, bbox: tuple[float, ...], month: str) 
             break
         data = json.dumps(nxt["body"]).encode() if nxt.get("method") == "POST" else None
         request = urllib.request.Request(nxt["href"], data, {"Content-Type": "application/json"})
-    # Overlapping tiles or reprocessed products can repeat a date; keep the first
-    by_date: dict[str, dict[str, Any]] = {}
-    for item in sorted(items, key=lambda i: i["properties"]["datetime"]):
-        by_date.setdefault(item["properties"]["datetime"][:10], item)
-    return list(by_date.values())
+    by_date: dict[str, list[Item]] = {}
+    for item in sorted(items, key=lambda i: i["properties"].get("created", ""), reverse=True):
+        by_date.setdefault(item["properties"]["datetime"][:10], []).append(item)
+    return dict(sorted(by_date.items()))
 
 
-def make_grid(aoi: Aoi) -> tuple[Grid, np.ndarray]:
-    """Grid over the AOI bounds, snapped to whole cells, plus a raster of unit numbers (1-based, 0 outside)."""
+def make_grid(aoi: Aoi) -> Grid:
+    """Full grid over the AOI bounds, snapped to whole cells."""
     crs = aoi.utm_crs()
-    utm = [transform_geom("EPSG:4326", crs, geometry) for _, geometry in aoi.units]
     points = [
         (x, y)
-        for g in utm
-        for polygon in (g["coordinates"] if g["type"] == "MultiPolygon" else [g["coordinates"]])
+        for _, geometry in aoi.units
+        for polygon in _polygons(transform_geom("EPSG:4326", crs, geometry))
         for x, y in polygon[0]
     ]
     xs, ys = [p[0] for p in points], [p[1] for p in points]
@@ -134,11 +181,17 @@ def make_grid(aoi: Aoi) -> tuple[Grid, np.ndarray]:
     x0, y1 = np.floor(min(xs) / step) * step, np.ceil(max(ys) / step) * step
     width = int(np.ceil((max(xs) - x0) / step)) * CELL_PX
     height = int(np.ceil((y1 - min(ys)) / step)) * CELL_PX
-    grid = Grid(Affine(PIXEL_M, 0, x0, 0, -PIXEL_M, y1), (height, width), crs)
-    units = rasterize(
-        [(g, k + 1) for k, g in enumerate(utm)], out_shape=grid.shape, transform=grid.transform, dtype="int32"
-    )
-    return grid, np.asarray(units)
+    return Grid(Affine(PIXEL_M, 0, x0, 0, -PIXEL_M, y1), (height, width), crs, width // CELL_PX)
+
+
+def _polygons(geometry: dict[str, Any]) -> list[Any]:
+    return geometry["coordinates"] if geometry["type"] == "MultiPolygon" else [geometry["coordinates"]]
+
+
+def unit_raster(aoi: Aoi, grid: Grid) -> np.ndarray:
+    """Unit number per pixel (1-based, 0 outside the AOI) on `grid` or a block of it."""
+    shapes = [(transform_geom("EPSG:4326", grid.crs, g), k + 1) for k, (_, g) in enumerate(aoi.units)]
+    return np.asarray(rasterize(shapes, out_shape=grid.shape, transform=grid.transform, fill=0, dtype="int32"))
 
 
 def read_to_grid(href: str, grid: Grid, resampling: Resampling = Resampling.nearest) -> np.ndarray:
@@ -167,39 +220,103 @@ def read_cropland(aoi: Aoi, grid: Grid) -> np.ndarray:
 
 
 def cell_ids(grid: Grid, keep: np.ndarray) -> np.ndarray:
-    """Cell id per pixel (row-major over cells), -1 where `keep` is False."""
+    """Global cell id per pixel (row-major over the full grid's cells), -1 where `keep` is False."""
     rows, cols = np.indices(grid.shape)
-    ids = (rows // CELL_PX) * grid.cells_wide + cols // CELL_PX
+    ids = (rows // CELL_PX + grid.cell_row0) * grid.cells_wide + cols // CELL_PX + grid.cell_col0
     return np.where(keep, ids, -1)
 
 
+def monitored_blocks(aoi: Aoi, cells: pl.DataFrame) -> Iterator[tuple[Grid, np.ndarray]]:
+    """Blocks holding any of `cells`, each with the global cell id per pixel (-1 outside those cells).
+
+    Blocks are multiples of the cell size, so every cell lies wholly in one block and
+    per-cell statistics can be computed block by block.
+    """
+    wanted = cells["cell_id"].to_numpy()
+    for grid in make_grid(aoi).blocks():
+        ids = cell_ids(grid, np.ones(grid.shape, dtype=bool))
+        keep = np.isin(ids, wanted)
+        if keep.any():
+            yield grid, np.where(keep, ids, -1)
+
+
 def cells_table(aoi: Aoi, grid: Grid, units: np.ndarray, cropland: np.ndarray) -> pl.DataFrame:
-    """Cells inside the AOI that are at least `MIN_CROP_FRAC` cropland, with centre coordinates and unit."""
+    """Cells of one block inside the AOI that are at least `MIN_CROP_FRAC` cropland, with coordinates and unit."""
     inside = units > 0
-    ids = cell_ids(grid, inside)
-    n = (grid.shape[0] // CELL_PX) * grid.cells_wide
-    total = np.bincount(ids[inside], minlength=n)
-    crop = np.bincount(ids[inside & cropland], minlength=n)
+    rows, cols = np.indices(grid.shape)
+    wide = grid.shape[1] // CELL_PX
+    local = (rows // CELL_PX) * wide + cols // CELL_PX
+    n = (grid.shape[0] // CELL_PX) * wide
+    total = np.bincount(local[inside], minlength=n)
+    crop = np.bincount(local[inside & cropland], minlength=n)
     # Majority unit per cell: count (cell, unit) pairs, then take the most frequent unit
     n_units = len(aoi.units) + 1
-    pairs = np.bincount(ids[inside] * n_units + units[inside], minlength=n * n_units).reshape(n, n_units)
-    cell = np.arange(n)
+    pairs = np.bincount(local[inside] * n_units + units[inside], minlength=n * n_units).reshape(n, n_units)
     keep = (total > 0) & (crop / np.maximum(total, 1) >= MIN_CROP_FRAC)
-    x = grid.transform.c + (cell % grid.cells_wide + 0.5) * PIXEL_M * CELL_PX
-    y = grid.transform.f - (cell // grid.cells_wide + 0.5) * PIXEL_M * CELL_PX
+    cell_row = np.arange(n) // wide + grid.cell_row0
+    cell_col = np.arange(n) % wide + grid.cell_col0
+    x = grid.transform.c + (np.arange(n) % wide + 0.5) * PIXEL_M * CELL_PX
+    y = grid.transform.f - (np.arange(n) // wide + 0.5) * PIXEL_M * CELL_PX
     lon, lat = transform(grid.crs, "EPSG:4326", x[keep].tolist(), y[keep].tolist())[:2]
     names = [name for name, _ in aoi.units]
     return pl.DataFrame(
         {
-            "cell_id": cell[keep],
+            "cell_id": (cell_row * grid.cells_wide + cell_col)[keep],
             "unit": [names[u - 1] for u in pairs[keep].argmax(axis=1)],
             "x": x[keep],
             "y": y[keep],
             "lon": lon,
             "lat": lat,
             "crop_frac": (crop / np.maximum(total, 1))[keep],
-        }
+        },
+        schema=CELLS_SCHEMA,
     )
+
+
+@dataclass(frozen=True)
+class Block:
+    """One grid block with the global cell id of each monitored pixel (-1 elsewhere)."""
+
+    grid: Grid
+    ids: np.ndarray
+    bounds: tuple[float, float, float, float]
+
+
+def _overlaps(item: Item, bounds: tuple[float, float, float, float]) -> bool:
+    west, south, east, north = item.get("bbox") or (-180, -90, 180, 90)
+    return not (east < bounds[0] or west > bounds[2] or north < bounds[1] or south > bounds[3])
+
+
+def _mosaic(
+    items: list[Item],
+    block: Block,
+    first: str,
+    rest: tuple[str, ...],
+    href: Callable[[Item, str], str],
+    adjust: Callable[[Item, np.ndarray], np.ndarray] = lambda _, values: values,
+) -> dict[str, np.ndarray]:
+    """Fill each monitored pixel from the first item (newest) that has data there.
+
+    `first` is the asset that decides coverage; `rest` are read only where it filled and
+    passed through `adjust` (per-item corrections such as a reflectance offset).
+    """
+    member = block.ids >= 0
+    layers = {name: np.full(block.grid.shape, np.nan, dtype="float32") for name in (first, *rest)}
+    for item in items:
+        need = member & np.isnan(layers[first])
+        if not need.any():
+            break
+        if not _overlaps(item, block.bounds):
+            continue
+        resampling = Resampling.nearest if first == "scl" else Resampling.bilinear
+        base = read_to_grid(href(item, first), block.grid, resampling)
+        take = need & np.isfinite(base)
+        if not take.any():
+            continue
+        layers[first][take] = base[take]
+        for name in rest:
+            layers[name][take] = adjust(item, read_to_grid(href(item, name), block.grid, Resampling.bilinear))[take]
+    return layers
 
 
 def _per_cell(ids: np.ndarray, values: np.ndarray, valid: np.ndarray, stat: str) -> dict[int, float]:
@@ -208,48 +325,64 @@ def _per_cell(ids: np.ndarray, values: np.ndarray, valid: np.ndarray, stat: str)
     return dict(frame.group_by("cell_id").agg(agg).iter_rows())
 
 
-def s2_rows(item: dict[str, Any], grid: Grid, ids: np.ndarray) -> list[dict[str, Any]]:
-    """Per-cell NDVI, LSWI and clear fraction for one Sentinel-2 scene."""
-    assets, day = item["assets"], item["properties"]["datetime"][:10]
-    scl = read_to_grid(assets["scl"]["href"], grid)
-    red, nir, swir = (read_to_grid(assets[b]["href"], grid, Resampling.bilinear) for b in ("red", "nir", "swir16"))
-    if day >= S2_OFFSET_FROM and not item["properties"].get("earthsearch:boa_offset_applied", False):
-        red, nir, swir = red - 1000, nir - 1000, swir - 1000
+def _s2_offset(item: Item, values: np.ndarray) -> np.ndarray:
+    day = item["properties"]["datetime"][:10]
+    applied = item["properties"].get("earthsearch:boa_offset_applied", False)
+    return values - 1000 if day >= S2_OFFSET_FROM and not applied else values
+
+
+def s2_rows(day: str, items: list[Item], block: Block) -> list[dict[str, Any]]:
+    """Per-cell NDVI, LSWI and clear fraction for one Sentinel-2 date in one block."""
+    layers = _mosaic(
+        items, block, "scl", ("red", "nir", "swir16"), lambda item, asset: item["assets"][asset]["href"], _s2_offset
+    )
+    ids = block.ids
     member = ids >= 0
-    clear = member & np.isin(scl, S2_CLEAR)
+    red, nir, swir = layers["red"], layers["nir"], layers["swir16"]
+    clear = member & np.isin(layers["scl"], S2_CLEAR)
     with np.errstate(invalid="ignore", divide="ignore"):
         ndvi = (nir - red) / (nir + red)
         lswi = (nir - swir) / (nir + swir)
     ok = clear & np.isfinite(ndvi) & np.isfinite(lswi)
-    n_all = np.bincount(ids[member])
-    n_clear = np.bincount(ids[ok], minlength=len(n_all))
+    cells, n_all = np.unique(ids[member], return_counts=True)
+    n_clear = dict(zip(*np.unique(ids[ok], return_counts=True), strict=True))
     ndvi_by, lswi_by = _per_cell(ids, ndvi, ok, "median"), _per_cell(ids, lswi, ok, "median")
     return [
         {
             "cell_id": int(c),
             "date": date.fromisoformat(day),
             "sensor": "S2",
-            "clear_frac": float(n_clear[c] / n_all[c]),
+            "clear_frac": float(n_clear.get(c, 0) / n),
             "ndvi": ndvi_by.get(int(c)),
             "lswi": lswi_by.get(int(c)),
             "vv_db": None,
             "vh_db": None,
             "orbit": None,
         }
-        for c in np.flatnonzero(n_all)
+        for c, n in zip(cells, n_all, strict=True)
     ]
 
 
-def s1_rows(item: dict[str, Any], grid: Grid, ids: np.ndarray, token: str) -> list[dict[str, Any]]:
-    """Per-cell mean VV and VH backscatter (dB) for one Sentinel-1 RTC scene."""
-    assets, day = item["assets"], item["properties"]["datetime"][:10]
+def s1_rows(day: str, items: list[Item], block: Block, token: str) -> list[dict[str, Any]]:
+    """Per-cell mean VV and VH backscatter (dB) for one Sentinel-1 date in one block.
+
+    Frames of one date from different orbit directions are not mixed: the first
+    (newest) item's direction is used, since ascending and descending passes differ.
+    Single-polarisation frames (common before 2017) are skipped.
+    """
+    items = [i for i in items if {"vv", "vh"} <= i["assets"].keys()]
+    if not items:
+        return []
+    orbit = items[0]["properties"].get("sat:orbit_state")
+    same_pass = [i for i in items if i["properties"].get("sat:orbit_state") == orbit]
+    layers = _mosaic(same_pass, block, "vh", ("vv",), lambda item, pol: f"{item['assets'][pol]['href']}?{token}")
+    ids = block.ids
     member = ids >= 0
     by_pol: dict[str, dict[int, float]] = {}
     for pol in ("vv", "vh"):
-        linear = read_to_grid(f"{assets[pol]['href']}?{token}", grid, Resampling.bilinear)
         # Average in linear power, then convert, so the mean is not biased by the log
-        ok = member & np.isfinite(linear) & (linear > 0)
-        by_pol[pol] = {c: float(10 * np.log10(v)) for c, v in _per_cell(ids, linear, ok, "mean").items()}
+        ok = member & np.isfinite(layers[pol]) & (layers[pol] > 0)
+        by_pol[pol] = {c: float(10 * np.log10(v)) for c, v in _per_cell(ids, layers[pol], ok, "mean").items()}
     return [
         {
             "cell_id": int(c),
@@ -260,7 +393,7 @@ def s1_rows(item: dict[str, Any], grid: Grid, ids: np.ndarray, token: str) -> li
             "lswi": None,
             "vv_db": by_pol["vv"].get(int(c)),
             "vh_db": by_pol["vh"].get(int(c)),
-            "orbit": item["properties"].get("sat:orbit_state"),
+            "orbit": orbit,
         }
         for c in np.unique(ids[member])
     ]
@@ -289,6 +422,23 @@ def previous_month(today: date | None = None) -> str:
     return f"{y:04d}-{m:02d}"
 
 
+def prepare_blocks(aoi: Aoi) -> tuple[pl.DataFrame, list[Block]]:
+    """Cells table for the whole AOI, and the blocks that contain monitored cells."""
+    tables, blocks = [], []
+    for grid in make_grid(aoi).blocks():
+        units = unit_raster(aoi, grid)
+        if not units.any():
+            continue
+        cropland = read_cropland(aoi, grid)
+        table = cells_table(aoi, grid, units, cropland)
+        if table.is_empty():
+            continue
+        keep = np.isin(cell_ids(grid, np.ones(grid.shape, dtype=bool)), table["cell_id"].to_numpy())
+        tables.append(table)
+        blocks.append(Block(grid, cell_ids(grid, (units > 0) & cropland & keep), grid.lonlat_bounds()))
+    return (pl.concat(tables) if tables else pl.DataFrame(schema=CELLS_SCHEMA)), blocks
+
+
 def run_sentinel_pipeline(
     aoi_spec: str = DEFAULT_AOI, start: str | None = None, end: str | None = None, out_dir: str | Path = "data"
 ) -> dict[str, Any]:
@@ -304,33 +454,43 @@ def run_sentinel_pipeline(
         out_dir: Data root.
 
     Returns:
-        Cell and unit counts and, per month, scene and row counts.
+        Cell, unit and block counts and, per month, date and row counts.
+
+    Raises:
+        ValueError: If the AOI has no cropland cells to monitor.
     """
     start = start or previous_month()
     end = end or start
     aoi = resolve(aoi_spec)
-    grid, units = make_grid(aoi)
-    cropland = read_cropland(aoi, grid)
-    cells = cells_table(aoi, grid, units, cropland)
-    keep = np.isin(cell_ids(grid, np.ones(grid.shape, dtype=bool)), cells["cell_id"].to_numpy())
-    ids = cell_ids(grid, (units > 0) & cropland & keep)
+    cells, blocks = prepare_blocks(aoi)
+    if cells.is_empty():
+        raise ValueError(f"{aoi.slug}: no cell is at least {MIN_CROP_FRAC:.0%} WorldCover cropland; nothing to monitor")
 
     aoi_dir = Path(out_dir) / "bronze" / "sentinel" / aoi.slug
     save(cells, aoi_dir / "cells.parquet")
-    token = pc_token()
     bbox = aoi.bounds()
-    summary: dict[str, Any] = {"aoi": aoi.slug, "units": len(aoi.units), "cells": cells.height, "months": {}}
+    summary: dict[str, Any] = {
+        "aoi": aoi.slug,
+        "units": len(aoi.units),
+        "cells": cells.height,
+        "blocks": len(blocks),
+        "months": {},
+    }
     for month in month_range(start, end):
-        s2_items = stac_search(EARTH_SEARCH, "sentinel-2-l2a", bbox, month)
-        s1_items = stac_search(PLANETARY, "sentinel-1-rtc", bbox, month)
+        s2_dates = stac_search(EARTH_SEARCH, "sentinel-2-l2a", bbox, month)
+        s1_dates = stac_search(PLANETARY, "sentinel-1-rtc", bbox, month)
+        # SAS tokens expire after about an hour; a month takes minutes
+        token = pc_token()
         with ThreadPoolExecutor(WORKERS) as pool:
-            s2 = pool.map(lambda i: s2_rows(i, grid, ids), s2_items)
-            s1 = pool.map(lambda i: s1_rows(i, grid, ids, token), s1_items)
-            rows = [row for batch in (*s2, *s1) for row in batch]
+            futures = [pool.submit(s2_rows, day, items, b) for day, items in s2_dates.items() for b in blocks]
+            futures += [pool.submit(s1_rows, day, items, b, token) for day, items in s1_dates.items() for b in blocks]
+            rows = [row for future in futures for row in future.result()]
         bronze = pl.DataFrame(rows, schema=BRONZE_SCHEMA).sort("sensor", "date", "cell_id")
         save(bronze, aoi_dir / f"{month}.parquet")
-        summary["months"][month] = {"s2": len(s2_items), "s1": len(s1_items), "rows": bronze.height}
-        print(f"[sentinel] {aoi.slug} {month}: {len(s2_items)} S2, {len(s1_items)} S1, {bronze.height} rows")
+        summary["months"][month] = {"s2_dates": len(s2_dates), "s1_dates": len(s1_dates), "rows": bronze.height}
+        print(
+            f"[sentinel] {aoi.slug} {month}: {len(s2_dates)} S2 dates, {len(s1_dates)} S1 dates, {bronze.height} rows"
+        )
     return summary
 
 
