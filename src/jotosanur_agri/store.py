@@ -1,16 +1,16 @@
-"""Storage for the dashboard input forms: SQLite for distribution, MongoDB for mitra harvests.
+"""Storage for the dashboard input forms: SQLite for distribution, MongoDB for partner harvests.
 
-SQLite `data/relasional.db` holds pengguna, tujuan and distribusi (spec section 4).
-`tujuan` is seeded with the 4 MBG kecamatan named in the news source; `distribusi`
-is never seeded, because only aggregates are known and splitting them per dapur
-would invent data.
+SQLite `data/relational.db` holds users, destinations and distributions (spec section 4).
+`destinations` is seeded with the 4 MBG districts named in the news source;
+`distributions` is never seeded, because only aggregates are known and splitting them
+per kitchen would invent data.
 
-Mitra harvests go to Mongo `panen` with `sumber.kode = "input_mitra"`. The
+Partner harvests go to Mongo `harvests` with `source.code = "partner_input"`. The
 collection validator is the last line of defence; the obvious cases are checked
 here first so the form can show a readable error.
 
-`distribusi.panen_ref` points at a Mongo `panen._id`. Neither database can enforce
-that link, so `add_distribusi` checks it.
+`distributions.harvest_ref` points at a Mongo `harvests._id`. Neither database can
+enforce that link, so `add_distribution` checks it.
 """
 
 from __future__ import annotations
@@ -25,48 +25,48 @@ from typing import Any
 from pymongo import DESCENDING
 from pymongo.collection import Collection
 
-from jotosanur_agri.mongo import as_datetime, panen_doc, sumber
+from jotosanur_agri.mongo import as_datetime, harvest_doc, source
 
-SQLITE_PATH = Path("data/relasional.db")
+SQLITE_PATH = Path("data/relational.db")
 
 DDL = """
-CREATE TABLE IF NOT EXISTS pengguna (
-  id          INTEGER PRIMARY KEY,
-  nama        TEXT NOT NULL,
-  peran       TEXT NOT NULL CHECK (peran IN ('admin', 'operator', 'viewer')),
-  dibuat_pada TEXT NOT NULL DEFAULT (datetime('now'))
+CREATE TABLE IF NOT EXISTS users (
+  id         INTEGER PRIMARY KEY,
+  name       TEXT NOT NULL,
+  role       TEXT NOT NULL CHECK (role IN ('admin', 'operator', 'viewer')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
-CREATE TABLE IF NOT EXISTS tujuan (
-  id        INTEGER PRIMARY KEY,
-  jenis     TEXT NOT NULL CHECK (jenis IN ('kecamatan', 'dapur_mbg')),
-  nama      TEXT NOT NULL,
-  kecamatan TEXT NOT NULL,
-  UNIQUE (jenis, nama)
+CREATE TABLE IF NOT EXISTS destinations (
+  id       INTEGER PRIMARY KEY,
+  type     TEXT NOT NULL CHECK (type IN ('district', 'mbg_kitchen')),
+  name     TEXT NOT NULL,
+  district TEXT NOT NULL,
+  UNIQUE (type, name)
 );
-CREATE TABLE IF NOT EXISTS distribusi (
-  id           INTEGER PRIMARY KEY,
-  tanggal      TEXT NOT NULL,
-  jenis_barang TEXT NOT NULL CHECK (jenis_barang IN ('bibit', 'hasil_panen')),
-  komoditas    TEXT NOT NULL,
-  jumlah       REAL NOT NULL CHECK (jumlah > 0),
-  satuan       TEXT NOT NULL CHECK (satuan IN ('kg', 'ton', 'ekor')),
-  tujuan_id    INTEGER NOT NULL REFERENCES tujuan(id),
-  panen_ref    TEXT,
-  pengguna_id  INTEGER REFERENCES pengguna(id),
-  sumber       TEXT NOT NULL CHECK (sumber IN ('input_mitra', 'berita'))
+CREATE TABLE IF NOT EXISTS distributions (
+  id             INTEGER PRIMARY KEY,
+  date           TEXT NOT NULL,
+  item_type      TEXT NOT NULL CHECK (item_type IN ('seed', 'harvest')),
+  commodity      TEXT NOT NULL,
+  quantity       REAL NOT NULL CHECK (quantity > 0),
+  unit           TEXT NOT NULL CHECK (unit IN ('kg', 'ton', 'head')),
+  destination_id INTEGER NOT NULL REFERENCES destinations(id),
+  harvest_ref    TEXT,
+  user_id        INTEGER REFERENCES users(id),
+  source         TEXT NOT NULL CHECK (source IN ('partner_input', 'news'))
 );
-CREATE INDEX IF NOT EXISTS idx_distribusi_tanggal ON distribusi (tanggal);
+CREATE INDEX IF NOT EXISTS idx_distributions_date ON distributions (date);
 """
 
-# lamongan.inews.id/read/618426 (2025-07-13): 7 dapur MBG in these kecamatan
-SEED_KECAMATAN_MBG = ["Lamongan", "Babat", "Sugio", "Kembangbahu"]
+# lamongan.inews.id/read/618426 (2025-07-13): 7 MBG kitchens in these districts
+SEED_MBG_DISTRICTS = ["Lamongan", "Babat", "Sugio", "Kembangbahu"]
 
-JENIS_BARANG = ["bibit", "hasil_panen"]
-SATUAN = ["kg", "ton", "ekor"]
-JENIS_TUJUAN = ["kecamatan", "dapur_mbg"]
+ITEM_TYPES = ["seed", "harvest"]
+UNITS = ["kg", "ton", "head"]
+DESTINATION_TYPES = ["district", "mbg_kitchen"]
 
-# Kampung Pandu Sakti's location; mitra input is always from there
-MITRA_LOKASI = {"desa": "Jotosanur", "kecamatan": "Tikung"}
+# Kampung Pandu Sakti's location; partner input is always from there
+PARTNER_LOCATION = {"village": "Jotosanur", "district": "Tikung"}
 
 Row = dict[str, Any]
 
@@ -81,105 +81,105 @@ def _connect(path: Path) -> sqlite3.Connection:
 
 
 def init_sqlite(path: Path = SQLITE_PATH) -> None:
-    """Create the tables and seed `tujuan`. Idempotent."""
+    """Create the tables and seed `destinations`. Idempotent."""
     with closing(_connect(path)) as conn, conn:
         conn.executescript(DDL)
         conn.executemany(
-            "INSERT OR IGNORE INTO tujuan (jenis, nama, kecamatan) VALUES ('kecamatan', ?, ?)",
-            [(k, k) for k in SEED_KECAMATAN_MBG],
+            "INSERT OR IGNORE INTO destinations (type, name, district) VALUES ('district', ?, ?)",
+            [(d, d) for d in SEED_MBG_DISTRICTS],
         )
 
 
-def list_tujuan(path: Path = SQLITE_PATH) -> list[Row]:
+def list_destinations(path: Path = SQLITE_PATH) -> list[Row]:
     """All destinations, ordered by type then name."""
     with closing(_connect(path)) as conn:
-        rows = conn.execute("SELECT id, jenis, nama, kecamatan FROM tujuan ORDER BY jenis, nama")
+        rows = conn.execute("SELECT id, type, name, district FROM destinations ORDER BY type, name")
         return [dict(r) for r in rows]
 
 
-def add_tujuan(jenis: str, nama: str, kecamatan: str, path: Path = SQLITE_PATH) -> int:
+def add_destination(type_: str, name: str, district: str, path: Path = SQLITE_PATH) -> int:
     """Add a destination.
 
     Returns:
         The new row id.
 
     Raises:
-        ValueError: If `nama` or `kecamatan` is blank.
+        ValueError: If `name` or `district` is blank.
         sqlite3.IntegrityError: If a destination with the same type and name exists.
     """
-    nama, kecamatan = nama.strip(), kecamatan.strip()
-    if not nama or not kecamatan:
+    name, district = name.strip(), district.strip()
+    if not name or not district:
         raise ValueError("Nama dan kecamatan wajib diisi.")
     with closing(_connect(path)) as conn, conn:
         row = conn.execute(
-            "INSERT INTO tujuan (jenis, nama, kecamatan) VALUES (?, ?, ?) RETURNING id", (jenis, nama, kecamatan)
+            "INSERT INTO destinations (type, name, district) VALUES (?, ?, ?) RETURNING id", (type_, name, district)
         ).fetchone()
         return row["id"]
 
 
-def list_distribusi(path: Path = SQLITE_PATH) -> list[Row]:
+def list_distributions(path: Path = SQLITE_PATH) -> list[Row]:
     """All distribution records joined with their destination, newest first."""
     with closing(_connect(path)) as conn:
         rows = conn.execute(
             """
-            SELECT d.id, d.tanggal, d.jenis_barang, d.komoditas, d.jumlah, d.satuan,
-                   t.nama AS tujuan, t.jenis AS jenis_tujuan, t.kecamatan,
-                   d.panen_ref, d.sumber
-            FROM distribusi d JOIN tujuan t ON t.id = d.tujuan_id
-            ORDER BY d.tanggal DESC, d.id DESC
+            SELECT d.id, d.date, d.item_type, d.commodity, d.quantity, d.unit,
+                   t.name AS destination, t.type AS destination_type, t.district,
+                   d.harvest_ref, d.source
+            FROM distributions d JOIN destinations t ON t.id = d.destination_id
+            ORDER BY d.date DESC, d.id DESC
             """
         )
         return [dict(r) for r in rows]
 
 
-def add_distribusi(
-    tanggal: date,
-    jenis_barang: str,
-    komoditas: str,
-    jumlah: float,
-    satuan: str,
-    tujuan_id: int,
-    panen_ref: str | None = None,
-    panen: Collection | None = None,
+def add_distribution(
+    day: date,
+    item_type: str,
+    commodity: str,
+    quantity: float,
+    unit: str,
+    destination_id: int,
+    harvest_ref: str | None = None,
+    harvests: Collection | None = None,
     path: Path = SQLITE_PATH,
 ) -> int:
-    """Record one distribution entered by the mitra.
+    """Record one distribution entered by the partner.
 
     Args:
-        tanggal: Delivery date.
-        jenis_barang: ``"bibit"`` or ``"hasil_panen"``.
-        komoditas: What was delivered; stored lowercase.
-        jumlah: Quantity, must be > 0 (enforced by a CHECK constraint).
-        satuan: ``"kg"``, ``"ton"`` or ``"ekor"``.
-        tujuan_id: `tujuan.id` of the destination.
-        panen_ref: Optional Mongo `panen._id` the goods came from.
-        panen: The `panen` collection, needed only to verify `panen_ref`.
+        day: Delivery date.
+        item_type: ``"seed"`` or ``"harvest"``.
+        commodity: What was delivered; stored lowercase.
+        quantity: Quantity, must be > 0 (enforced by a CHECK constraint).
+        unit: ``"kg"``, ``"ton"`` or ``"head"``.
+        destination_id: `destinations.id` of the destination.
+        harvest_ref: Optional Mongo `harvests._id` the goods came from.
+        harvests: The `harvests` collection, needed only to verify `harvest_ref`.
         path: SQLite file.
 
     Returns:
         The new row id.
 
     Raises:
-        ValueError: If `komoditas` is blank or `panen_ref` cannot be verified.
+        ValueError: If `commodity` is blank or `harvest_ref` cannot be verified.
         sqlite3.IntegrityError: If a CHECK or foreign key constraint fails.
     """
-    komoditas = komoditas.strip().lower()
-    if not komoditas:
+    commodity = commodity.strip().lower()
+    if not commodity:
         raise ValueError("Komoditas wajib diisi.")
-    if panen_ref:
-        if panen is None:
+    if harvest_ref:
+        if harvests is None:
             raise ValueError("MongoDB tidak tersedia, referensi panen tidak bisa dicek.")
-        if panen.count_documents({"_id": panen_ref}, limit=1) == 0:
-            raise ValueError(f"Referensi panen `{panen_ref}` tidak ditemukan di MongoDB.")
+        if harvests.count_documents({"_id": harvest_ref}, limit=1) == 0:
+            raise ValueError(f"Referensi panen `{harvest_ref}` tidak ditemukan di MongoDB.")
     with closing(_connect(path)) as conn, conn:
         row = conn.execute(
             """
-            INSERT INTO distribusi
-              (tanggal, jenis_barang, komoditas, jumlah, satuan, tujuan_id, panen_ref, pengguna_id, sumber)
-            VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 'input_mitra')
+            INSERT INTO distributions
+              (date, item_type, commodity, quantity, unit, destination_id, harvest_ref, user_id, source)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 'partner_input')
             RETURNING id
             """,
-            (tanggal.isoformat(), jenis_barang, komoditas, jumlah, satuan, tujuan_id, panen_ref or None),
+            (day.isoformat(), item_type, commodity, quantity, unit, destination_id, harvest_ref or None),
         ).fetchone()
         return row["id"]
 
@@ -188,32 +188,32 @@ def _slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", text.strip().lower()).strip("_")
 
 
-def add_panen_mitra(
-    panen: Collection,
-    sektor: str,
-    komoditas: str,
-    tingkat: str,
-    lokasi_nama: str,
-    tanggal_panen: date,
-    tanggal_mulai: date | None = None,
-    luas_ha: float | None = None,
-    produksi_ton: float | None = None,
+def add_partner_harvest(
+    harvests: Collection,
+    sector: str,
+    commodity: str,
+    level: str,
+    location_name: str,
+    harvest_date: date,
+    start_date: date | None = None,
+    area_ha: float | None = None,
+    production_ton: float | None = None,
 ) -> str:
-    """Insert one harvest entered by the mitra.
+    """Insert one harvest entered by the partner.
 
-    The `_id` is ``mitra:{komoditas}:{lokasi}:{tanggal_panen}``, so the same harvest
+    The `_id` is ``partner:{commodity}:{location}:{harvest_date}``, so the same harvest
     cannot be recorded twice.
 
     Args:
-        panen: The `panen` collection.
-        sektor: ``"tanaman"`` or ``"perikanan"``.
-        komoditas: Commodity, normalised to a lowercase slug.
-        tingkat: ``"plot"`` or ``"desa"``.
-        lokasi_nama: Plot or pond name.
-        tanggal_panen: Harvest date.
-        tanggal_mulai: Planting or stocking date.
-        luas_ha: Harvested area.
-        produksi_ton: Production; 0 records a failed harvest.
+        harvests: The `harvests` collection.
+        sector: ``"crops"`` or ``"fisheries"``.
+        commodity: Commodity, normalised to a lowercase slug.
+        level: ``"plot"`` or ``"village"``.
+        location_name: Plot or pond name.
+        harvest_date: Harvest date.
+        start_date: Planting or stocking date.
+        area_ha: Harvested area.
+        production_ton: Production; 0 records a failed harvest.
 
     Returns:
         The new document id.
@@ -223,48 +223,48 @@ def add_panen_mitra(
         pymongo.errors.DuplicateKeyError: If this harvest was already recorded.
         pymongo.errors.WriteError: If the collection validator rejects the document.
     """
-    komoditas = _slug(komoditas)
-    lokasi_nama = lokasi_nama.strip()
-    if not komoditas or not lokasi_nama:
+    commodity = _slug(commodity)
+    location_name = location_name.strip()
+    if not commodity or not location_name:
         raise ValueError("Komoditas dan nama lokasi wajib diisi.")
-    if tanggal_mulai and tanggal_mulai > tanggal_panen:
+    if start_date and start_date > harvest_date:
         raise ValueError("Tanggal mulai tidak boleh setelah tanggal panen.")
 
-    periode = {"tahun": tanggal_panen.year, "tanggal_panen": as_datetime(tanggal_panen)}
-    if tanggal_mulai:
-        periode["tanggal_mulai"] = as_datetime(tanggal_mulai)
-    produktivitas = round(produksi_ton / luas_ha, 3) if luas_ha and produksi_ton is not None else None
+    period = {"year": harvest_date.year, "harvest_date": as_datetime(harvest_date)}
+    if start_date:
+        period["start_date"] = as_datetime(start_date)
+    yield_ = round(production_ton / area_ha, 3) if area_ha and production_ton is not None else None
 
-    doc = panen_doc(
-        _id=f"mitra:{komoditas}:{_slug(lokasi_nama)}:{tanggal_panen.isoformat()}",
-        sektor=sektor,
-        komoditas=komoditas,
-        lokasi={"tingkat": tingkat, "nama": lokasi_nama, **MITRA_LOKASI},
-        periode=periode,
-        sumber=sumber("input_mitra", False, datetime.now(UTC)),
-        luas_ha=luas_ha,
-        produksi_ton=produksi_ton,
-        produktivitas_ton_per_ha=produktivitas,
+    doc = harvest_doc(
+        _id=f"partner:{commodity}:{_slug(location_name)}:{harvest_date.isoformat()}",
+        sector=sector,
+        commodity=commodity,
+        location={"level": level, "name": location_name, **PARTNER_LOCATION},
+        period=period,
+        source=source("partner_input", False, datetime.now(UTC)),
+        area_ha=area_ha,
+        production_ton=production_ton,
+        yield_ton_per_ha=yield_,
     )
-    panen.insert_one(doc)
+    harvests.insert_one(doc)
     return doc["_id"]
 
 
-def list_panen_mitra(panen: Collection, limit: int = 200) -> list[Row]:
-    """Harvests entered by the mitra, flattened for a table, latest harvest first."""
-    cursor = panen.find({"sumber.kode": "input_mitra"}).sort("periode.tanggal_panen", DESCENDING).limit(limit)
+def list_partner_harvests(harvests: Collection, limit: int = 200) -> list[Row]:
+    """Harvests entered by the partner, flattened for a table, latest harvest first."""
+    cursor = harvests.find({"source.code": "partner_input"}).sort("period.harvest_date", DESCENDING).limit(limit)
     return [
         {
             "_id": d["_id"],
-            "sektor": d["sektor"],
-            "komoditas": d["komoditas"],
-            "lokasi": d["lokasi"]["nama"],
-            "tanggal_mulai": d["periode"].get("tanggal_mulai"),
-            "tanggal_panen": d["periode"].get("tanggal_panen"),
-            "luas_ha": d.get("luas_ha"),
-            "produksi_ton": d.get("produksi_ton"),
-            "produktivitas_ton_per_ha": d.get("produktivitas_ton_per_ha"),
-            "dicatat_pada": d["sumber"]["dicatat_pada"],
+            "sector": d["sector"],
+            "commodity": d["commodity"],
+            "location": d["location"]["name"],
+            "start_date": d["period"].get("start_date"),
+            "harvest_date": d["period"].get("harvest_date"),
+            "area_ha": d.get("area_ha"),
+            "production_ton": d.get("production_ton"),
+            "yield_ton_per_ha": d.get("yield_ton_per_ha"),
+            "recorded_at": d["source"]["recorded_at"],
         }
         for d in cursor
     ]

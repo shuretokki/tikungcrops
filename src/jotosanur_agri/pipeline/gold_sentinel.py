@@ -203,27 +203,27 @@ def summarize_units(gold: pl.DataFrame) -> pl.DataFrame:
         gold.filter(~pl.col("start_truncated") & ~pl.col("end_truncated"))
         .with_columns(
             weight.alias("w"),
-            pl.col("peak_date").dt.year().alias("tahun"),
+            pl.col("peak_date").dt.year().alias("year"),
             pl.when(month <= 4)
             .then(pl.lit("MT1"))
             .when(month <= 8)
             .then(pl.lit("MT2"))
             .otherwise(pl.lit("MT3"))
-            .alias("musim"),
+            .alias("season"),
         )
-        .group_by("unit", "tahun", "musim")
+        .group_by("unit", "year", "season")
         .agg(
-            pl.len().alias("sel"),
-            pl.col("w").sum().alias("luas_ha"),
-            (pl.col("w") * pl.col("rice").fill_null(False)).sum().alias("luas_padi_ha"),
+            pl.len().alias("cells"),
+            pl.col("w").sum().alias("area_ha"),
+            (pl.col("w") * pl.col("rice").fill_null(False)).sum().alias("rice_area_ha"),
             *[
                 _date_quantile(col, q).alias(f"{prefix}_{name}")
-                for col, prefix in (("flood_date", "genang"), ("harvest_date", "panen"))
-                for name, q in (("awal", 0.1), ("median", 0.5), ("akhir", 0.9))
+                for col, prefix in (("flood_date", "flood"), ("harvest_date", "harvest"))
+                for name, q in (("start", 0.1), ("median", 0.5), ("end", 0.9))
             ],
-            pl.col("peak_ndvi").median().alias("puncak_ndvi"),
+            pl.col("peak_ndvi").median().alias("peak_ndvi"),
         )
-        .sort("unit", "tahun", "musim")
+        .sort("unit", "year", "season")
     )
 
 

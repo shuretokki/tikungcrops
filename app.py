@@ -2,9 +2,10 @@
 
 Run with `just app` (or `uv run streamlit run app.py`).
 
-Shows satellite planting seasons per desa (MongoDB `musim_tanam`) and the mitra input
-forms: harvests go to MongoDB, distribution records to SQLite (see `jotosanur_agri.store`). The earlier version with synthetic data
-and yield predictors is kept in archives/app.py.
+Shows satellite planting seasons per desa (MongoDB `planting_seasons`) and the mitra
+input forms: harvests go to MongoDB, distribution records to SQLite (see
+`jotosanur_agri.store`). Database names are English; everything on screen is Indonesian.
+The earlier version with synthetic data and yield predictors is kept in archives/app.py.
 """
 
 from __future__ import annotations
@@ -52,6 +53,20 @@ MONGO_DOWN_MSG = "MongoDB tidak aktif - jalankan `just up` (atau `docker compose
 
 DEFAULT_AOI = "idn-jawatimur-lamongan-tikung"
 MUSIM_LABEL = {"MT1": "MT1 (musim hujan)", "MT2": "MT2 (kemarau I)", "MT3": "MT3 (kemarau II)"}
+# Stored codes -> Indonesian labels shown in the forms
+LABEL = {
+    "crops": "tanaman",
+    "fisheries": "perikanan",
+    "plot": "plot",
+    "village": "desa",
+    "seed": "bibit",
+    "harvest": "hasil panen",
+    "kg": "kg",
+    "ton": "ton",
+    "head": "ekor",
+    "district": "kecamatan",
+    "mbg_kitchen": "dapur MBG",
+}
 
 
 def render_musim_tanam(musim: Collection | None):
@@ -71,39 +86,39 @@ def render_musim_tanam(musim: Collection | None):
         st.info("Belum ada data musim tanam - jalankan `just gold` lalu `just mongo`.")
         return
     aoi = st.selectbox("Wilayah", aois, index=aois.index(DEFAULT_AOI) if DEFAULT_AOI in aois else 0)
-    docs = list(musim.find({"aoi": aoi}, {"_id": 0, "sumber": 0, "schema_version": 0}))
+    docs = list(musim.find({"aoi": aoi}, {"_id": 0, "source": 0, "schema_version": 0}))
     if not docs:
         st.info("Belum ada data musim tanam - jalankan `just gold` lalu `just mongo`.")
         return
     df = pd.json_normalize(docs)
-    tahun = st.selectbox("Tahun", sorted(df["tahun"].unique(), reverse=True))
-    view = df[df["tahun"] == tahun].sort_values(["unit", "musim"])
+    tahun = st.selectbox("Tahun", sorted(df["year"].unique(), reverse=True))
+    view = df[df["year"] == tahun].sort_values(["unit", "season"])
 
     col1, col2, col3 = st.columns(3)
     col1.metric("Desa", view["unit"].nunique())
-    col2.metric("Luas tanam (ha, semua musim)", f"{view['luas_ha'].sum():,.0f}")
-    col3.metric("Luas padi (ha, semua musim)", f"{view['luas_padi_ha'].sum():,.0f}")
+    col2.metric("Luas tanam (ha, semua musim)", f"{view['area_ha'].sum():,.0f}")
+    col3.metric("Luas padi (ha, semua musim)", f"{view['rice_area_ha'].sum():,.0f}")
 
     fig = px.bar(
         view,
         x="unit",
-        y="luas_padi_ha",
-        color="musim",
+        y="rice_area_ha",
+        color="season",
         barmode="group",
-        labels={"unit": "Desa", "luas_padi_ha": "Luas padi (ha)", "musim": "Musim"},
+        labels={"unit": "Desa", "rice_area_ha": "Luas padi (ha)", "season": "Musim"},
         title=f"Luas padi per desa dan musim, {tahun}",
     )
     st.plotly_chart(fig, width="stretch")
 
-    windows = view.dropna(subset=["genang.median", "panen.median"])
+    windows = view.dropna(subset=["flooding.median", "harvest.median"])
     if not windows.empty:
         timeline = px.timeline(
-            windows.assign(musim=windows["musim"].map(MUSIM_LABEL)),
-            x_start="genang.median",
-            x_end="panen.median",
+            windows.assign(season=windows["season"].map(MUSIM_LABEL)),
+            x_start="flooding.median",
+            x_end="harvest.median",
             y="unit",
-            color="musim",
-            labels={"unit": "Desa", "musim": "Musim"},
+            color="season",
+            labels={"unit": "Desa", "season": "Musim"},
             title="Median penggenangan (tanam) sampai median panen",
         )
         st.plotly_chart(timeline, width="stretch")
@@ -112,23 +127,23 @@ def render_musim_tanam(musim: Collection | None):
         st.dataframe(view, width="stretch", hide_index=True)
 
 
-def render_input_panen(panen: Collection | None):
+def render_input_panen(harvests: Collection | None):
     """Harvest entry form and the list of mitra harvests."""
     st.subheader("Catat Panen (Input Mitra)")
     st.caption(
-        "Data riil dari mitra, disimpan ke MongoDB koleksi `panen` dengan `sumber.kode = input_mitra` "
+        "Data riil dari mitra, disimpan ke MongoDB koleksi `harvests` dengan `source.code = partner_input` "
         "dan `is_synthetic = false`. Satu catatan per komoditas, lokasi dan tanggal panen."
     )
-    if panen is None:
+    if harvests is None:
         st.info(MONGO_DOWN_MSG)
         return
 
     with st.form("form_panen", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
-            sektor = st.selectbox("Sektor", ["tanaman", "perikanan"])
+            sektor = st.selectbox("Sektor", ["crops", "fisheries"], format_func=LABEL.__getitem__)
             komoditas = st.text_input("Komoditas", placeholder="padi, jagung, lele, nila, ...")
-            tingkat = st.selectbox("Tingkat lokasi", ["plot", "desa"])
+            tingkat = st.selectbox("Tingkat lokasi", ["plot", "village"], format_func=LABEL.__getitem__)
             lokasi_nama = st.text_input("Nama lokasi", placeholder="mis. P01, Kolam A")
         with col2:
             tanggal_panen = st.date_input("Tanggal panen", value=dt.date.today(), max_value=dt.date.today())
@@ -139,16 +154,16 @@ def render_input_panen(panen: Collection | None):
 
     if submitted:
         try:
-            _id = store.add_panen_mitra(
-                panen,
+            _id = store.add_partner_harvest(
+                harvests,
                 sektor,
                 komoditas,
                 tingkat,
                 lokasi_nama,
                 tanggal_panen,
-                tanggal_mulai=tanggal_mulai,
-                luas_ha=luas_ha,
-                produksi_ton=produksi_ton,
+                start_date=tanggal_mulai,
+                area_ha=luas_ha,
+                production_ton=produksi_ton,
             )
             st.success(f"Tersimpan: `{_id}`")
         except ValueError as e:
@@ -158,18 +173,18 @@ def render_input_panen(panen: Collection | None):
         except WriteError as e:
             st.error(f"Ditolak validator MongoDB: {(e.details or {}).get('errmsg', e)}")
 
-    rows = store.list_panen_mitra(panen)
+    rows = store.list_partner_harvests(harvests)
     if rows:
         st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
     else:
         st.info("Belum ada panen yang dicatat mitra.")
 
 
-def render_distribusi(panen: Collection | None):
+def render_distribusi(harvests: Collection | None):
     """Distribution records, entry form and destination form."""
     st.subheader("Distribusi Bibit & Hasil Panen")
-    tujuan = store.list_tujuan()
-    rows = store.list_distribusi()
+    tujuan = store.list_destinations()
+    rows = store.list_distributions()
 
     if not rows:
         st.info(
@@ -184,29 +199,29 @@ def render_distribusi(panen: Collection | None):
         df = pd.DataFrame(rows)
         col1, col2 = st.columns(2)
         col1.metric("Catatan distribusi", len(df))
-        col2.metric("Tujuan berbeda", df["tujuan"].nunique())
+        col2.metric("Tujuan berbeda", df["destination"].nunique())
         st.dataframe(df, width="stretch", hide_index=True)
 
     st.divider()
     st.markdown("**Catat distribusi**")
-    panen_ids = [r["_id"] for r in store.list_panen_mitra(panen)] if panen is not None else []
-    tujuan_label = {t["id"]: f"{t['nama']} ({t['jenis']}, Kec. {t['kecamatan']})" for t in tujuan}
+    panen_ids = [r["_id"] for r in store.list_partner_harvests(harvests)] if harvests is not None else []
+    tujuan_label = {t["id"]: f"{t['name']} ({LABEL[t['type']]}, Kec. {t['district']})" for t in tujuan}
 
     with st.form("form_distribusi", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
             tanggal = st.date_input("Tanggal", value=dt.date.today(), max_value=dt.date.today())
-            jenis_barang = st.selectbox("Jenis barang", store.JENIS_BARANG)
+            jenis_barang = st.selectbox("Jenis barang", store.ITEM_TYPES, format_func=LABEL.__getitem__)
             komoditas = st.text_input("Komoditas", placeholder="beras, bibit padi, ...")
         with col2:
             jumlah = st.number_input("Jumlah", min_value=0.0, value=None, format="%.2f")
-            satuan = st.selectbox("Satuan", store.SATUAN)
+            satuan = st.selectbox("Satuan", store.UNITS, format_func=LABEL.__getitem__)
             tujuan_id = st.selectbox("Tujuan", list(tujuan_label), format_func=lambda i: tujuan_label[i])
         panen_ref = st.selectbox(
             "Asal panen (opsional, dari catatan panen mitra)",
             [None, *panen_ids],
             format_func=lambda x: "-" if x is None else x,
-            help=None if panen is not None else MONGO_DOWN_MSG,
+            help=None if harvests is not None else MONGO_DOWN_MSG,
         )
         submitted = st.form_submit_button("Simpan distribusi")
 
@@ -217,15 +232,15 @@ def render_distribusi(panen: Collection | None):
             st.error("Pilih tujuan terlebih dahulu.")
         else:
             try:
-                store.add_distribusi(
+                store.add_distribution(
                     tanggal,
                     jenis_barang,
                     komoditas,
                     jumlah,
                     satuan,
                     tujuan_id,
-                    panen_ref=panen_ref,
-                    panen=panen,
+                    harvest_ref=panen_ref,
+                    harvests=harvests,
                 )
                 st.toast("Distribusi tersimpan.", icon="✅")
                 st.rerun()
@@ -235,12 +250,12 @@ def render_distribusi(panen: Collection | None):
                 st.error(f"Ditolak SQLite: {e}")
 
     with st.expander("Tambah tujuan (dapur MBG / kecamatan)"), st.form("form_tujuan", clear_on_submit=True):
-        jenis = st.selectbox("Jenis", store.JENIS_TUJUAN, index=1)
+        jenis = st.selectbox("Jenis", store.DESTINATION_TYPES, index=1, format_func=LABEL.__getitem__)
         nama = st.text_input("Nama")
         kecamatan = st.text_input("Kecamatan")
         if st.form_submit_button("Tambah tujuan"):
             try:
-                store.add_tujuan(jenis, nama, kecamatan)
+                store.add_destination(jenis, nama, kecamatan)
                 st.rerun()
             except ValueError as e:
                 st.error(str(e))
@@ -253,15 +268,15 @@ def main():
     st.title("🌾 Sistem Informasi Manajemen Kampung Pandu Sakti")
     init_sqlite()
     db = get_db()
-    panen = db["panen"] if db is not None else None
+    harvests = db["harvests"] if db is not None else None
 
     tab_musim, tab_panen, tab_distribusi = st.tabs(["Musim Tanam (Satelit)", "Catat Panen", "Distribusi"])
     with tab_musim:
-        render_musim_tanam(db["musim_tanam"] if db is not None else None)
+        render_musim_tanam(db["planting_seasons"] if db is not None else None)
     with tab_panen:
-        render_input_panen(panen)
+        render_input_panen(harvests)
     with tab_distribusi:
-        render_distribusi(panen)
+        render_distribusi(harvests)
 
 
 if __name__ == "__main__":

@@ -12,10 +12,10 @@ README are tracked in git.
 | `external/lbs/` | no | `just paddy AOI` | Lahan Baku Sawah polygons for the AOI (redistribution terms not stated) |
 | `silver/sentinel/<aoi>.parquet` | no | `just silver AOI` | cleaned per-cell series on a 5-day calendar |
 | `gold/sentinel/<aoi>_seasons.parquet` | no | `just gold AOI` | one row per cell per season: flooding, green-up, peak, harvest dates, rice flag |
-| `gold/sentinel/<aoi>_units.parquet` | no | `just gold AOI` | per unit, year and season (MT1-MT3): area, rice area, flooding and harvest windows; loaded into MongoDB `musim_tanam` |
+| `gold/sentinel/<aoi>_units.parquet` | no | `just gold AOI` | per unit, year and season (MT1-MT3): area, rice area, flooding and harvest windows; loaded into MongoDB `planting_seasons` |
 | `bronze\|silver/chirps/<aoi>_*.parquet` | no | `just chirps AOI` | CHIRPS v3 monthly rainfall per unit, 1981-now, with 1991-2020 normals, anomalies and annual totals |
 | `silver/soilgrids/<aoi>_*.parquet` | no | `just soilgrids AOI` | SoilGrids 2.0 properties (0-30 cm) per cell and median per unit, read from ISRIC's global rasters |
-| `relasional.db` | no | dashboard forms (`jotosanur_agri.store`) | SQLite: users, destinations, distribution records entered by the mitra |
+| `relational.db` | no | dashboard forms (`jotosanur_agri.store`) | SQLite: users, destinations, distribution records entered by the mitra |
 
 `<aoi>` is the area slug: ISO3 plus the full GADM name path, e.g. `idn-jawatimur-lamongan-tikung`
 for `Lamongan/Tikung`, or the file name for a GeoJSON AOI.

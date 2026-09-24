@@ -17,105 +17,78 @@ from pymongo.database import Database
 
 from jotosanur_agri.mongo import connect
 
-# BPS renamed the category between editions: "sapi" (2014) vs "sapi_potong" (2021).
-JENIS_SAPI = ["sapi", "sapi_potong"]
 
-
-def produksi_per_tahun_pipeline(komoditas: list[str]) -> list[dict[str, Any]]:
+def production_by_year_pipeline(commodities: list[str]) -> list[dict[str, Any]]:
     """A1: real (non-synthetic) production per commodity and year.
 
-    Productivity is recomputed as total production over total area, so large
-    villages weigh more than small ones. Averaging per-village ratios would not.
+    Yield is recomputed as total production over total area, so large villages weigh
+    more than small ones. Averaging per-village ratios would not.
 
     Args:
-        komoditas: Commodities to include, e.g. ``["padi", "jagung_hibrida"]``.
+        commodities: Commodities to include, e.g. ``["padi", "jagung_hibrida"]``.
 
     Returns:
         The aggregation pipeline.
     """
     return [
-        {"$match": {"komoditas": {"$in": komoditas}, "sumber.is_synthetic": False}},
+        {"$match": {"commodity": {"$in": commodities}, "source.is_synthetic": False}},
         {
             "$group": {
-                "_id": {"komoditas": "$komoditas", "tahun": "$periode.tahun"},
-                "lokasi": {"$sum": 1},
-                "luas_ha": {"$sum": "$luas_ha"},
-                "produksi_ton": {"$sum": "$produksi_ton"},
+                "_id": {"commodity": "$commodity", "year": "$period.year"},
+                "locations": {"$sum": 1},
+                "area_ha": {"$sum": "$area_ha"},
+                "production_ton": {"$sum": "$production_ton"},
             }
         },
         {
             "$project": {
                 "_id": 0,
-                "komoditas": "$_id.komoditas",
-                "tahun": "$_id.tahun",
-                "lokasi": 1,
-                "luas_ha": {"$round": ["$luas_ha", 2]},
-                "produksi_ton": {"$round": ["$produksi_ton", 2]},
-                "produktivitas_ton_per_ha": {
+                "commodity": "$_id.commodity",
+                "year": "$_id.year",
+                "locations": 1,
+                "area_ha": {"$round": ["$area_ha", 2]},
+                "production_ton": {"$round": ["$production_ton", 2]},
+                "yield_ton_per_ha": {
                     "$cond": [
-                        {"$gt": ["$luas_ha", 0]},
-                        {"$round": [{"$divide": ["$produksi_ton", "$luas_ha"]}, 2]},
+                        {"$gt": ["$area_ha", 0]},
+                        {"$round": [{"$divide": ["$production_ton", "$area_ha"]}, 2]},
                         None,
                     ]
                 },
             }
         },
-        {"$sort": {"komoditas": 1, "tahun": 1}},
+        {"$sort": {"commodity": 1, "year": 1}},
     ]
 
 
-def deret_panen_pipeline(komoditas: str, lokasi: str) -> list[dict[str, Any]]:
+def harvest_series_pipeline(commodity: str, location: str) -> list[dict[str, Any]]:
     """A2: harvest series for one commodity at one location, oldest first.
 
     Args:
-        komoditas: Commodity, e.g. ``"padi"``.
-        lokasi: ``lokasi.nama``, e.g. a desa such as ``"Jotosanur"`` or a mitra plot.
+        commodity: Commodity, e.g. ``"padi"``.
+        location: ``location.name``, e.g. a village such as ``"Jotosanur"`` or a partner plot.
 
     Returns:
         The aggregation pipeline.
     """
     return [
-        {"$match": {"komoditas": komoditas, "lokasi.nama": lokasi}},
-        {"$sort": {"periode.tanggal_panen": 1}},
+        {"$match": {"commodity": commodity, "location.name": location}},
+        {"$sort": {"period.harvest_date": 1}},
         {
             "$project": {
                 "_id": 1,
-                "tanggal_panen": "$periode.tanggal_panen",
-                "siklus_ke": "$periode.siklus_ke",
-                "produktivitas_ton_per_ha": 1,
-                "is_synthetic": "$sumber.is_synthetic",
+                "year": "$period.year",
+                "harvest_date": "$period.harvest_date",
+                "cycle": "$period.cycle",
+                "yield_ton_per_ha": 1,
+                "is_synthetic": "$source.is_synthetic",
             }
         },
     ]
 
 
-def tren_ternak_pipeline(jenis_ternak: list[str], lokasi: str) -> list[dict[str, Any]]:
-    """A3: livestock headcount over time at one location.
-
-    Args:
-        jenis_ternak: Livestock categories to include.
-        lokasi: ``lokasi.nama``, e.g. ``"Jotosanur"``.
-
-    Returns:
-        The aggregation pipeline.
-    """
-    return [
-        {"$match": {"jenis_ternak": {"$in": jenis_ternak}, "lokasi.nama": lokasi}},
-        {"$sort": {"tanggal": 1}},
-        {
-            "$project": {
-                "_id": 0,
-                "tanggal": 1,
-                "jenis_ternak": 1,
-                "jumlah_ekor": 1,
-                "sumber": "$sumber.kode",
-            }
-        },
-    ]
-
-
-def musim_unit_pipeline(aoi: str, unit: str) -> list[dict[str, Any]]:
-    """A5: satellite planting seasons of one AOI unit, oldest first.
+def unit_seasons_pipeline(aoi: str, unit: str) -> list[dict[str, Any]]:
+    """A4: satellite planting seasons of one AOI unit, oldest first.
 
     Args:
         aoi: AOI slug, e.g. ``"idn-jawatimur-lamongan-tikung"``.
@@ -126,34 +99,34 @@ def musim_unit_pipeline(aoi: str, unit: str) -> list[dict[str, Any]]:
     """
     return [
         {"$match": {"aoi": aoi, "unit": unit}},
-        {"$sort": {"tahun": 1, "musim": 1}},
+        {"$sort": {"year": 1, "season": 1}},
         {
             "$project": {
                 "_id": 0,
-                "tahun": 1,
-                "musim": 1,
-                "luas_ha": {"$round": ["$luas_ha", 1]},
-                "luas_padi_ha": {"$round": ["$luas_padi_ha", 1]},
-                "genang_median": "$genang.median",
-                "panen_median": "$panen.median",
+                "year": 1,
+                "season": 1,
+                "area_ha": {"$round": ["$area_ha", 1]},
+                "rice_area_ha": {"$round": ["$rice_area_ha", 1]},
+                "flooding_median": "$flooding.median",
+                "harvest_median": "$harvest.median",
             }
         },
     ]
 
 
-def ringkasan_sumber_pipeline() -> list[dict[str, Any]]:
-    """A4: document count per source, synthetic vs real.
+def source_summary_pipeline() -> list[dict[str, Any]]:
+    """A3: document count per source, synthetic vs real.
 
-    No index by design: the collection is small and `sumber.kode` has low
+    No index by design: the collection is small and `source.code` has low
     cardinality, so this is expected to be a COLLSCAN.
 
     Returns:
         The aggregation pipeline.
     """
     return [
-        {"$group": {"_id": {"kode": "$sumber.kode", "is_synthetic": "$sumber.is_synthetic"}, "dokumen": {"$sum": 1}}},
-        {"$project": {"_id": 0, "sumber": "$_id.kode", "is_synthetic": "$_id.is_synthetic", "dokumen": 1}},
-        {"$sort": {"sumber": 1}},
+        {"$group": {"_id": {"code": "$source.code", "is_synthetic": "$source.is_synthetic"}, "documents": {"$sum": 1}}},
+        {"$project": {"_id": 0, "source": "$_id.code", "is_synthetic": "$_id.is_synthetic", "documents": 1}},
+        {"$sort": {"source": 1}},
     ]
 
 
@@ -189,18 +162,17 @@ def _stage_names(node: dict[str, Any]) -> list[str]:
 
 
 def queries(db: Database) -> dict[str, tuple[Collection, list[dict[str, Any]]]]:
-    """The access patterns A1-A5, with example arguments."""
+    """The access patterns A1-A4, with example arguments."""
     return {
-        "A1 produksi per komoditas per tahun (riil)": (
-            db["panen"],
-            produksi_per_tahun_pipeline(["padi", "jagung_hibrida"]),
+        "A1 production per commodity and year (real)": (
+            db["harvests"],
+            production_by_year_pipeline(["padi", "jagung_hibrida"]),
         ),
-        "A2 deret panen padi Jotosanur": (db["panen"], deret_panen_pipeline("padi", "Jotosanur")),
-        "A3 tren sapi Jotosanur": (db["ternak"], tren_ternak_pipeline(JENIS_SAPI, "Jotosanur")),
-        "A4 dokumen per sumber": (db["panen"], ringkasan_sumber_pipeline()),
-        "A5 musim tanam satelit Jotosanur": (
-            db["musim_tanam"],
-            musim_unit_pipeline("idn-jawatimur-lamongan-tikung", "Jotosanur"),
+        "A2 rice harvest series, Jotosanur": (db["harvests"], harvest_series_pipeline("padi", "Jotosanur")),
+        "A3 documents per source": (db["harvests"], source_summary_pipeline()),
+        "A4 satellite planting seasons, Jotosanur": (
+            db["planting_seasons"],
+            unit_seasons_pipeline("idn-jawatimur-lamongan-tikung", "Jotosanur"),
         ),
     }
 

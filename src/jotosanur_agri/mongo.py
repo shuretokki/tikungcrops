@@ -4,11 +4,13 @@ Shared by the batch ETL (`pipeline.load_mongo`), the dashboard forms (`store`)
 and the aggregations (`mongo_agg`).
 
 Collections:
-    - panen: harvests, polymorphic by `sektor` (BPS desa tables, Dinas kabupaten
-      totals, mitra input).
-    - ternak: livestock censuses (BPS).
-    - musim_tanam: satellite planting seasons per AOI unit, year and season (MT1-MT3),
-      from `pipeline.gold_sentinel.summarize_units`.
+    - harvests: polymorphic by `sector` (BPS village crop tables, partner input of
+      crops or fish ponds).
+    - planting_seasons: satellite planting seasons per AOI unit, year and season
+      (MT1-MT3), from `pipeline.gold_sentinel.summarize_units`.
+
+Field names are English; values copied from sources (commodities such as ``padi``,
+place names, BPS source ids) stay as published.
 """
 
 from __future__ import annotations
@@ -22,102 +24,93 @@ from pymongo import ASCENDING, MongoClient
 from pymongo.database import Database
 
 ENV_FILE = Path(".env")
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
-SUMBER_KODE = [
+SOURCE_CODES = [
     "bps_tikung_2014",
     "bps_tikung_2021",
-    "dinas_perikanan_2021",
-    "input_mitra",
+    "partner_input",
     "sentinel",
 ]
 
-_LOKASI_SCHEMA = {
+_LOCATION_SCHEMA = {
     "bsonType": "object",
-    "required": ["tingkat", "nama"],
-    "properties": {"tingkat": {"enum": ["plot", "desa", "kabupaten"]}},
+    "required": ["level", "name"],
+    "properties": {"level": {"enum": ["plot", "village", "regency"]}},
 }
-_SUMBER_SCHEMA = {
+_SOURCE_SCHEMA = {
     "bsonType": "object",
-    "required": ["kode", "is_synthetic"],
+    "required": ["code", "is_synthetic"],
     "properties": {
-        "kode": {"enum": SUMBER_KODE},
+        "code": {"enum": SOURCE_CODES},
         "is_synthetic": {"bsonType": "bool"},
     },
 }
-_TAHUN_SCHEMA = {"bsonType": "int", "minimum": 2000, "maximum": 2100}
+_YEAR_SCHEMA = {"bsonType": "int", "minimum": 2000, "maximum": 2100}
 _WINDOW_SCHEMA = {
     "bsonType": "object",
-    "properties": {k: {"bsonType": ["date", "null"]} for k in ("awal", "median", "akhir")},
+    "properties": {k: {"bsonType": ["date", "null"]} for k in ("start", "median", "end")},
 }
 
 VALIDATORS = {
-    "panen": {
+    "harvests": {
         "bsonType": "object",
-        "required": ["schema_version", "sektor", "komoditas", "lokasi", "periode", "sumber"],
+        "required": ["schema_version", "sector", "commodity", "location", "period", "source"],
         "properties": {
             "schema_version": {"enum": [SCHEMA_VERSION]},
-            "sektor": {"enum": ["tanaman", "perikanan"]},
-            "komoditas": {"bsonType": "string", "minLength": 1},
-            "lokasi": _LOKASI_SCHEMA,
-            "periode": {
+            "sector": {"enum": ["crops", "fisheries"]},
+            "commodity": {"bsonType": "string", "minLength": 1},
+            "location": _LOCATION_SCHEMA,
+            "period": {
                 "bsonType": "object",
-                "required": ["tahun"],
-                "properties": {"tahun": _TAHUN_SCHEMA},
+                "required": ["year"],
+                "properties": {"year": _YEAR_SCHEMA},
             },
-            "luas_ha": {"bsonType": "double", "minimum": 0},
-            "produksi_ton": {"bsonType": "double", "minimum": 0},
-            "produktivitas_ton_per_ha": {"bsonType": "double", "minimum": 0},
-            "atribut": {"bsonType": "object"},
-            "sumber": _SUMBER_SCHEMA,
+            "area_ha": {"bsonType": "double", "minimum": 0},
+            "production_ton": {"bsonType": "double", "minimum": 0},
+            "yield_ton_per_ha": {"bsonType": "double", "minimum": 0},
+            "attributes": {"bsonType": "object"},
+            "source": _SOURCE_SCHEMA,
         },
     },
-    "ternak": {
+    "planting_seasons": {
         "bsonType": "object",
-        "required": ["schema_version", "jenis_ternak", "lokasi", "tanggal", "tahun", "jumlah_ekor", "sumber"],
-        "properties": {
-            "schema_version": {"enum": [SCHEMA_VERSION]},
-            "jenis_ternak": {"bsonType": "string", "minLength": 1},
-            "lokasi": _LOKASI_SCHEMA,
-            "tanggal": {"bsonType": "date"},
-            "tahun": _TAHUN_SCHEMA,
-            "jumlah_ekor": {"bsonType": "int", "minimum": 0},
-            "rtp": {"bsonType": "int", "minimum": 0},
-            "struktur_umur": {"bsonType": "object"},
-            "sumber": _SUMBER_SCHEMA,
-        },
-    },
-    "musim_tanam": {
-        "bsonType": "object",
-        "required": ["schema_version", "aoi", "unit", "tahun", "musim", "sel", "luas_ha", "luas_padi_ha", "sumber"],
+        "required": [
+            "schema_version",
+            "aoi",
+            "unit",
+            "year",
+            "season",
+            "cells",
+            "area_ha",
+            "rice_area_ha",
+            "source",
+        ],
         "properties": {
             "schema_version": {"enum": [SCHEMA_VERSION]},
             "aoi": {"bsonType": "string", "minLength": 1},
             "unit": {"bsonType": "string", "minLength": 1},
-            "tahun": _TAHUN_SCHEMA,
-            "musim": {"enum": ["MT1", "MT2", "MT3"]},
-            "sel": {"bsonType": "int", "minimum": 0},
-            "luas_ha": {"bsonType": "double", "minimum": 0},
-            "luas_padi_ha": {"bsonType": "double", "minimum": 0},
-            "genang": _WINDOW_SCHEMA,
-            "panen": _WINDOW_SCHEMA,
-            "puncak_ndvi": {"bsonType": ["double", "null"]},
-            "sumber": _SUMBER_SCHEMA,
+            "year": _YEAR_SCHEMA,
+            "season": {"enum": ["MT1", "MT2", "MT3"]},
+            "cells": {"bsonType": "int", "minimum": 0},
+            "area_ha": {"bsonType": "double", "minimum": 0},
+            "rice_area_ha": {"bsonType": "double", "minimum": 0},
+            "flooding": _WINDOW_SCHEMA,
+            "harvest": _WINDOW_SCHEMA,
+            "peak_ndvi": {"bsonType": ["double", "null"]},
+            "source": _SOURCE_SCHEMA,
         },
     },
 }
 
-# One index per access pattern: A1-A3 on panen/ternak, A5 on musim_tanam; A4 needs none.
+# One index per access pattern: A1-A2 on harvests, A4 on planting_seasons; A3 needs none.
 INDEXES = {
-    "panen": [
-        [("komoditas", ASCENDING), ("periode.tahun", ASCENDING)],
-        [("komoditas", ASCENDING), ("lokasi.nama", ASCENDING), ("periode.tanggal_panen", ASCENDING)],
+    "harvests": [
+        [("commodity", ASCENDING), ("period.year", ASCENDING)],
+        [("commodity", ASCENDING), ("location.name", ASCENDING), ("period.harvest_date", ASCENDING)],
     ],
-    "ternak": [
-        [("jenis_ternak", ASCENDING), ("lokasi.nama", ASCENDING), ("tanggal", ASCENDING)],
-    ],
-    "musim_tanam": [
-        [("aoi", ASCENDING), ("unit", ASCENDING), ("tahun", ASCENDING)],
+    "planting_seasons": [
+        [("aoi", ASCENDING), ("unit", ASCENDING), ("year", ASCENDING)],
     ],
 }
 
@@ -177,41 +170,41 @@ def as_datetime(value: date | datetime) -> datetime:
     return datetime(value.year, value.month, value.day, tzinfo=UTC)
 
 
-def sumber(kode: str, is_synthetic: bool, dicatat_pada: datetime) -> dict[str, Any]:
-    """Build the `sumber` subdocument. `dicatat_oleh` stays None until forms have logins."""
+def source(code: str, is_synthetic: bool, recorded_at: datetime) -> dict[str, Any]:
+    """Build the `source` subdocument. `recorded_by` stays None until forms have logins."""
     return {
-        "kode": kode,
+        "code": code,
         "is_synthetic": is_synthetic,
-        "dicatat_pada": dicatat_pada,
-        "dicatat_oleh": None,
+        "recorded_at": recorded_at,
+        "recorded_by": None,
     }
 
 
-def panen_doc(
+def harvest_doc(
     _id: str,
-    sektor: str,
-    komoditas: str,
-    lokasi: dict[str, Any],
-    periode: dict[str, Any],
-    sumber: dict[str, Any],
-    atribut: dict[str, Any] | None = None,
-    luas_ha: float | None = None,
-    produksi_ton: float | None = None,
-    produktivitas_ton_per_ha: float | None = None,
+    sector: str,
+    commodity: str,
+    location: dict[str, Any],
+    period: dict[str, Any],
+    source: dict[str, Any],
+    attributes: dict[str, Any] | None = None,
+    area_ha: float | None = None,
+    production_ton: float | None = None,
+    yield_ton_per_ha: float | None = None,
 ) -> dict[str, Any]:
-    """Build a `panen` document. Measures left as None are omitted, not stored as null.
+    """Build a `harvests` document. Measures left as None are omitted, not stored as null.
 
     Args:
-        _id: Deterministic id, e.g. ``"pandu:MT1-P01"``.
-        sektor: ``"tanaman"`` or ``"perikanan"``.
-        komoditas: Commodity, e.g. ``"padi"``.
-        lokasi: ``{tingkat, nama, desa?, kecamatan?}``.
-        periode: ``{tahun, tanggal_mulai?, tanggal_panen?, siklus_ke?}``.
-        sumber: Output of `sumber`.
-        atribut: Commodity-specific fields.
-        luas_ha: Harvested area.
-        produksi_ton: Production.
-        produktivitas_ton_per_ha: Yield.
+        _id: Deterministic id, e.g. ``"bps2020:padi:Jotosanur"``.
+        sector: ``"crops"`` or ``"fisheries"``.
+        commodity: Commodity as the source names it, e.g. ``"padi"``.
+        location: ``{level, name, village?, district?}``.
+        period: ``{year, start_date?, harvest_date?, cycle?}``.
+        source: Output of `source`.
+        attributes: Commodity-specific fields.
+        area_ha: Harvested area.
+        production_ton: Production.
+        yield_ton_per_ha: Yield.
 
     Returns:
         The document, ready for insert or replace.
@@ -219,17 +212,17 @@ def panen_doc(
     doc = {
         "_id": _id,
         "schema_version": SCHEMA_VERSION,
-        "sektor": sektor,
-        "komoditas": komoditas,
-        "lokasi": lokasi,
-        "periode": periode,
-        "atribut": atribut or {},
-        "sumber": sumber,
+        "sector": sector,
+        "commodity": commodity,
+        "location": location,
+        "period": period,
+        "attributes": attributes or {},
+        "source": source,
     }
     measures = {
-        "luas_ha": luas_ha,
-        "produksi_ton": produksi_ton,
-        "produktivitas_ton_per_ha": produktivitas_ton_per_ha,
+        "area_ha": area_ha,
+        "production_ton": production_ton,
+        "yield_ton_per_ha": yield_ton_per_ha,
     }
     # 0.0 is a real value (failed harvest), so test for None, not falsiness
     doc.update({key: float(value) for key, value in measures.items() if value is not None})
