@@ -1,10 +1,10 @@
-# jotosanur-agri — Desa Jotosanur agri dashboard
+# jotosanur-agri
 
 ## Prerequisites
 
 - [Nix](https://nixos.org/download/) with flakes, optionally [direnv](https://direnv.net/) (`.envrc` runs `use flake`).
   The devshell provides `uv`, `just`, `typst`, `mongosh`, `sqlite`.
-- Docker Engine ≥ 24 with Compose v2 (system install, not from Nix): https://docs.docker.com/engine/install/
+- Docker Engine ≥ 24 with Compose v2: https://docs.docker.com/engine/install/
 - `cp .env.example .env` and set `MONGO_ROOT_PASSWORD` (and the same password in `MONGO_URI`).
 
 ## Usage

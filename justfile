@@ -1,4 +1,4 @@
-# Task runner. `just` lists recipes. AOI arguments are GADM name paths (e.g. Lamongan/Tikung)
+# AOI arguments are GADM name paths (e.g. Lamongan/Tikung)
 # or GeoJSON files; see src/jotosanur_agri/pipeline/aoi.py.
 
 set dotenv-load
@@ -16,7 +16,7 @@ docker-check:
 up: docker-check
     docker compose up -d --wait
 
-# Stop MongoDB (data volume is kept)
+# Stop MongoDB
 down: docker-check
     docker compose down
 
@@ -24,7 +24,7 @@ down: docker-check
 mongosh:
     {{require("mongosh")}} "$MONGO_URI" --eval 'db = db.getSiblingDB("'"$MONGO_DB"'")' --shell
 
-# Sentinel-1/2 bronze for an area and month range, e.g. `just sentinel Lamongan/Tikung 2020-01 2020-12`; no months = previous month
+# Sentinel-1/2 bronze for an area and month range, e.g. `just sentinel Lamongan/Tikung 2020-01 2020-12`, defaults previous month
 sentinel aoi="Lamongan/Tikung" start="" end="":
     {{py}}.pipeline.load_sentinel "{{aoi}}" {{start}} {{end}}
 
@@ -32,7 +32,7 @@ sentinel aoi="Lamongan/Tikung" start="" end="":
 paddy aoi="Lamongan/Tikung":
     {{py}}.pipeline.load_paddy "{{aoi}}"
 
-# Soil properties per cell and unit from SoilGrids (needs the Sentinel cells; one-time)
+# Soil properties per cell and unit from SoilGrids (needs the Sentinel cells)
 soilgrids aoi="Lamongan/Tikung":
     {{py}}.pipeline.load_soilgrids "{{aoi}}"
 
@@ -59,13 +59,13 @@ agg: up
 # What the scheduled job runs: last month's scenes, CHIRPS, silver, gold, MongoDB
 monthly aoi="Lamongan/Tikung": (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (mongo aoi)
 
-# One-time setup of an area after its first `just sentinel` run
+# Setup of an area after its first `just sentinel` run
 setup aoi="Lamongan/Tikung": (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (mongo aoi)
 
 # Run the dashboard
 app:
     uv run streamlit run app.py
 
-# Compile the proposal PDF
-pdf:
-    typst compile documents/proposal.typ
+# Compile a typst as PDF
+pdf target="proposal":
+    typst compile documents/{{target}}.typ

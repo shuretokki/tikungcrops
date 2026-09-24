@@ -1,12 +1,12 @@
-# Monthly satellite and rainfall extraction. Prepared, not deployed: the repo has no
-# remote yet. Outputs are uploaded as a workflow artifact; the runner is wiped after the
+# Monthly satellite and rainfall extraction.
+# Outputs are uploaded as a workflow artifact, the runner is wiped after the
 # job, and silver needs every past month, so silver is rebuilt locally (`just silver`)
 # or after moving bronze to persistent storage.
 name: monthly-extract
 
 on:
   schedule:
-    # 25th, after CHIRPS finalises the previous month (~3rd week); off-minute to avoid the :00 rush
+    # off-minute to avoid the :00 rush
     - cron: "23 2 25 * *"
   workflow_dispatch:
     inputs:
@@ -61,7 +61,7 @@ jobs:
       - name: Sentinel-1/2 bronze
         run: uv run --no-sync python -m jotosanur_agri.pipeline.load_sentinel "$AOI" "$START" "$END"
 
-      # Needs the cells table written by the Sentinel step
+      # needs the cells table written by the Sentinel step
       - name: CHIRPS monthly rainfall
         run: uv run --no-sync python -m jotosanur_agri.pipeline.load_chirps "$AOI"
 
