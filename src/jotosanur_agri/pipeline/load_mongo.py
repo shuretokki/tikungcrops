@@ -76,6 +76,7 @@ def planting_seasons(units_parquet: Path, aoi: str, now: datetime) -> list[Doc]:
             "cells": r["cells"],
             "area_ha": float(r["area_ha"]),
             "rice_area_ha": float(r["rice_area_ha"]),
+            "rice_unknown_ha": float(r["rice_unknown_ha"]),
             "flooding": window(r, "flood"),
             "harvest": window(r, "harvest"),
             "peak_ndvi": r["peak_ndvi"],

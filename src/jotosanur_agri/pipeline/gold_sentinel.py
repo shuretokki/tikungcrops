@@ -15,7 +15,10 @@ from a higher neighbouring peak is one season. Around it:
       VH `PRE_SEASON_DAYS` before green-up. Wet-season fields are already wet before
       planting (low VH, little drop); dry-season fields start dry after the previous
       harvest (higher VH, clear drop), so either condition marks transplanted paddy.
-      Seasons failing both are other crops (maize, pulses) or dry-seeded fields.
+      Seasons failing both are other crops (maize, pulses) or dry-seeded fields. With
+      fewer than `MIN_FLOOD_PASSES` Sentinel-1 passes in the flooding window (e.g. Java
+      in early 2023, when Sentinel-1A covered it only every few weeks) the brief flooding
+      dip is easily missed, so rice is left unknown rather than set to False.
 A date is null when the series has no data there (clouds beyond the gap limit), or when
 the season runs past the edge of a covered period; `start_truncated` and
 `end_truncated` mark the latter. A stretch of `DATA_GAP_DAYS` without any Sentinel-1 or
@@ -25,7 +28,10 @@ Seasons are never dropped, so gaps stay visible.
 Tuned for transplanted lowland rice in East Java; elsewhere the output runs but needs
 checking before use:
     - the rice thresholds come from Tikung 2020 radar; dry-seeded or rainfed rice, other
-      soils and incidence angles shift VH;
+      soils and incidence angles shift VH. Even in Tikung, dry-season (MT2) rice is
+      under-counted in wet dry seasons: rain raises VH across the landscape and fields
+      are already wet before planting, so neither condition fires (2022 and 2025: 25% of
+      MT2 seasons rice vs 52-66% in dry years; rain vs MT2 rice share r = -0.84);
     - MT1-MT3 split seasons by NDVI peak month (Jan-Apr, May-Aug, Sep-Dec), which follows
       the Javanese wet-season calendar; temperate regions or other monsoon timings
       need their own split;
@@ -65,6 +71,8 @@ RICE_VH_DROP_DB = 1.5
 PRE_SEASON_DAYS = (75, 30)
 # Longer than any cloud gap: S1 sees through clouds, so this only happens without bronze
 DATA_GAP_DAYS = 60
+# Tikung: 1 pass in the window -> 1% of seasons rice, 2 -> 23%, 4-8 -> 36-66%
+MIN_FLOOD_PASSES = 3
 
 SEASON_SCHEMA = {
     "cell_id": pl.Int64,
@@ -73,6 +81,7 @@ SEASON_SCHEMA = {
     "flood_vh_db": pl.Float64,
     "vh_drop_db": pl.Float64,
     "rice": pl.Boolean,
+    "flood_passes": pl.Int32,
     "greenup_date": pl.Date,
     "peak_date": pl.Date,
     "peak_ndvi": pl.Float64,
@@ -105,8 +114,15 @@ def _first(mask: np.ndarray) -> int | None:
     return int(hits[0]) if hits.size else None
 
 
-def seasons_for_cell(dates: np.ndarray, ndvi: np.ndarray, vh: np.ndarray) -> list[dict[str, Any]]:
-    """Seasons of one cell from its 5-day NDVI and VH series (dates ascending)."""
+def seasons_for_cell(
+    dates: np.ndarray, ndvi: np.ndarray, vh: np.ndarray, s1_dates: np.ndarray | None = None
+) -> list[dict[str, Any]]:
+    """Seasons of one cell from its 5-day NDVI and VH series (dates ascending).
+
+    `s1_dates` are the actual Sentinel-1 acquisition dates (sorted); the 5-day series is
+    interpolated, so it cannot tell how many real passes a window had. Without them
+    every window counts as well observed.
+    """
     observed = np.flatnonzero(np.isfinite(ndvi))
     if not observed.size:
         return []
@@ -136,6 +152,7 @@ def seasons_for_cell(dates: np.ndarray, ndvi: np.ndarray, vh: np.ndarray) -> lis
             "flood_vh_db": None,
             "vh_drop_db": None,
             "rice": None,
+            "flood_passes": None,
             "harvest_date": None,
             "start_truncated": start_truncated,
             "end_truncated": False,
@@ -160,7 +177,17 @@ def seasons_for_cell(dates: np.ndarray, ndvi: np.ndarray, vh: np.ndarray) -> lis
                     pre = (dates >= far) & (dates <= near) & np.isfinite(vh)
                     drop = float(np.median(vh[pre])) - float(vh[f]) if pre.any() else None
                     row["vh_drop_db"] = drop
-                    row["rice"] = float(vh[f]) <= RICE_FLOOD_VH_DB or (drop is not None and drop >= RICE_VH_DROP_DB)
+                    if s1_dates is not None:
+                        lo, hi = (
+                            dates[g] - timedelta(days=FLOOD_BEFORE_DAYS),
+                            dates[g] + timedelta(days=FLOOD_AFTER_DAYS),
+                        )
+                        passes = int(np.searchsorted(s1_dates, hi, side="right") - np.searchsorted(s1_dates, lo))
+                        row["flood_passes"] = passes
+                    else:
+                        passes = MIN_FLOOD_PASSES
+                    if passes >= MIN_FLOOD_PASSES:
+                        row["rice"] = float(vh[f]) <= RICE_FLOOD_VH_DB or (drop is not None and drop >= RICE_VH_DROP_DB)
             idx = np.arange(len(ndvi))
             h = _first((idx > p) & (idx < stop) & (ndvi <= float(ndvi[p]) - EOS_FRAC * amp))
             # A null run between peak and the drop means the drop date is unknown
@@ -172,14 +199,15 @@ def seasons_for_cell(dates: np.ndarray, ndvi: np.ndarray, vh: np.ndarray) -> lis
     return rows
 
 
-def build_gold(silver: pl.DataFrame) -> pl.DataFrame:
-    """One row per cell per detected season."""
+def build_gold(silver: pl.DataFrame, s1_dates: list[Any] | None = None) -> pl.DataFrame:
+    """One row per cell per detected season; `s1_dates` as in `seasons_for_cell`."""
+    passes = np.array(sorted(s1_dates), dtype=object) if s1_dates is not None else None
     rows: list[dict[str, Any]] = []
     for (cell_id,), cell in silver.sort("date").group_by("cell_id", maintain_order=True):
         dates: np.ndarray = np.array(cell["date"].to_list(), dtype=object)
         ndvi = cell["ndvi"].to_numpy().astype(float)
         vh = cell["vh_db"].to_numpy().astype(float)
-        rows += [{"cell_id": cell_id, **r} for r in seasons_for_cell(dates, ndvi, vh)]
+        rows += [{"cell_id": cell_id, **r} for r in seasons_for_cell(dates, ndvi, vh, passes)]
     return pl.DataFrame(rows, schema=SEASON_SCHEMA).with_columns(
         (pl.col("harvest_date") - pl.col("greenup_date")).dt.total_days().alias("greenup_to_harvest_days"),
         (pl.col("harvest_date") - pl.col("flood_date")).dt.total_days().alias("flood_to_harvest_days"),
@@ -195,7 +223,9 @@ def summarize_units(gold: pl.DataFrame) -> pl.DataFrame:
 
     Seasons cut by the edge of the covered period are left out, since their dates are
     incomplete. Areas weight each cell by its paddy share when known, else count it as
-    1 ha. Date windows are the 10th, 50th and 90th percentile across cells.
+    1 ha. `rice_unknown_ha` is the area whose rice flag could not be decided (too few
+    radar passes or no radar in the flooding window). Date windows are the 10th, 50th
+    and 90th percentile across cells.
     """
     weight = pl.col("paddy_frac").fill_null(0.0) if "paddy_frac" in gold.columns else pl.lit(1.0)
     month = pl.col("peak_date").dt.month()
@@ -216,6 +246,7 @@ def summarize_units(gold: pl.DataFrame) -> pl.DataFrame:
             pl.len().alias("cells"),
             pl.col("w").sum().alias("area_ha"),
             (pl.col("w") * pl.col("rice").fill_null(False)).sum().alias("rice_area_ha"),
+            (pl.col("w") * pl.col("rice").is_null()).sum().alias("rice_unknown_ha"),
             *[
                 _date_quantile(col, q).alias(f"{prefix}_{name}")
                 for col, prefix in (("flood_date", "flood"), ("harvest_date", "harvest"))
@@ -240,7 +271,14 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
     # Paddy share from the LBS map, when `load_paddy` has been run for this AOI
     if (cells_dir / "paddy.parquet").exists():
         cells = cells.join(pl.read_parquet(cells_dir / "paddy.parquet"), on="cell_id", how="left")
-    gold = build_gold(silver).join(cells, on="cell_id", how="left")
+    s1_dates = (
+        pl.scan_parquet(cells_dir / "[0-9]*.parquet")
+        .filter(pl.col("sensor") == "S1")
+        .select(pl.col("date").unique())
+        .collect()["date"]
+        .to_list()
+    )
+    gold = build_gold(silver, s1_dates).join(cells, on="cell_id", how="left")
     units = summarize_units(gold)
     gold_dir = Path(data_dir) / "gold" / "sentinel"
     return {

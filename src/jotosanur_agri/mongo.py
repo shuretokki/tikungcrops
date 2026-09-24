@@ -90,6 +90,7 @@ VALIDATORS = {
             "cells": {"bsonType": "int", "minimum": 0},
             "area_ha": {"bsonType": "double", "minimum": 0},
             "rice_area_ha": {"bsonType": "double", "minimum": 0},
+            "rice_unknown_ha": {"bsonType": "double", "minimum": 0},
             "flooding": _WINDOW_SCHEMA,
             "harvest": _WINDOW_SCHEMA,
             "peak_ndvi": {"bsonType": ["double", "null"]},
