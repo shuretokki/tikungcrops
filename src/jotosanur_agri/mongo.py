@@ -4,13 +4,14 @@ Shared by the batch ETL (`pipeline.load_mongo`), the dashboard forms (`store`)
 and the aggregations (`mongo_agg`).
 
 Collections:
-    - harvests: polymorphic by `sector` (BPS village crop tables, partner input of
-      crops or fish ponds).
+    - harvests: polymorphic by `sector` (reference statistics per AOI unit, e.g. BPS
+      village tables; partner input of crops or fish ponds).
     - planting_seasons: satellite planting seasons per AOI unit, year and season
       (MT1-MT3), from `pipeline.gold_sentinel.summarize_units`.
 
 Field names are English; values copied from sources (commodities such as ``padi``,
-place names, BPS source ids) stay as published.
+place names) stay as published. `source.code` is free text: ``partner_input``,
+``sentinel``, or a reference publication id such as ``bps_tikung_2021``.
 """
 
 from __future__ import annotations
@@ -26,27 +27,21 @@ from pymongo.database import Database
 ENV_FILE = Path(".env")
 SCHEMA_VERSION = 2
 
-SOURCE_CODES = [
-    "bps_tikung_2014",
-    "bps_tikung_2021",
-    "partner_input",
-    "sentinel",
-]
-
 _LOCATION_SCHEMA = {
     "bsonType": "object",
     "required": ["level", "name"],
-    "properties": {"level": {"enum": ["plot", "village", "regency"]}},
+    "properties": {"level": {"enum": ["plot", "village", "aoi_unit"]}},
 }
 _SOURCE_SCHEMA = {
     "bsonType": "object",
     "required": ["code", "is_synthetic"],
     "properties": {
-        "code": {"enum": SOURCE_CODES},
+        "code": {"bsonType": "string", "minLength": 1},
         "is_synthetic": {"bsonType": "bool"},
     },
 }
-_YEAR_SCHEMA = {"bsonType": "int", "minimum": 2000, "maximum": 2100}
+# Reference statistics can predate the satellites
+_YEAR_SCHEMA = {"bsonType": "int", "minimum": 1900, "maximum": 2100}
 _WINDOW_SCHEMA = {
     "bsonType": "object",
     "properties": {k: {"bsonType": ["date", "null"]} for k in ("start", "median", "end")},
@@ -198,7 +193,8 @@ def harvest_doc(
         _id: Deterministic id, e.g. ``"bps2020:padi:Jotosanur"``.
         sector: ``"crops"`` or ``"fisheries"``.
         commodity: Commodity as the source names it, e.g. ``"padi"``.
-        location: ``{level, name, village?, district?}``.
+        location: ``{level, name, aoi?, village?, district?}``; reference rows use level
+            ``"aoi_unit"`` with the AOI slug.
         period: ``{year, start_date?, harvest_date?, cycle?}``.
         source: Output of `source`.
         attributes: Commodity-specific fields.

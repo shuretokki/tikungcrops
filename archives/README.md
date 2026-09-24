@@ -11,6 +11,9 @@ monitoring (Sentinel-1/2). Kept for reference and for the final report; nothing 
   copula baseline fitted to BPS data, the CIMMYT bronze/silver pipeline, and the
   previous `load_mongo.py` that also loaded the synthetic data.
 - `app.py`: previous dashboard with synthetic charts and both predictors.
+- `sumber-data/`: the original source notes (Indonesian) and the tables no pipeline
+  reads any more: BPS cattle 2013/2020, Dinas Perikanan fish production and pond
+  potential 2021. The rice/maize tables moved to `data/reference/`.
 - `data/`, `models/` (not tracked): CIMMYT CSVs and trained model files.
 
 Why it was parked: a CIMMYT model restricted to inputs available for Jotosanur did not

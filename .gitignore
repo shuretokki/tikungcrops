@@ -8,7 +8,7 @@ wheels/
 .venv
 
 /data/*
-!/data/raw/
+!/data/reference/
 !/data/README.md
 /models/
 /archives/data/

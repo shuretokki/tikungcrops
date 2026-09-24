@@ -17,7 +17,7 @@ just etl        # full batch pipeline
 just app        # dashboard
 ```
 
-Data sources and their provenance: `data/raw/sumber-data/README.md`.
+Data layout: `data/README.md`. Reference statistics and their provenance: `data/reference/README.md`.
 
 ## Scheduled extraction
 

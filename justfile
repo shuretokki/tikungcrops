@@ -48,7 +48,11 @@ silver aoi="Lamongan/Tikung":
 gold aoi="Lamongan/Tikung":
     {{py}}.pipeline.gold_sentinel "{{aoi}}"
 
-# Sync BPS/Dinas tables and the area's season summaries into MongoDB
+# Compare season areas with the area's reference statistics (data/reference/<aoi>/), if any
+validate aoi="Lamongan/Tikung":
+    {{py}}.pipeline.validate_reference "{{aoi}}"
+
+# Sync the area's reference statistics and season summaries into MongoDB
 mongo aoi="Lamongan/Tikung": up
     {{py}}.pipeline.load_mongo "{{aoi}}"
 
@@ -60,7 +64,7 @@ agg: up
 monthly aoi="Lamongan/Tikung": (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (mongo aoi)
 
 # Setup of an area after its first `just sentinel` run
-setup aoi="Lamongan/Tikung": (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (mongo aoi)
+setup aoi="Lamongan/Tikung": (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (mongo aoi)
 
 # Run the dashboard
 app:
