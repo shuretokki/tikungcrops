@@ -10,6 +10,13 @@ from a higher neighbouring peak is one season. Around it:
       minimum even under clouds;
     - harvest: first date after the peak where NDVI falls below peak - `EOS_FRAC` of
       the amplitude;
+    - greenup_reliable: the green-up was actually seen, i.e. the base is bare or flooded
+      (NDVI at most `RELIABLE_BASE_NDVI`) and green-up falls `RELIABLE_GREENUP_DAYS`
+      before the peak. Wet-season clouds often hide the bare phase, so the base lands on
+      a half-green field (green-up days before the peak) or on the previous crop (at the
+      look-back limit); dates derived from green-up (flooding, season length) are then
+      wrong. In Tikung 19-26% of seasons pass, and those give plausible rice seasons
+      (flooding to harvest ~115 days wet season, ~80 dry);
     - rice: the field went under standing water around planting, i.e. the flooding VH is
       at most `RICE_FLOOD_VH_DB`, or at least `RICE_VH_DROP_DB` below the field's median
       VH `PRE_SEASON_DAYS` before green-up. Wet-season fields are already wet before
@@ -73,6 +80,8 @@ PRE_SEASON_DAYS = (75, 30)
 DATA_GAP_DAYS = 60
 # Tikung: 1 pass in the window -> 1% of seasons rice, 2 -> 23%, 4-8 -> 36-66%
 MIN_FLOOD_PASSES = 3
+RELIABLE_BASE_NDVI = 0.3
+RELIABLE_GREENUP_DAYS = (20, 105)
 
 SEASON_SCHEMA = {
     "cell_id": pl.Int64,
@@ -83,6 +92,7 @@ SEASON_SCHEMA = {
     "rice": pl.Boolean,
     "flood_passes": pl.Int32,
     "greenup_date": pl.Date,
+    "greenup_reliable": pl.Boolean,
     "peak_date": pl.Date,
     "peak_ndvi": pl.Float64,
     "harvest_date": pl.Date,
@@ -148,6 +158,7 @@ def seasons_for_cell(
             "peak_ndvi": float(ndvi[p]),
             "base_ndvi": None,
             "greenup_date": None,
+            "greenup_reliable": None,
             "flood_date": None,
             "flood_vh_db": None,
             "vh_drop_db": None,
@@ -165,6 +176,10 @@ def seasons_for_cell(
             g = _first((np.arange(len(ndvi)) > b) & (np.arange(len(ndvi)) <= p) & (ndvi >= base + SOS_FRAC * amp))
             if g is not None and not start_truncated:
                 row["greenup_date"] = dates[g]
+                lead = (peak_date - dates[g]).days
+                row["greenup_reliable"] = base <= RELIABLE_BASE_NDVI and (
+                    RELIABLE_GREENUP_DAYS[0] <= lead < RELIABLE_GREENUP_DAYS[1]
+                )
                 window = (
                     (dates >= dates[g] - timedelta(days=FLOOD_BEFORE_DAYS))
                     & (dates <= dates[g] + timedelta(days=FLOOD_AFTER_DAYS))

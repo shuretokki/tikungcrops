@@ -48,6 +48,10 @@ silver aoi="Lamongan/Tikung":
 gold aoi="Lamongan/Tikung":
     {{py}}.pipeline.gold_sentinel "{{aoi}}"
 
+# Score harvest-date forecasts (planting and peak) with leave-one-year-out; needs gold and CHIRPS
+forecast aoi="Lamongan/Tikung":
+    {{py}}.pipeline.forecast_harvest "{{aoi}}"
+
 # Compare season areas with the area's reference statistics (data/reference/<aoi>/), if any
 validate aoi="Lamongan/Tikung":
     {{py}}.pipeline.validate_reference "{{aoi}}"
