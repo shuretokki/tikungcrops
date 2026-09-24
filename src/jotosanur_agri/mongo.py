@@ -8,6 +8,8 @@ Collections:
       village tables; partner input of crops or fish ponds).
     - planting_seasons: satellite planting seasons per AOI unit, year and season
       (MT1-MT3), from `pipeline.gold_sentinel.summarize_units`.
+    - harvest_outlook: expected harvested area per AOI unit and week for seasons still
+      running, from `pipeline.harvest_outlook`; replaced on every load.
 
 Field names are English; values copied from sources (commodities such as ``padi``,
 place names) stay as published. `source.code` is free text: ``partner_input``,
@@ -97,6 +99,20 @@ VALIDATORS = {
             "source": _SOURCE_SCHEMA,
         },
     },
+    "harvest_outlook": {
+        "bsonType": "object",
+        "required": ["schema_version", "aoi", "unit", "week", "expected_ha", "cells", "issued_on", "source"],
+        "properties": {
+            "schema_version": {"enum": [SCHEMA_VERSION]},
+            "aoi": {"bsonType": "string", "minLength": 1},
+            "unit": {"bsonType": "string", "minLength": 1},
+            "week": {"bsonType": "date"},
+            "expected_ha": {"bsonType": "double", "minimum": 0},
+            "cells": {"bsonType": "int", "minimum": 0},
+            "issued_on": {"bsonType": "date"},
+            "source": _SOURCE_SCHEMA,
+        },
+    },
 }
 
 # One index per access pattern: A1-A2 on harvests, A4 on planting_seasons; A3 needs none.
@@ -107,6 +123,9 @@ INDEXES = {
     ],
     "planting_seasons": [
         [("aoi", ASCENDING), ("unit", ASCENDING), ("year", ASCENDING)],
+    ],
+    "harvest_outlook": [
+        [("aoi", ASCENDING), ("week", ASCENDING)],
     ],
 }
 

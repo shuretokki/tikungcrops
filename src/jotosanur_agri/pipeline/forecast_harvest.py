@@ -32,6 +32,7 @@ Usage: `python -m jotosanur_agri.pipeline.forecast_harvest [AOI]`.
 from __future__ import annotations
 
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -116,50 +117,63 @@ def _model(loss: str, quantile: float | None, categorical: list[bool]) -> HistGr
     )
 
 
-def _calibrated_range(
-    train: pl.DataFrame,
-    test: pl.DataFrame,
-    features: list[str],
-    target: str,
-    units: list[str],
-    categorical: list[bool],
-) -> tuple[np.ndarray, np.ndarray]:
-    """80% range for `test`, conformally widened using held-out training years."""
+@dataclass(frozen=True)
+class Forecaster:
+    """Fitted median and conformal 80% range models for one forecast."""
+
+    forecast: str
+    units: list[str]
+    median: HistGradientBoostingRegressor
+    low: HistGradientBoostingRegressor
+    high: HistGradientBoostingRegressor
+    widen: float
+
+    def predict(self, rows: pl.DataFrame) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Median, low and high predicted days from the anchor date (flooding or peak)."""
+        x = _matrix(rows, FEATURES[self.forecast], self.units)
+        return self.median.predict(x), self.low.predict(x) - self.widen, self.high.predict(x) + self.widen
+
+
+def fit(train: pl.DataFrame, forecast: str, units: list[str]) -> Forecaster:
+    """Fit a forecast on `train` (see `training_table`), with ranges widened on held-out years."""
+    features, target = FEATURES[forecast], TARGET[forecast]
+    categorical = [f == "unit" for f in features]
     years = sorted(train["year"].unique().to_list())
     n_cal = max(1, round(len(years) * CALIBRATION_SHARE))
     # Spread calibration years over the period rather than taking the latest ones
     cal_years = years[:: max(1, len(years) // n_cal)][:n_cal]
-    fit, cal = train.filter(~pl.col("year").is_in(cal_years)), train.filter(pl.col("year").is_in(cal_years))
-    x_fit, x_cal, x_all, x_test = (_matrix(d, features, units) for d in (fit, cal, train, test))
-    y_fit, y_cal = fit[target].to_numpy(), cal[target].to_numpy()
-    lo_m, hi_m = (_model("quantile", q, categorical).fit(x_fit, y_fit) for q in QUANTILES)
-    scores = np.maximum(lo_m.predict(x_cal) - y_cal, y_cal - hi_m.predict(x_cal))
+    fit_rows, cal = train.filter(~pl.col("year").is_in(cal_years)), train.filter(pl.col("year").is_in(cal_years))
+    x_fit, x_cal, x_all = (_matrix(d, features, units) for d in (fit_rows, cal, train))
+    y_fit, y_cal, y_all = fit_rows[target].to_numpy(), cal[target].to_numpy(), train[target].to_numpy()
+    lo_cal, hi_cal = (_model("quantile", q, categorical).fit(x_fit, y_fit) for q in QUANTILES)
+    scores = np.maximum(lo_cal.predict(x_cal) - y_cal, y_cal - hi_cal.predict(x_cal))
     level = QUANTILES[1] - QUANTILES[0]
     widen = float(np.quantile(scores, min(1.0, level * (1 + 1 / len(scores)))))
-    # Final quantile models use every training year; the widening comes from the calibration fit
-    lo, hi = (
-        _model("quantile", q, categorical).fit(x_all, train[target].to_numpy()).predict(x_test) for q in QUANTILES
+    # Final models use every training year; the widening comes from the calibration fit
+    return Forecaster(
+        forecast,
+        units,
+        _model("absolute_error", None, categorical).fit(x_all, y_all),
+        _model("quantile", QUANTILES[0], categorical).fit(x_all, y_all),
+        _model("quantile", QUANTILES[1], categorical).fit(x_all, y_all),
+        widen,
     )
-    return lo - widen, hi + widen
 
 
 def evaluate(table: pl.DataFrame, forecast: str) -> tuple[pl.DataFrame, pl.DataFrame]:
     """Leave-one-year-out scores per held-out year, and per-unit median date errors."""
-    features, target = FEATURES[forecast], TARGET[forecast]
+    target = TARGET[forecast]
     baseline_keys = ["flood_month", "rice"] if forecast == "planting" else ["rice"]
     units = sorted(table["unit"].unique().to_list())
-    categorical = [f == "unit" for f in features]
     years = [y for y, n in table.group_by("year").len().sort("year").iter_rows() if n >= MIN_TEST_SEASONS]
     rows, unit_rows = [], []
     for year in years:
         train, test = table.filter(pl.col("year") != year), table.filter(pl.col("year") == year)
-        x_train, x_test = _matrix(train, features, units), _matrix(test, features, units)
         y_train, y_test = train[target].to_numpy(), test[target].to_numpy()
 
         medians = train.group_by(baseline_keys).agg(pl.col(target).median().alias("base"))
         base = test.join(medians, on=baseline_keys, how="left")["base"].fill_null(float(np.median(y_train))).to_numpy()
-        point = _model("absolute_error", None, categorical).fit(x_train, y_train).predict(x_test)
-        low, high = _calibrated_range(train, test, features, target, units, categorical)
+        point, low, high = fit(train, forecast, units).predict(test)
 
         rows.append(
             {

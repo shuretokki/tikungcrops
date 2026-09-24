@@ -48,6 +48,10 @@ silver aoi="Lamongan/Tikung":
 gold aoi="Lamongan/Tikung":
     {{py}}.pipeline.gold_sentinel "{{aoi}}"
 
+# Expected harvested area per unit and week for seasons still running (needs gold and CHIRPS)
+outlook aoi="Lamongan/Tikung":
+    {{py}}.pipeline.harvest_outlook "{{aoi}}"
+
 # Score harvest-date forecasts (planting and peak) with leave-one-year-out; needs gold and CHIRPS
 forecast aoi="Lamongan/Tikung":
     {{py}}.pipeline.forecast_harvest "{{aoi}}"
@@ -64,11 +68,11 @@ mongo aoi="Lamongan/Tikung": up
 agg: up
     {{py}}.mongo_agg
 
-# What the scheduled job runs: last month's scenes, CHIRPS, silver, gold, MongoDB
-monthly aoi="Lamongan/Tikung": (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (mongo aoi)
+# What the scheduled job runs: last month's scenes, CHIRPS, silver, gold, harvest outlook, MongoDB
+monthly aoi="Lamongan/Tikung": (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (outlook aoi) (mongo aoi)
 
 # Setup of an area after its first `just sentinel` run
-setup aoi="Lamongan/Tikung": (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (mongo aoi)
+setup aoi="Lamongan/Tikung": (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (outlook aoi) (mongo aoi)
 
 # Run the dashboard
 app:

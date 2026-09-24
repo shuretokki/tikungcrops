@@ -126,6 +126,47 @@ def render_musim_tanam(musim: Collection | None):
         st.dataframe(view, width="stretch", hide_index=True)
 
 
+def render_outlook(outlook: Collection | None):
+    """Expected harvested area per desa and week for seasons still running."""
+    st.subheader("Perkiraan Panen per Minggu (Satelit)")
+    st.caption(
+        "Untuk lahan yang sedang ditanami: tanggal panen diprakirakan dari tanggal genangan (sekitar 2-3 bulan "
+        "sebelumnya) atau dari puncak kehijauan (sekitar 1 bulan sebelumnya). Luas tiap lahan disebar merata "
+        "pada rentang prakiraan 80%, jadi grafik sudah memuat ketidakpastian. Uji ulang pada tanggal lampau: "
+        "prakiraan yang terbit pada musim kemarau meleset sekitar 1-2 minggu per desa, tetapi pada musim hujan "
+        "3-5 minggu karena awan menutupi awal musim - anggap perkiraan musim hujan sebagai kasar. Tanggal "
+        "adalah deteksi satelit, belum dicek dengan catatan panen petani."
+    )
+    if outlook is None:
+        st.info(MONGO_DOWN_MSG)
+        return
+    aois = sorted(outlook.distinct("aoi"))
+    if not aois:
+        st.info("Belum ada perkiraan panen - jalankan `just outlook` lalu `just mongo`.")
+        return
+    aoi = st.selectbox("Wilayah", aois, index=aois.index(DEFAULT_AOI) if DEFAULT_AOI in aois else 0, key="outlook_aoi")
+    df = pd.DataFrame(list(outlook.find({"aoi": aoi}, {"_id": 0, "source": 0, "schema_version": 0})))
+    if df.empty:
+        st.info("Belum ada perkiraan panen untuk wilayah ini.")
+        return
+    issued = df["issued_on"].max()
+    st.metric(
+        "Perkiraan luas panen (ha)", f"{df['expected_ha'].sum():,.0f}", help=f"Data satelit s.d. {issued:%d %b %Y}"
+    )
+    fig = px.bar(
+        df.sort_values("week"),
+        x="week",
+        y="expected_ha",
+        color="unit",
+        labels={"week": "Minggu", "expected_ha": "Perkiraan luas panen (ha)", "unit": "Desa"},
+        title=f"Perkiraan luas panen per minggu, dikeluarkan {issued:%d %b %Y}",
+    )
+    fig.add_vline(x=issued, line_dash="dash")
+    st.plotly_chart(fig, width="stretch")
+    with st.expander("Tabel"):
+        st.dataframe(df.sort_values(["week", "unit"]), width="stretch", hide_index=True)
+
+
 def render_input_panen(harvests: Collection | None):
     """Harvest entry form and the list of mitra harvests."""
     st.subheader("Catat Panen (Input Mitra)")
@@ -269,9 +310,13 @@ def main():
     db = get_db()
     harvests = db["harvests"] if db is not None else None
 
-    tab_musim, tab_panen, tab_distribusi = st.tabs(["Musim Tanam (Satelit)", "Catat Panen", "Distribusi"])
+    tab_musim, tab_outlook, tab_panen, tab_distribusi = st.tabs(
+        ["Musim Tanam (Satelit)", "Perkiraan Panen", "Catat Panen", "Distribusi"]
+    )
     with tab_musim:
         render_musim_tanam(db["planting_seasons"] if db is not None else None)
+    with tab_outlook:
+        render_outlook(db["harvest_outlook"] if db is not None else None)
     with tab_panen:
         render_input_panen(harvests)
     with tab_distribusi:

@@ -45,9 +45,19 @@ checking before use:
     - `PEAK_MIN` and the season gap assume dense irrigated crops two to three times a year.
 Sentinel-2 L2A is sparse before late 2017, so earlier seasons are mostly undetectable.
 
+Each cell also gets its state at the end of the series (`current_season`), for
+forecasting seasons still running: `peaked` (last peak seen, no harvest yet), `planted`
+(since the last harvest the field went bare or flooded, NDVI at most
+`RELIABLE_BASE_NDVI`, then rose by `GREENUP_RISE`, or its NDVI is still at its highest at the series end), `fallow` (bare,
+no rise yet) or
+`unknown` (no bare phase seen, e.g. clouds). Green-up of a running season uses a fixed
+rise because its amplitude is not known before the peak; `GREENUP_RISE` is `SOS_FRAC`
+of a typical amplitude (0.2 x ~0.6).
+
 Outputs: data/gold/sentinel/<aoi-slug>_seasons.parquet, one row per cell per season, with
 the cell's AOI unit (e.g. its desa) and, after `load_paddy`, its LBS paddy share; and
-<aoi-slug>_units.parquet, per unit x year x planting season (see `summarize_units`).
+<aoi-slug>_units.parquet, per unit x year x planting season (see `summarize_units`); and
+<aoi-slug>_current.parquet, one row per cell with its state at the end of the series.
 """
 
 from __future__ import annotations
@@ -82,6 +92,25 @@ DATA_GAP_DAYS = 60
 MIN_FLOOD_PASSES = 3
 RELIABLE_BASE_NDVI = 0.3
 RELIABLE_GREENUP_DAYS = (20, 105)
+GREENUP_RISE = 0.12
+# NDVI fall after the last peak that confirms it as the season's peak
+PEAK_CONFIRM_DROP = 0.05
+
+CURRENT_SCHEMA = {
+    "cell_id": pl.Int64,
+    "as_of": pl.Date,
+    "stage": pl.Utf8,
+    "base_ndvi": pl.Float64,
+    "greenup_date": pl.Date,
+    "greenup_reliable": pl.Boolean,
+    "flood_date": pl.Date,
+    "flood_vh_db": pl.Float64,
+    "vh_drop_db": pl.Float64,
+    "rice": pl.Boolean,
+    "flood_passes": pl.Int32,
+    "peak_date": pl.Date,
+    "peak_ndvi": pl.Float64,
+}
 
 SEASON_SCHEMA = {
     "cell_id": pl.Int64,
@@ -122,6 +151,82 @@ def find_peaks(dates: np.ndarray, ndvi: np.ndarray) -> list[int]:
 def _first(mask: np.ndarray) -> int | None:
     hits = np.flatnonzero(mask)
     return int(hits[0]) if hits.size else None
+
+
+def _flooding(dates: np.ndarray, vh: np.ndarray, g: int, s1_dates: np.ndarray | None) -> dict[str, Any]:
+    """Flooding date and VH around green-up index `g`, the VH drop, radar passes and rice flag."""
+    out: dict[str, Any] = {}
+    lo, hi = dates[g] - timedelta(days=FLOOD_BEFORE_DAYS), dates[g] + timedelta(days=FLOOD_AFTER_DAYS)
+    window = (dates >= lo) & (dates <= hi) & np.isfinite(vh)
+    if not window.any():
+        return out
+    f = int(np.flatnonzero(window)[np.argmin(vh[window])])
+    out["flood_date"], out["flood_vh_db"] = dates[f], float(vh[f])
+    far, near = (dates[g] - timedelta(days=d) for d in PRE_SEASON_DAYS)
+    pre = (dates >= far) & (dates <= near) & np.isfinite(vh)
+    drop = float(np.median(vh[pre])) - float(vh[f]) if pre.any() else None
+    out["vh_drop_db"] = drop
+    if s1_dates is not None:
+        passes = int(np.searchsorted(s1_dates, hi, side="right") - np.searchsorted(s1_dates, lo))
+        out["flood_passes"] = passes
+    else:
+        passes = MIN_FLOOD_PASSES
+    if passes >= MIN_FLOOD_PASSES:
+        out["rice"] = float(vh[f]) <= RICE_FLOOD_VH_DB or (drop is not None and drop >= RICE_VH_DROP_DB)
+    return out
+
+
+def current_season(
+    dates: np.ndarray,
+    ndvi: np.ndarray,
+    vh: np.ndarray,
+    seasons: list[dict[str, Any]],
+    s1_dates: np.ndarray | None = None,
+) -> dict[str, Any]:
+    """State of one cell at the end of its series, given its detected `seasons`."""
+    state: dict[str, Any] = {"as_of": dates[-1], "stage": "unknown"}
+    last = seasons[-1] if seasons else None
+    if last and last["harvest_date"] is None and last["end_truncated"]:
+        # A crop still greening has its highest NDVI at the series end, which counts as a
+        # peak; only a later drop confirms it
+        later = (dates > last["peak_date"]) & np.isfinite(ndvi)
+        confirmed = bool((ndvi[later] <= last["peak_ndvi"] - PEAK_CONFIRM_DROP).any())
+        if confirmed:
+            keep = ("peak_date", "peak_ndvi", "base_ndvi", "greenup_date", "greenup_reliable", "flood_date")
+            return {**state, "stage": "peaked", **{k: last[k] for k in keep}, **_flood_fields(last)}
+        if last["greenup_date"] is None:
+            return state
+        keep = ("base_ndvi", "greenup_date", "greenup_reliable", "flood_date")
+        return {**state, "stage": "planted", **{k: last[k] for k in keep}, **_flood_fields(last)}
+    if last is None:
+        after = dates >= dates[0]
+    elif last["harvest_date"] is not None:
+        after = dates > last["harvest_date"]
+    else:
+        # Harvest hidden by clouds: start looking a season gap after the peak
+        after = dates > last["peak_date"] + timedelta(days=MIN_SEASON_GAP_DAYS)
+    seen = after & np.isfinite(ndvi)
+    if not seen.any():
+        return state
+    b = int(np.flatnonzero(seen)[np.argmin(ndvi[seen])])
+    base = float(ndvi[b])
+    if base > RELIABLE_BASE_NDVI:
+        return {**state, "base_ndvi": base}
+    g = _first((np.arange(len(ndvi)) > b) & (ndvi >= base + GREENUP_RISE))
+    if g is None:
+        return {**state, "stage": "fallow", "base_ndvi": base}
+    return {
+        **state,
+        "stage": "planted",
+        "base_ndvi": base,
+        "greenup_date": dates[g],
+        "greenup_reliable": True,
+        **_flooding(dates, vh, g, s1_dates),
+    }
+
+
+def _flood_fields(season: dict[str, Any]) -> dict[str, Any]:
+    return {k: season[k] for k in ("flood_vh_db", "vh_drop_db", "rice", "flood_passes")}
 
 
 def seasons_for_cell(
@@ -180,29 +285,7 @@ def seasons_for_cell(
                 row["greenup_reliable"] = base <= RELIABLE_BASE_NDVI and (
                     RELIABLE_GREENUP_DAYS[0] <= lead < RELIABLE_GREENUP_DAYS[1]
                 )
-                window = (
-                    (dates >= dates[g] - timedelta(days=FLOOD_BEFORE_DAYS))
-                    & (dates <= dates[g] + timedelta(days=FLOOD_AFTER_DAYS))
-                    & np.isfinite(vh)
-                )
-                if window.any():
-                    f = int(np.flatnonzero(window)[np.argmin(vh[window])])
-                    row["flood_date"], row["flood_vh_db"] = dates[f], float(vh[f])
-                    far, near = (dates[g] - timedelta(days=d) for d in PRE_SEASON_DAYS)
-                    pre = (dates >= far) & (dates <= near) & np.isfinite(vh)
-                    drop = float(np.median(vh[pre])) - float(vh[f]) if pre.any() else None
-                    row["vh_drop_db"] = drop
-                    if s1_dates is not None:
-                        lo, hi = (
-                            dates[g] - timedelta(days=FLOOD_BEFORE_DAYS),
-                            dates[g] + timedelta(days=FLOOD_AFTER_DAYS),
-                        )
-                        passes = int(np.searchsorted(s1_dates, hi, side="right") - np.searchsorted(s1_dates, lo))
-                        row["flood_passes"] = passes
-                    else:
-                        passes = MIN_FLOOD_PASSES
-                    if passes >= MIN_FLOOD_PASSES:
-                        row["rice"] = float(vh[f]) <= RICE_FLOOD_VH_DB or (drop is not None and drop >= RICE_VH_DROP_DB)
+                row.update(_flooding(dates, vh, g, s1_dates))
             idx = np.arange(len(ndvi))
             h = _first((idx > p) & (idx < stop) & (ndvi <= float(ndvi[p]) - EOS_FRAC * amp))
             # A null run between peak and the drop means the drop date is unknown
@@ -214,19 +297,26 @@ def seasons_for_cell(
     return rows
 
 
-def build_gold(silver: pl.DataFrame, s1_dates: list[Any] | None = None) -> pl.DataFrame:
-    """One row per cell per detected season; `s1_dates` as in `seasons_for_cell`."""
+def build_gold(silver: pl.DataFrame, s1_dates: list[Any] | None = None) -> tuple[pl.DataFrame, pl.DataFrame]:
+    """Seasons (one row per cell per detected season) and each cell's current state.
+
+    `s1_dates` as in `seasons_for_cell`.
+    """
     passes = np.array(sorted(s1_dates), dtype=object) if s1_dates is not None else None
     rows: list[dict[str, Any]] = []
+    current: list[dict[str, Any]] = []
     for (cell_id,), cell in silver.sort("date").group_by("cell_id", maintain_order=True):
         dates: np.ndarray = np.array(cell["date"].to_list(), dtype=object)
         ndvi = cell["ndvi"].to_numpy().astype(float)
         vh = cell["vh_db"].to_numpy().astype(float)
-        rows += [{"cell_id": cell_id, **r} for r in seasons_for_cell(dates, ndvi, vh, passes)]
-    return pl.DataFrame(rows, schema=SEASON_SCHEMA).with_columns(
+        seasons = seasons_for_cell(dates, ndvi, vh, passes)
+        rows += [{"cell_id": cell_id, **r} for r in seasons]
+        current.append({"cell_id": cell_id, **current_season(dates, ndvi, vh, seasons, passes)})
+    gold = pl.DataFrame(rows, schema=SEASON_SCHEMA).with_columns(
         (pl.col("harvest_date") - pl.col("greenup_date")).dt.total_days().alias("greenup_to_harvest_days"),
         (pl.col("harvest_date") - pl.col("flood_date")).dt.total_days().alias("flood_to_harvest_days"),
     )
+    return gold, pl.DataFrame(current, schema=CURRENT_SCHEMA)
 
 
 def _date_quantile(col: str, q: float) -> pl.Expr:
@@ -293,7 +383,9 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
         .collect()["date"]
         .to_list()
     )
-    gold = build_gold(silver, s1_dates).join(cells, on="cell_id", how="left")
+    gold, current = build_gold(silver, s1_dates)
+    gold = gold.join(cells, on="cell_id", how="left")
+    current = current.join(cells, on="cell_id", how="left")
     units = summarize_units(gold)
     gold_dir = Path(data_dir) / "gold" / "sentinel"
     return {
@@ -306,6 +398,8 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
         },
         "path": save(gold, gold_dir / f"{slug}_seasons.parquet"),
         "units_path": save(units, gold_dir / f"{slug}_units.parquet"),
+        "current": dict(current["stage"].value_counts().iter_rows()),
+        "current_path": save(current, gold_dir / f"{slug}_current.parquet"),
     }
 
 

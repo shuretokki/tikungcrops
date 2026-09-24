@@ -5,6 +5,8 @@ Sources:
       (data/reference/<aoi>/harvested_area.csv, see its README) -> harvests.
     - Sentinel season summaries per AOI unit (data/gold/sentinel/<aoi>_units.parquet)
       -> planting_seasons.
+    - Harvest outlook per unit and week (data/gold/sentinel/<aoi>_outlook_weekly.parquet)
+      -> harvest_outlook.
 
 Every document has a deterministic `_id` and is replace-upserted. Documents of the AOI
 that the load no longer produces are deleted, and documents from `RETIRED_SOURCES` are
@@ -86,6 +88,25 @@ def planting_seasons(units_parquet: Path, aoi: str, now: datetime) -> list[Doc]:
     ]
 
 
+def harvest_outlook(weekly_parquet: Path, cells_parquet: Path, aoi: str, now: datetime) -> list[Doc]:
+    """Map the weekly harvest outlook (unit x week) to `harvest_outlook` documents."""
+    issued = pl.read_parquet(cells_parquet).select(pl.col("as_of").max()).item() if cells_parquet.exists() else None
+    return [
+        {
+            "_id": f"outlook:{aoi}:{r['unit']}:{r['week']}",
+            "schema_version": SCHEMA_VERSION,
+            "aoi": aoi,
+            "unit": r["unit"],
+            "week": as_datetime(r["week"]),
+            "expected_ha": float(r["expected_ha"]),
+            "cells": r["cells"],
+            "issued_on": as_datetime(issued or r["week"]),
+            "source": source("sentinel", False, now),
+        }
+        for r in pl.read_parquet(weekly_parquet).iter_rows(named=True)
+    ]
+
+
 def sync(db: Database, collection: str, docs: list[Doc], owned: Doc) -> Doc:
     """Replace-upsert `docs` by `_id`, then delete the `owned` documents not among them.
 
@@ -142,6 +163,11 @@ def main(aoi_spec: str = DEFAULT_AOI) -> None:
         report["planting_seasons"] = sync(db, "planting_seasons", seasons, {"source.code": "sentinel", "aoi": aoi})
     else:
         print(f"planting_seasons: skipped, {units} not found (run `just gold {aoi_spec}` first)")
+
+    outlook = GOLD / f"{aoi}_outlook_weekly.parquet"
+    if outlook.exists() and outlook.stat().st_size:
+        docs = harvest_outlook(outlook, GOLD / f"{aoi}_outlook_cells.parquet", aoi, now)
+        report["harvest_outlook"] = sync(db, "harvest_outlook", docs, {"aoi": aoi})
 
     for collection, counts in report.items():
         total = db[collection].count_documents({})
