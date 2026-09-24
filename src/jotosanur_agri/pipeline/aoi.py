@@ -30,6 +30,8 @@ from typing import Any
 
 GADM_URL = "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_{iso}_{level}.json.zip"
 GADM_DIR = Path("data/external/gadm")
+# Seconds without data before a download is abandoned (not a total limit)
+GADM_TIMEOUT_S = 60
 DEFAULT_COUNTRY = "IDN"
 WORLDCOVER_URL = (
     "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_{tile}_Map.tif"
@@ -86,18 +88,32 @@ def slugify(*parts: str) -> str:
 
 
 def _gadm_features(iso: str) -> tuple[list[dict[str, Any]], int]:
-    """Deepest-level GADM features for a country, downloading the archive once."""
+    """Deepest-level GADM features for a country, downloading the archive once.
+
+    A cached archive is used without any network access. Otherwise levels 5 to 1 are
+    tried (countries stop at different depths); a download goes to a temporary file
+    first, so an interrupted one cannot leave a broken archive behind.
+    """
     GADM_DIR.mkdir(parents=True, exist_ok=True)
-    for level in range(5, 0, -1):
-        archive = GADM_DIR / f"gadm41_{iso}_{level}.json.zip"
-        if not archive.exists():
+    cached = sorted(GADM_DIR.glob(f"gadm41_{iso}_[1-5].json.zip"), reverse=True)
+    if cached:
+        archive = cached[0]
+    else:
+        for level in range(5, 0, -1):
+            archive = GADM_DIR / f"gadm41_{iso}_{level}.json.zip"
             try:
-                urllib.request.urlretrieve(GADM_URL.format(iso=iso, level=level), archive)
+                with urllib.request.urlopen(GADM_URL.format(iso=iso, level=level), timeout=GADM_TIMEOUT_S) as resp:
+                    partial = archive.with_suffix(".part")
+                    partial.write_bytes(resp.read())
+                partial.rename(archive)
+                break
             except urllib.error.HTTPError:
                 continue
-        with zipfile.ZipFile(archive) as z:
-            return json.loads(z.read(f"gadm41_{iso}_{level}.json"))["features"], level
-    raise ValueError(f"no GADM boundaries found for country {iso!r}")
+        else:
+            raise ValueError(f"no GADM boundaries found for country {iso!r}")
+    level = int(archive.name.split("_")[2].split(".")[0])
+    with zipfile.ZipFile(archive) as z:
+        return json.loads(z.read(f"gadm41_{iso}_{level}.json"))["features"], level
 
 
 def _squash(name: str) -> str:
