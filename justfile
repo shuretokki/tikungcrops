@@ -4,6 +4,7 @@
 set dotenv-load
 set default-list := true
 
+aoi := "Lamongan/Tikung"
 py := "uv run python -m jotosanur_agri"
 
 # Check Docker is installed and the daemon is reachable
@@ -25,43 +26,43 @@ mongosh:
     {{require("mongosh")}} "$MONGO_URI" --eval 'db = db.getSiblingDB("'"$MONGO_DB"'")' --shell
 
 # Sentinel-1/2 bronze for an area and month range, e.g. `just sentinel Lamongan/Tikung 2020-01 2020-12`, defaults previous month
-sentinel aoi="Lamongan/Tikung" start="" end="":
+sentinel aoi=aoi start="" end="":
     {{py}}.pipeline.load_sentinel "{{aoi}}" {{start}} {{end}}
 
 # Paddy share per cell from the official Lahan Baku Sawah map (needs the Sentinel cells)
-paddy aoi="Lamongan/Tikung":
+paddy aoi=aoi:
     {{py}}.pipeline.load_paddy "{{aoi}}"
 
 # Soil properties per cell and unit from SoilGrids (needs the Sentinel cells)
-soilgrids aoi="Lamongan/Tikung":
+soilgrids aoi=aoi:
     {{py}}.pipeline.load_soilgrids "{{aoi}}"
 
 # CHIRPS monthly rainfall per unit (needs the Sentinel cells); add --refresh to refetch all months
-chirps aoi="Lamongan/Tikung" *args:
+chirps aoi=aoi *args:
     {{py}}.pipeline.load_chirps "{{aoi}}" {{args}}
 
 # Rebuild the 5-day silver time series for an area from all bronze months
-silver aoi="Lamongan/Tikung":
+silver aoi=aoi:
     {{py}}.pipeline.silver_sentinel "{{aoi}}"
 
 # Detect seasons per cell (flooding, green-up, peak, harvest, rice) and summarise per unit
-gold aoi="Lamongan/Tikung":
+gold aoi=aoi:
     {{py}}.pipeline.gold_sentinel "{{aoi}}"
 
 # Expected harvested area per unit and week for seasons still running (needs gold and CHIRPS)
-outlook aoi="Lamongan/Tikung":
+outlook aoi=aoi:
     {{py}}.pipeline.harvest_outlook "{{aoi}}"
 
 # Score harvest-date forecasts (planting and peak) with leave-one-year-out; needs gold and CHIRPS
-forecast aoi="Lamongan/Tikung":
+forecast aoi=aoi:
     {{py}}.pipeline.forecast_harvest "{{aoi}}"
 
 # Compare season areas with the area's reference statistics (data/reference/<aoi>/), if any
-validate aoi="Lamongan/Tikung":
+validate aoi=aoi:
     {{py}}.pipeline.validate_reference "{{aoi}}"
 
 # Sync the area's reference statistics and season summaries into MongoDB
-mongo aoi="Lamongan/Tikung": up
+mongo aoi=aoi: up
     {{py}}.pipeline.load_mongo "{{aoi}}"
 
 # Print aggregation results and query plans (IXSCAN vs COLLSCAN)
@@ -69,10 +70,10 @@ agg: up
     {{py}}.mongo_agg
 
 # What the scheduled job runs: last month's scenes, CHIRPS, silver, gold, harvest outlook, MongoDB
-monthly aoi="Lamongan/Tikung": (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (outlook aoi) (mongo aoi)
+monthly aoi=aoi: (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (outlook aoi) (mongo aoi)
 
 # Setup of an area after its first `just sentinel` run
-setup aoi="Lamongan/Tikung": (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (outlook aoi) (mongo aoi)
+setup aoi=aoi: (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (outlook aoi) (mongo aoi)
 
 # Run the dashboard
 app:

@@ -1,14 +1,21 @@
-"""Bronze pipeline turning Sentinel-1 and Sentinel-2 scenes into a cell x date table for an area of interest.
+"""Turn S1 and S2 scenes into a cell x date table for an area of interest.
 
-Sources, all public and read over HTTP as Cloud-Optimized GeoTIFFs (no login):
-    - Sentinel-2 L2A, Earth Search STAC (AWS, Element84).
-    - Sentinel-1 RTC (terrain-corrected radar backscatter), Microsoft Planetary
-      Computer STAC; asset URLs need a short-lived anonymous SAS token.
-    - ESA WorldCover 2021 v200, cropland mask (class 40).
-    - Area boundaries from `aoi` (GADM or a user GeoJSON).
+Sources, all public and read over HTTP as Cloud-Optimized GeoTIFFs:
+    - Sentinel-2 L2A, Earth Search STAC
+        https://earth-search.aws.element84.com/v1/api.html
+      Copernicus Sentinel-2 (processed by ESA), 2021, MSI Level-2A BOA Reflectance Product. Collection 1. European Space Agency. https://doi.org/10.5270/S2_-znk9xsj
+    - Sentinel-1 RTC Microsoft Planetary Computer STAC.
+        https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc
+      Asset URLs need a short-lived anonymous SAS token.
+    - ESA WorldCover 2021 v200.
+        https://esa-worldcover.org/en
+      Zanaga, D., Van De Kerchove, R., Daems, D., De Keersmaecker, W., Brockmann, C., Kirches, G., Wevers, J., Cartus, O., Santoro, M., Fritz, S., Lesiv, M., Herold, M., Tsendbazar, N.E., Xu, P., Ramoino, F., Arino, O., 2022. ESA WorldCover 10 m 2021 v200. https://doi.org/10.5281/zenodo.7254221
+    - Area boundaries from `aoi` uses GADM or a user GeoJSON.
+        https://gadm.org/
+      GADM. (2022). Global Administrative Areas spatial database, version 4.1 [Indonesia, Lamongan/Tikung]. Available online: https://gadm.org [Accessed 25 September 2026].
 
 Rows are 100 m cells (10 x 10 Sentinel-2 pixels) inside the AOI that are at least half
-cropland; each cell belongs to the AOI unit covering most of it. Each acquisition date
+cropland. Each cell belongs to the AOI unit covering most of it. Each acquisition date
 becomes one row per cell with per-cell statistics:
     - S2: median NDVI and LSWI over pixels the scene classification marks clear,
       plus the clear fraction.
@@ -24,8 +31,8 @@ stays bounded for large areas; cell ids are global across blocks.
 
 Output: data/bronze/sentinel/<aoi-slug>/<YYYY-MM>.parquet plus cells.parquet.
 Usage: `python -m jotosanur_agri.pipeline.load_sentinel [AOI] [START_MONTH] [END_MONTH]`,
-e.g. `Lamongan/Tikung 2020-01 2020-12`; without months it processes the previous
-calendar month (the scheduled case).
+e.g. `Lamongan/Tikung 2020-01 2020-12` without months it defaults to the previous
+calendar month.
 """
 
 from __future__ import annotations
@@ -53,19 +60,28 @@ from jotosanur_agri.pipeline.aoi import Aoi, resolve
 DEFAULT_AOI = "Lamongan/Tikung"
 EARTH_SEARCH = "https://earth-search.aws.element84.com/v1/search"
 PLANETARY = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
+
+# https://planetarycomputer.microsoft.com/docs/concepts/sas/
 PC_TOKEN = "https://planetarycomputer.microsoft.com/api/sas/v1/token/sentinel-1-rtc"
 
 PIXEL_M = 10
 CELL_PX = 10  # 100 m cells
-BLOCK_PX = 1500  # multiple of CELL_PX; ~2.25 M pixels per block
+BLOCK_PX = 1500  # multiple of CELL_PX. ~2.25 M pixels per block
 MIN_CROP_FRAC = 0.5
+
+# Refer: WorldCover Product User Manual V2.0
 WORLDCOVER_CROPLAND = 40
-# Sentinel-2 scene classes treated as clear: vegetation, bare soil, water
+
+# Refer: Copernicus Space Component Sentinel Optical Imaging MPC
+# Document ID: OMPC.TPZ.SUM.003 [Sen2Cor Configuration and User Manual]
+# table 2-1 on page 7 contains related classification map for below
+# 4:vegetation, 5:bare soil, 6:water
 S2_CLEAR = [4, 5, 6]
-# Processing baseline 04.00 (from 2022-01-25) stores reflectance with a +1000 offset
+# processing baseline 04.00 from 2022-01-25 stores reflectance with a +1000 offset
 S2_OFFSET_FROM = "2022-01-25"
 WORKERS = 12
 
+# Refer: https://gdal.org/en/stable/user/configoptions.html
 GDAL_ENV: dict[str, Any] = {
     "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
     "AWS_NO_SIGN_REQUEST": "YES",
@@ -249,7 +265,7 @@ def cells_table(aoi: Aoi, grid: Grid, units: np.ndarray, cropland: np.ndarray) -
     n = (grid.shape[0] // CELL_PX) * wide
     total = np.bincount(local[inside], minlength=n)
     crop = np.bincount(local[inside & cropland], minlength=n)
-    # Majority unit per cell: count (cell, unit) pairs, then take the most frequent unit
+    # majority unit per cell: count (cell, unit) pairs, then take the most frequent unit
     n_units = len(aoi.units) + 1
     pairs = np.bincount(local[inside] * n_units + units[inside], minlength=n * n_units).reshape(n, n_units)
     keep = (total > 0) & (crop / np.maximum(total, 1) >= MIN_CROP_FRAC)
@@ -380,7 +396,7 @@ def s1_rows(day: str, items: list[Item], block: Block, token: str) -> list[dict[
     member = ids >= 0
     by_pol: dict[str, dict[int, float]] = {}
     for pol in ("vv", "vh"):
-        # Average in linear power, then convert, so the mean is not biased by the log
+        # average in linear power, then convert, so the mean is not biased by the log
         ok = member & np.isfinite(layers[pol]) & (layers[pol] > 0)
         by_pol[pol] = {c: float(10 * np.log10(v)) for c, v in _per_cell(ids, layers[pol], ok, "mean").items()}
     return [
@@ -464,7 +480,7 @@ def run_sentinel_pipeline(
     aoi = resolve(aoi_spec)
     cells, blocks = prepare_blocks(aoi)
     if cells.is_empty():
-        raise ValueError(f"{aoi.slug}: no cell is at least {MIN_CROP_FRAC:.0%} WorldCover cropland; nothing to monitor")
+        raise ValueError(f"{aoi.slug}: no cell is at least {MIN_CROP_FRAC:.0%} WorldCover cropland.")
 
     aoi_dir = Path(out_dir) / "bronze" / "sentinel" / aoi.slug
     save(cells, aoi_dir / "cells.parquet")
@@ -479,7 +495,8 @@ def run_sentinel_pipeline(
     for month in month_range(start, end):
         s2_dates = stac_search(EARTH_SEARCH, "sentinel-2-l2a", bbox, month)
         s1_dates = stac_search(PLANETARY, "sentinel-1-rtc", bbox, month)
-        # SAS tokens expire after about an hour; a month takes minutes
+        # SAS tokens expire after about an hour
+        # and fetching a month can takes minutes
         token = pc_token()
         with ThreadPoolExecutor(WORKERS) as pool:
             futures = [pool.submit(s2_rows, day, items, b) for day, items in s2_dates.items() for b in blocks]

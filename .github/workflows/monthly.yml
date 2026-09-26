@@ -1,13 +1,8 @@
-# Monthly satellite and rainfall extraction.
-# Outputs are uploaded as a workflow artifact, the runner is wiped after the
-# job, and silver needs every past month, so silver is rebuilt locally (`just silver`)
-# or after moving bronze to persistent storage.
 name: monthly-extract
 
 on:
   schedule:
-    # off-minute to avoid the :00 rush
-    - cron: "23 2 25 * *"
+    - cron: "23 2 25 * *" # off-minute to avoid the :00 rush
   workflow_dispatch:
     inputs:
       aoi:
@@ -32,14 +27,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      # Inputs reach the shell only through env, never interpolated into the script
       AOI: ${{ inputs.aoi || 'Lamongan/Tikung' }}
       START: ${{ inputs.start }}
       END: ${{ inputs.end }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
-          # Keep the token off disk; nothing here pushes, and the artifact must not carry it
           persist-credentials: false
 
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e  # v6.8.0

@@ -12,8 +12,8 @@ Spec forms:
 The slug names the full match, so specs for the same area share outputs and different
 areas never collide: ``Lamongan/Tikung`` becomes ``idn-jawatimur-lamongan-tikung``.
 
-GADM 4.1 is free for non-commercial use and must not be redistributed, so it is
-downloaded at run time into data/external/gadm/ (not tracked).
+GADM is stored in data/external/gadm/.
+GADM 4.1 is free for non-commercial use and must not be redistributed.
 """
 
 from __future__ import annotations
@@ -30,8 +30,7 @@ from typing import Any
 
 GADM_URL = "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_{iso}_{level}.json.zip"
 GADM_DIR = Path("data/external/gadm")
-# Seconds without data before a download is abandoned (not a total limit)
-GADM_TIMEOUT_S = 60
+GADM_TIMEOUT_S = 60  # seconds without data before a download is abandoned
 DEFAULT_COUNTRY = "IDN"
 WORLDCOVER_URL = (
     "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_{tile}_Map.tif"
@@ -146,7 +145,7 @@ def from_gadm(path: str, iso: str = DEFAULT_COUNTRY) -> Aoi:
         raise ValueError(f"{path!r} matches {len(areas)} areas in {iso}; use a longer path: {options}")
     ((key, (end, matched)),) = areas.items()
     unit_level = min(end + 1, max_level)
-    # Group by GADM id, not name: same-named units in one area stay separate
+    # group by GADM id, not name: same-named units in one area stay separate
     groups: dict[str, list[dict[str, Any]]] = {}
     for f in matched:
         groups.setdefault(f["properties"][f"GID_{unit_level}"], []).append(f)

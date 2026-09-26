@@ -35,7 +35,7 @@ LBS_URL = (
     "https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/SUMBER_DAYA_ALAM_DAN_LINGKUNGAN/MapServer/36/query"
 )
 LBS_DIR = Path("data/external/lbs")
-PAGE_SIZE = 1000  # the service's MaxRecordCount
+PAGE_SIZE = 1000  # service's MaxRecordCount
 
 
 def fetch_lbs(aoi: Aoi) -> list[dict[str, Any]]:
@@ -82,7 +82,8 @@ def run_paddy(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dic
     full = make_grid(aoi)
     features = [f for f in fetch_lbs(aoi) if f.get("geometry")]
     if not features:
-        # No LBS coverage (outside Indonesia, or no mapped paddy): gold then weights cells by 1
+        # No LBS coverage (outside Indonesia, or no mapped paddy)
+        # gold then weights cells by 1
         out.unlink(missing_ok=True)
         return {"polygons": 0, "cells": cells.height, "path": None}
     shapes = [(transform_geom("EPSG:4326", full.crs, f["geometry"]), 1) for f in features]
@@ -98,7 +99,8 @@ def run_paddy(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dic
         paddy &= units > 0
         ids = cell_ids(grid, paddy)
         monitored = np.isin(ids, wanted)
-        # How much LBS paddy the cropland cells miss (cells were chosen from WorldCover)
+        # how much LBS paddy the cropland cells miss
+        # cells were chosen from WorldCover
         inside_px += int(monitored.sum())
         outside_px += int((paddy & ~monitored).sum())
         cell, n = np.unique(ids[monitored], return_counts=True)

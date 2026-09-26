@@ -1,4 +1,4 @@
-"""Silver pipeline: regular, cleaned per-cell Sentinel-1/2 time series from the monthly bronze files.
+"""Cleaned per-cell S1/S2 time series from the monthly bronze files.
 
 Bronze has irregular dates, cloudy Sentinel-2 rows and two Sentinel-1 viewing
 geometries. Silver puts every cell on one 5-day calendar:
@@ -60,7 +60,7 @@ def clean_s1(bronze: pl.DataFrame) -> pl.DataFrame:
     s1 = bronze.filter((pl.col("sensor") == "S1") & pl.col("vh_db").is_not_null()).select(
         "cell_id", "date", "orbit", *S1_VARS
     )
-    # Shift each orbit's per-cell mean onto the cell's overall mean
+    # shift each orbit's per-cell mean onto the cell's overall mean
     return (
         s1.with_columns(
             pl.col(v) - pl.col(v).mean().over("cell_id", "orbit") + pl.col(v).mean().over("cell_id") for v in S1_VARS
@@ -130,7 +130,7 @@ def build_silver(bronze: pl.DataFrame) -> pl.DataFrame:
     ]
     return (
         silver.sort("cell_id", "date")
-        # rolling_median would fill gaps next to data; keep null where interpolation gave up
+        # rolling_median would fill gaps next to data, keep null where interpolation gave up
         .with_columns(
             pl.when(pl.col(v).is_not_null()).then(expr) for v, expr in zip(S2_VARS + S1_VARS, smooth, strict=True)
         )
@@ -154,7 +154,7 @@ def run_silver_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "dat
     slug = resolve(aoi_spec).slug
     months = sorted((Path(data_dir) / "bronze" / "sentinel" / slug).glob("[0-9]*.parquet"))
     if not months:
-        raise ValueError(f"{slug}: no bronze months; run load_sentinel first")
+        raise ValueError(f"{slug}: no bronze months, run load_sentinel first")
     bronze = pl.read_parquet(months)
     if bronze.filter(pl.col("ndvi").is_not_null()).is_empty():
         raise ValueError(f"{slug}: bronze has no Sentinel-2 NDVI; seasons cannot be detected from radar alone")

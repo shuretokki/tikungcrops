@@ -22,3 +22,6 @@ wheels/
 documents/local/
 
 .env
+
+# personal polars practice
+/src/jotosanur_agri/test/

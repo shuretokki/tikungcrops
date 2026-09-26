@@ -2,9 +2,10 @@
 
 Source: ISRIC SoilGrids 2.0 (Poggio et al., 2021), 250 m, CC BY 4.0. The global
 predictions are published as Cloud-Optimized GeoTIFFs behind VRT mosaics, so only the
-tiles covering the AOI are read over HTTP; no REST API calls or rate limits.
+tiles covering the AOI are read over HTTP and no REST API calls or rate limits.
+https://docs.isric.org/globaldata/soilgrids/
 
-Values are stored as integers in "mapped units"; dividing by `D_FACTOR` gives the
+Values are stored as integers in "mapped units". Dividing by `D_FACTOR` gives the
 target units (e.g. clay in %, pH in pH units, bulk density in kg/dm3). Each cell gets
 the mean of its 10 m pixels (nearest-resampled from 250 m), and each unit the median of
 its cells.
@@ -31,7 +32,8 @@ from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI, monitored_blocks,
 
 VRT_URL = "/vsicurl/https://files.isric.org/soilgrids/latest/data/{prop}/{prop}_{depth}_mean.vrt"
 
-# Mapped value / D_FACTOR = target units (SoilGrids 2.0 documentation)
+# https://docs.isric.org/globaldata/soilgrids/SoilGrids_faqs_01.html
+# mapped value / D_FACTOR = target units
 D_FACTOR = {
     "bdod": 100,  # kg/dm3
     "cfvo": 10,  # vol %
@@ -43,7 +45,8 @@ D_FACTOR = {
     "silt": 10,  # %
     "soc": 10,  # g/kg
 }
-# Rice roots stay mostly in the top 30 cm
+
+# rice roots stay mostly in the top 30 cm
 DEPTHS = ["0-5cm", "5-15cm", "15-30cm"]
 WORKERS = 4
 

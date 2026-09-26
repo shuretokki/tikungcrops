@@ -82,7 +82,7 @@ EOS_FRAC = 0.5
 FLOOD_BEFORE_DAYS = 45
 FLOOD_AFTER_DAYS = 20
 # Rice thresholds, chosen from the Tikung 2020 VH distributions (wet season median -18.4 dB
-# at flooding; dry season median drop 1.8 dB); not validated on a second BPS year yet.
+# at flooding, dry season median drop 1.8 dB), not validated on a second BPS year yet.
 RICE_FLOOD_VH_DB = -17.0
 RICE_VH_DROP_DB = 1.5
 PRE_SEASON_DAYS = (75, 30)
