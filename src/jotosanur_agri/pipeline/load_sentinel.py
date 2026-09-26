@@ -10,7 +10,7 @@ Sources, all public and read over HTTP as Cloud-Optimized GeoTIFFs:
     - ESA WorldCover 2021 v200.
         https://esa-worldcover.org/en
       Zanaga, D., Van De Kerchove, R., Daems, D., De Keersmaecker, W., Brockmann, C., Kirches, G., Wevers, J., Cartus, O., Santoro, M., Fritz, S., Lesiv, M., Herold, M., Tsendbazar, N.E., Xu, P., Ramoino, F., Arino, O., 2022. ESA WorldCover 10 m 2021 v200. https://doi.org/10.5281/zenodo.7254221
-    - Area boundaries from `aoi` uses GADM or a user GeoJSON.
+    - Area boundaries from `aoi`: GADM or a user GeoJSON.
         https://gadm.org/
       GADM. (2022). Global Administrative Areas spatial database, version 4.1 [Indonesia, Lamongan/Tikung]. Available online: https://gadm.org [Accessed 25 September 2026].
 
@@ -27,11 +27,11 @@ products (datastrips, reprocessings). All items of a date are mosaicked: each pi
 comes from the newest product that covers it.
 
 The grid is processed in blocks of at most `BLOCK_PX` x `BLOCK_PX` pixels, so memory
-stays bounded for large areas; cell ids are global across blocks.
+stays bounded for large areas. Cell ids are global across blocks.
 
 Output: data/bronze/sentinel/<aoi-slug>/<YYYY-MM>.parquet plus cells.parquet.
 Usage: `python -m jotosanur_agri.pipeline.load_sentinel [AOI] [START_MONTH] [END_MONTH]`,
-e.g. `Lamongan/Tikung 2020-01 2020-12` without months it defaults to the previous
+e.g. `Lamongan/Tikung 2020-01 2020-12`. Without months it defaults to the previous
 calendar month.
 """
 
@@ -122,7 +122,7 @@ class Grid:
         transform: Affine transform of the grid's top-left pixel.
         shape: (rows, cols) in pixels, multiples of `CELL_PX`.
         crs: UTM CRS.
-        cells_wide: Cells per row of the full grid; keeps cell ids global across blocks.
+        cells_wide: Cells per row of the full grid, keeps cell ids global across blocks.
         cell_row0: Cell row of this block's first row in the full grid.
         cell_col0: Cell column of this block's first column in the full grid.
     """
@@ -211,7 +211,7 @@ def unit_raster(aoi: Aoi, grid: Grid) -> np.ndarray:
 
 
 def read_to_grid(href: str, grid: Grid, resampling: Resampling = Resampling.nearest) -> np.ndarray:
-    """Read band 1 of a raster warped onto `grid`; nodata becomes NaN."""
+    """Read band 1 of a raster warped onto `grid`. Nodata becomes NaN."""
     out = np.full(grid.shape, np.nan, dtype="float32")
     with rasterio.Env(**GDAL_ENV), rasterio.open(href) as src:
         reproject(
@@ -313,7 +313,7 @@ def _mosaic(
 ) -> dict[str, np.ndarray]:
     """Fill each monitored pixel from the first item (newest) that has data there.
 
-    `first` is the asset that decides coverage; `rest` are read only where it filled and
+    `first` is the asset that decides coverage. `rest` are read only where it filled and
     passed through `adjust` (per-item corrections such as a reflectance offset).
     """
     member = block.ids >= 0
@@ -432,7 +432,7 @@ def month_range(start: str, end: str) -> list[str]:
 
 
 def previous_month(today: date | None = None) -> str:
-    """The calendar month before `today`, as ``YYYY-MM``; the default for scheduled runs."""
+    """The calendar month before `today`, as ``YYYY-MM``, the default for scheduled runs."""
     today = today or date.today()
     y, m = (today.year - 1, 12) if today.month == 1 else (today.year, today.month - 1)
     return f"{y:04d}-{m:02d}"
@@ -464,7 +464,7 @@ def run_sentinel_pipeline(
     needs without reading earlier output, and a rerun overwrites the same file.
 
     Args:
-        aoi_spec: GADM path (e.g. ``Lamongan/Tikung``) or GeoJSON path; see `aoi.resolve`.
+        aoi_spec: GADM path (e.g. ``Lamongan/Tikung``) or GeoJSON path, see `aoi.resolve`.
         start: First month, ``YYYY-MM``. Defaults to the previous calendar month.
         end: Last month, ``YYYY-MM``. Defaults to `start`.
         out_dir: Data root.
@@ -496,7 +496,7 @@ def run_sentinel_pipeline(
         s2_dates = stac_search(EARTH_SEARCH, "sentinel-2-l2a", bbox, month)
         s1_dates = stac_search(PLANETARY, "sentinel-1-rtc", bbox, month)
         # SAS tokens expire after about an hour
-        # and fetching a month can takes minutes
+        # and fetching a month can take minutes
         token = pc_token()
         with ThreadPoolExecutor(WORKERS) as pool:
             futures = [pool.submit(s2_rows, day, items, b) for day, items in s2_dates.items() for b in blocks]
@@ -512,6 +512,6 @@ def run_sentinel_pipeline(
 
 
 if __name__ == "__main__":
-    # load_sentinel [AOI] [START_MONTH] [END_MONTH]; no months = previous month
+    # load_sentinel [AOI] [START_MONTH] [END_MONTH], no months = previous month
     args = sys.argv[1:] + [None] * 3
     print(run_sentinel_pipeline(args[0] or DEFAULT_AOI, args[1], args[2]))

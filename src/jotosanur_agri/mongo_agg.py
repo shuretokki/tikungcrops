@@ -1,7 +1,7 @@
 """MongoDB aggregation pipelines for the dashboard and API access patterns.
 
 Each pipeline starts with a `$match` on the leading key of its index (see
-`mongo.INDEXES`) so the planner can use an IXSCAN instead of a full collection scan;
+`mongo.INDEXES`) so the planner can use an IXSCAN instead of a full collection scan.
 `explain_stages` reports which one it picked.
 
 Run `just agg` (or `uv run python -m jotosanur_agri.mongo_agg`) to print every
@@ -146,8 +146,8 @@ def explain_stages(collection: Collection, pipeline: list[dict[str, Any]]) -> li
         {"aggregate": collection.name, "pipeline": pipeline, "cursor": {}},
         verbosity="queryPlanner",
     )
-    # Fully pushed-down pipelines report queryPlanner at the top level;
-    # others nest it under the first stage's $cursor.
+    # fully pushed-down pipelines report queryPlanner at the top level,
+    # others nest it under the first stage's $cursor
     planner = plan.get("queryPlanner") or plan["stages"][0]["$cursor"]["queryPlanner"]
     winning = planner["winningPlan"]
     return _stage_names(winning.get("queryPlan", winning))

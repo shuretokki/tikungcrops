@@ -2,7 +2,7 @@
 
 WorldCover's cropland class mixes rice, maize and dry fields. The national paddy field
 map (Peta Lahan Baku Sawah, scale 1:50,000 or finer) is published by BIG as an open
-ArcGIS REST layer with GeoJSON output; its polygons are rasterized onto the Sentinel grid
+ArcGIS REST layer with GeoJSON output. Its polygons are rasterized onto the Sentinel grid
 of an AOI and summarised per 100 m cell.
 
 The polygons are cached under data/external/lbs/ (not tracked: redistribution terms are
@@ -82,7 +82,7 @@ def run_paddy(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dic
     full = make_grid(aoi)
     features = [f for f in fetch_lbs(aoi) if f.get("geometry")]
     if not features:
-        # No LBS coverage (outside Indonesia, or no mapped paddy)
+        # no LBS coverage (outside Indonesia, or no mapped paddy)
         # gold then weights cells by 1
         out.unlink(missing_ok=True)
         return {"polygons": 0, "cells": cells.height, "path": None}

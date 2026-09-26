@@ -34,7 +34,7 @@ from jotosanur_agri.pipeline.reference import ReferenceDataError, read_reference
 
 GOLD = Path("data/gold/sentinel")
 
-# Sources no pipeline produces any more; their documents are deleted on load
+# sources no pipeline produces any more, their documents are deleted on load
 RETIRED_SOURCES = ["sintetis_pandu", "dinas_perikanan_2021"]
 
 Doc = dict[str, Any]
@@ -141,7 +141,7 @@ def main(aoi_spec: str = DEFAULT_AOI) -> None:
     """Check the inputs, create collections if needed, drop retired sources, then sync every source."""
     area = resolve(aoi_spec)
     aoi = area.slug
-    # Checked before anything is written, so a bad file leaves the database untouched
+    # checked before anything is written, so a bad file leaves the database untouched
     reference = read_reference(area)
 
     db = connect()
@@ -154,7 +154,7 @@ def main(aoi_spec: str = DEFAULT_AOI) -> None:
     harvests = reference_harvests(reference, aoi, now) if reference is not None else []
     if not harvests:
         print(f"harvests: no reference statistics for {aoi}")
-    # Partner input carries no `location.aoi`, so it is never in this filter
+    # partner input carries no `location.aoi`, so it is never in this filter
     report = {"harvests": sync(db, "harvests", harvests, {"location.aoi": aoi})}
 
     units = GOLD / f"{aoi}_units.parquet"

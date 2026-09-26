@@ -4,7 +4,7 @@ Run with `just app` (or `uv run streamlit run app.py`).
 
 Shows satellite planting seasons per desa (MongoDB `planting_seasons`) and the mitra
 input forms: harvests go to MongoDB, distribution records to SQLite (see
-`jotosanur_agri.store`). Database names are English; everything on screen is Indonesian.
+`jotosanur_agri.store`). Database names are English, everything on screen is Indonesian.
 The earlier version with synthetic data and yield predictors is kept in archives/app.py.
 """
 
@@ -34,7 +34,7 @@ def init_sqlite() -> None:
 @st.cache_resource
 def mongo_db() -> Database:
     """Project database, created once per server process."""
-    # Streamlit reruns the script on every interaction; keep one client and pool.
+    # Streamlit reruns the script on every interaction, so keep one client and pool
     return mongo.connect(timeout_ms=3000)
 
 
@@ -53,7 +53,7 @@ MONGO_DOWN_MSG = "MongoDB tidak aktif - jalankan `just up` (atau `docker compose
 
 DEFAULT_AOI = "idn-jawatimur-lamongan-tikung"
 MUSIM_LABEL = {"MT1": "MT1 (musim hujan)", "MT2": "MT2 (kemarau I)", "MT3": "MT3 (kemarau II)"}
-# Stored codes -> Indonesian labels shown in the forms
+# stored codes -> Indonesian labels shown in the forms
 LABEL = {
     "crops": "tanaman",
     "fisheries": "perikanan",

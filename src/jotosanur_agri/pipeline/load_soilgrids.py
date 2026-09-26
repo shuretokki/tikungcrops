@@ -2,7 +2,7 @@
 
 Source: ISRIC SoilGrids 2.0 (Poggio et al., 2021), 250 m, CC BY 4.0. The global
 predictions are published as Cloud-Optimized GeoTIFFs behind VRT mosaics, so only the
-tiles covering the AOI are read over HTTP and no REST API calls or rate limits.
+tiles covering the AOI are read over HTTP, with no REST API calls or rate limits.
 https://docs.isric.org/globaldata/soilgrids/
 
 Values are stored as integers in "mapped units". Dividing by `D_FACTOR` gives the

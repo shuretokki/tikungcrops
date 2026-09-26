@@ -2,11 +2,11 @@
 
 The file is typed in by hand, so it is checked before anything uses it, and every
 problem is reported at once with its line number:
-    - required columns present (order free, extra columns ignored);
+    - required columns present (order free, extra columns ignored).
     - `year` an integer in `YEARS`, areas and production non-negative numbers, `source`
-      not empty;
-    - `unit` names match the AOI's units; spacing and case are forgiven (``joto sanur``
-      becomes ``Jotosanur``), anything else is listed next to the valid names;
+      not empty.
+    - `unit` names match the AOI's units. Spacing and case are forgiven (``joto sanur``
+      becomes ``Jotosanur``), anything else is listed next to the valid names.
     - no duplicate unit x year x crop rows, which would be double counted.
 
 Crop names are normalised to lowercase with underscores (``Padi Sawah`` -> ``padi_sawah``).
@@ -26,7 +26,7 @@ from jotosanur_agri.pipeline.aoi import Aoi
 
 REQUIRED = ["unit", "year", "crop", "harvested_area_ha", "source"]
 MAX_LISTED = 10
-# Same bounds as the MongoDB validator
+# same bounds as the MongoDB validator
 YEARS = (1900, 2100)
 
 
@@ -87,7 +87,7 @@ def read_reference(aoi: Aoi, data_dir: str | Path = "data") -> pl.DataFrame | No
     missing = [c for c in REQUIRED if c not in raw.columns]
     if missing:
         raise ReferenceDataError(
-            f"{path}: missing column(s) {missing}; found {raw.columns}. See data/reference/README.md."
+            f"{path}: missing column(s) {missing}, found {raw.columns}. See data/reference/README.md."
         )
     if "production_ton" not in raw.columns:
         raw = raw.with_columns(pl.lit(None, pl.Utf8).alias("production_ton"))

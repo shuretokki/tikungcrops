@@ -3,8 +3,8 @@
 Two forecasts, each issued as soon as its inputs are known (nothing after the issue
 date is used):
     - `planting`: issued `ISSUE_AFTER_GREENUP_DAYS` after green-up, when the flooding
-      date and rice flag are settled; predicts flooding -> harvest days (~2-3 months ahead).
-    - `peak`: issued at the NDVI peak; predicts peak -> harvest days (~1 month ahead).
+      date and rice flag are settled. Predicts flooding -> harvest days (~2-3 months ahead).
+    - `peak`: issued at the NDVI peak. Predicts peak -> harvest days (~1 month ahead).
 
 Training rows are complete seasons whose green-up was actually observed
 (`greenup_reliable`): elsewhere cloud gaps corrupt the dates (see `gold_sentinel`), and a
@@ -86,7 +86,7 @@ def training_table(seasons: pl.DataFrame, rain: pl.DataFrame) -> pl.DataFrame:
         pl.col("rice").cast(pl.Float64),
         pl.col("flood_passes").cast(pl.Float64),
     )
-    # Rainfall of the unit in the flooding month: known once flooding is seen
+    # rainfall of the unit in the flooding month: known once flooding is seen
     return s.join(
         rain.select("unit", "year", "month", pl.col("precip_mm").alias("rain_mm")),
         left_on=["unit", pl.col("flood_date").dt.year(), "flood_month"],
@@ -109,7 +109,7 @@ def _model(loss: str, quantile: float | None, categorical: list[bool]) -> HistGr
     return HistGradientBoostingRegressor(
         loss=loss,
         quantile=quantile,
-        # A boolean mask is valid; the local sklearn stubs only list the string forms
+        # a boolean mask is valid, the local sklearn stubs only list the string forms
         categorical_features=categorical,  # pyright: ignore[reportArgumentType]
         max_iter=300,
         learning_rate=0.05,
@@ -140,7 +140,7 @@ def fit(train: pl.DataFrame, forecast: str, units: list[str]) -> Forecaster:
     categorical = [f == "unit" for f in features]
     years = sorted(train["year"].unique().to_list())
     n_cal = max(1, round(len(years) * CALIBRATION_SHARE))
-    # Spread calibration years over the period rather than taking the latest ones
+    # spread calibration years over the period rather than taking the latest ones
     cal_years = years[:: max(1, len(years) // n_cal)][:n_cal]
     fit_rows, cal = train.filter(~pl.col("year").is_in(cal_years)), train.filter(pl.col("year").is_in(cal_years))
     x_fit, x_cal, x_all = (_matrix(d, features, units) for d in (fit_rows, cal, train))
@@ -149,7 +149,7 @@ def fit(train: pl.DataFrame, forecast: str, units: list[str]) -> Forecaster:
     scores = np.maximum(lo_cal.predict(x_cal) - y_cal, y_cal - hi_cal.predict(x_cal))
     level = QUANTILES[1] - QUANTILES[0]
     widen = float(np.quantile(scores, min(1.0, level * (1 + 1 / len(scores)))))
-    # Final models use every training year; the widening comes from the calibration fit
+    # final models use every training year, the widening comes from the calibration fit
     return Forecaster(
         forecast,
         units,
@@ -186,7 +186,7 @@ def evaluate(table: pl.DataFrame, forecast: str) -> tuple[pl.DataFrame, pl.DataF
                 "range_width_days": float(np.median(high - low)),
             }
         )
-        # Per unit: median predicted vs detected harvest day of the year's seasons
+        # per unit: median predicted vs detected harvest day of the year's seasons
         anchor = "flood_date" if forecast == "planting" else "peak_date"
         per_unit = (
             test.select("unit", anchor, "harvest_date")

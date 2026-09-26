@@ -1,12 +1,12 @@
 """Storage for the dashboard input forms: SQLite for distribution, MongoDB for partner harvests.
 
 SQLite `data/relational.db` holds users, destinations and distributions (spec section 4).
-`destinations` is seeded with the 4 MBG districts named in the news source;
+`destinations` is seeded with the 4 MBG districts named in the news source.
 `distributions` is never seeded, because only aggregates are known and splitting them
 per kitchen would invent data.
 
 Partner harvests go to Mongo `harvests` with `source.code = "partner_input"`. The
-collection validator is the last line of defence; the obvious cases are checked
+collection validator is the last line of defence. The obvious cases are checked
 here first so the form can show a readable error.
 
 `distributions.harvest_ref` points at a Mongo `harvests._id`. Neither database can
@@ -65,7 +65,7 @@ ITEM_TYPES = ["seed", "harvest"]
 UNITS = ["kg", "ton", "head"]
 DESTINATION_TYPES = ["district", "mbg_kitchen"]
 
-# Kampung Pandu Sakti's location; partner input is always from there
+# Kampung Pandu Sakti's location, partner input is always from there
 PARTNER_LOCATION = {"village": "Jotosanur", "district": "Tikung"}
 
 Row = dict[str, Any]
@@ -148,7 +148,7 @@ def add_distribution(
     Args:
         day: Delivery date.
         item_type: ``"seed"`` or ``"harvest"``.
-        commodity: What was delivered; stored lowercase.
+        commodity: What was delivered, stored lowercase.
         quantity: Quantity, must be > 0 (enforced by a CHECK constraint).
         unit: ``"kg"``, ``"ton"`` or ``"head"``.
         destination_id: `destinations.id` of the destination.
@@ -213,7 +213,7 @@ def add_partner_harvest(
         harvest_date: Harvest date.
         start_date: Planting or stocking date.
         area_ha: Harvested area.
-        production_ton: Production; 0 records a failed harvest.
+        production_ton: Production, 0 records a failed harvest.
 
     Returns:
         The new document id.

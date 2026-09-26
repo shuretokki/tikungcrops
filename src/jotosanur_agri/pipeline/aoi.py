@@ -1,8 +1,8 @@
-"""Area of interest (AOI): named units to monitor, from GADM admin boundaries or a GeoJSON file.
+"""Named units to monitor (area of interest, AOI) from GADM admin boundaries or a GeoJSON file.
 
 Spec forms:
     - GADM path, e.g. ``Lamongan/Tikung`` or ``IDN:Jawa Timur/Lamongan``: names matched as
-      consecutive admin levels, starting at any level; the country ISO3 prefix defaults
+      consecutive admin levels, starting at any level. The country ISO3 prefix defaults
       to IDN. Units are the next level down (desa inside a kecamatan, kecamatan inside a
       kabupaten, ...), or the area itself at the deepest level. A path matching more than
       one area (e.g. two kecamatan of the same name) is rejected with the candidates.
@@ -90,7 +90,7 @@ def _gadm_features(iso: str) -> tuple[list[dict[str, Any]], int]:
     """Deepest-level GADM features for a country, downloading the archive once.
 
     A cached archive is used without any network access. Otherwise levels 5 to 1 are
-    tried (countries stop at different depths); a download goes to a temporary file
+    tried (countries stop at different depths). A download goes to a temporary file
     first, so an interrupted one cannot leave a broken archive behind.
     """
     GADM_DIR.mkdir(parents=True, exist_ok=True)
@@ -128,7 +128,7 @@ def from_gadm(path: str, iso: str = DEFAULT_COUNTRY) -> Aoi:
     """
     names = [_squash(n) for n in path.split("/") if n.strip()]
     features, max_level = _gadm_features(iso)
-    # Every area the path names, keyed by its full name path from level 1
+    # every area the path names, keyed by its full name path from level 1
     areas: dict[tuple[str, ...], tuple[int, list[dict[str, Any]]]] = {}
     for start in range(1, max_level - len(names) + 2):
         end = start + len(names) - 1
@@ -142,7 +142,7 @@ def from_gadm(path: str, iso: str = DEFAULT_COUNTRY) -> Aoi:
     if len(areas) > 1:
         options = "; ".join(f"{iso}:{'/'.join(key)}" for key in sorted(areas)[:10])
         options += " ..." if len(areas) > 10 else ""
-        raise ValueError(f"{path!r} matches {len(areas)} areas in {iso}; use a longer path: {options}")
+        raise ValueError(f"{path!r} matches {len(areas)} areas in {iso}, use a longer path: {options}")
     ((key, (end, matched)),) = areas.items()
     unit_level = min(end + 1, max_level)
     # group by GADM id, not name: same-named units in one area stay separate
@@ -168,7 +168,7 @@ def _merge(geometries: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def from_geojson(path: Path) -> Aoi:
-    """AOI from a GeoJSON FeatureCollection; each feature is a unit named by its `name` property."""
+    """AOI from a GeoJSON FeatureCollection. Each feature is a unit named by its `name` property."""
     features = json.loads(path.read_text())["features"]
     units = [(str(f["properties"].get("name", f"unit-{i}")), f["geometry"]) for i, f in enumerate(features)]
     return Aoi(slug=slugify(path.stem), units=units)

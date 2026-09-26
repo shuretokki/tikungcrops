@@ -1,63 +1,64 @@
-"""Gold pipeline: rice seasons per cell (flooding, green-up, peak, harvest) from the silver time series.
+"""Rice seasons per cell (flooding, green-up, peak, harvest) from the silver time series.
 
 For every cell, each NDVI peak above `PEAK_MIN` that is at least `MIN_SEASON_GAP_DAYS`
 from a higher neighbouring peak is one season. Around it:
-    - base: lowest NDVI in the `LOOKBACK_DAYS` before the peak (bare or flooded field);
+    - base: lowest NDVI in the `LOOKBACK_DAYS` before the peak (bare or flooded field).
     - green-up: first date after the base where NDVI reaches base + `SOS_FRAC` of the
-      amplitude (peak - base), a standard threshold method for start of season;
+      amplitude (peak - base), a standard threshold method for start of season.
     - flooding: lowest VH between `FLOOD_BEFORE_DAYS` before and `FLOOD_AFTER_DAYS` after
       green-up. Standing water scatters radar away, so transplanting shows as a VH
-      minimum even under clouds;
+      minimum even under clouds.
     - harvest: first date after the peak where NDVI falls below peak - `EOS_FRAC` of
-      the amplitude;
+      the amplitude.
     - greenup_reliable: the green-up was actually seen, i.e. the base is bare or flooded
       (NDVI at most `RELIABLE_BASE_NDVI`) and green-up falls `RELIABLE_GREENUP_DAYS`
       before the peak. Wet-season clouds often hide the bare phase, so the base lands on
       a half-green field (green-up days before the peak) or on the previous crop (at the
-      look-back limit); dates derived from green-up (flooding, season length) are then
+      look-back limit), and dates derived from green-up (flooding, season length) are then
       wrong. In Tikung 19-26% of seasons pass, and those give plausible rice seasons
-      (flooding to harvest ~115 days wet season, ~80 dry);
+      (flooding to harvest ~115 days wet season, ~80 dry).
     - rice: the field went under standing water around planting, i.e. the flooding VH is
       at most `RICE_FLOOD_VH_DB`, or at least `RICE_VH_DROP_DB` below the field's median
       VH `PRE_SEASON_DAYS` before green-up. Wet-season fields are already wet before
-      planting (low VH, little drop); dry-season fields start dry after the previous
+      planting (low VH, little drop). Dry-season fields start dry after the previous
       harvest (higher VH, clear drop), so either condition marks transplanted paddy.
       Seasons failing both are other crops (maize, pulses) or dry-seeded fields. With
       fewer than `MIN_FLOOD_PASSES` Sentinel-1 passes in the flooding window (e.g. Java
       in early 2023, when Sentinel-1A covered it only every few weeks) the brief flooding
       dip is easily missed, so rice is left unknown rather than set to False.
 A date is null when the series has no data there (clouds beyond the gap limit), or when
-the season runs past the edge of a covered period; `start_truncated` and
+the season runs past the edge of a covered period. `start_truncated` and
 `end_truncated` mark the latter. A stretch of `DATA_GAP_DAYS` without any Sentinel-1 or
 Sentinel-2 value (e.g. months never extracted) splits the series into separate periods.
 Seasons are never dropped, so gaps stay visible.
 
-Tuned for transplanted lowland rice in East Java; elsewhere the output runs but needs
+Tuned for transplanted lowland rice in East Java. Elsewhere the output runs but needs
 checking before use:
-    - the rice thresholds come from Tikung 2020 radar; dry-seeded or rainfed rice, other
+    - the rice thresholds come from Tikung 2020 radar. Dry-seeded or rainfed rice, other
       soils and incidence angles shift VH. Even in Tikung, dry-season (MT2) rice is
       under-counted in wet dry seasons: rain raises VH across the landscape and fields
       are already wet before planting, so neither condition fires (2022 and 2025: 25% of
-      MT2 seasons rice vs 52-66% in dry years; rain vs MT2 rice share r = -0.84);
+      MT2 seasons rice vs 52-66% in dry years, rain vs MT2 rice share r = -0.84).
     - MT1-MT3 split seasons by NDVI peak month (Jan-Apr, May-Aug, Sep-Dec), which follows
-      the Javanese wet-season calendar; temperate regions or other monsoon timings
-      need their own split;
+      the Javanese wet-season calendar. Temperate regions or other monsoon timings
+      need their own split.
     - `PEAK_MIN` and the season gap assume dense irrigated crops two to three times a year.
 Sentinel-2 L2A is sparse before late 2017, so earlier seasons are mostly undetectable.
 
 Each cell also gets its state at the end of the series (`current_season`), for
 forecasting seasons still running: `peaked` (last peak seen, no harvest yet), `planted`
 (since the last harvest the field went bare or flooded, NDVI at most
-`RELIABLE_BASE_NDVI`, then rose by `GREENUP_RISE`, or its NDVI is still at its highest at the series end), `fallow` (bare,
-no rise yet) or
-`unknown` (no bare phase seen, e.g. clouds). Green-up of a running season uses a fixed
-rise because its amplitude is not known before the peak; `GREENUP_RISE` is `SOS_FRAC`
+`RELIABLE_BASE_NDVI`, then rose by `GREENUP_RISE`, or its NDVI is still at its highest
+at the series end), `fallow` (bare, no rise yet) or `unknown` (no bare phase seen,
+e.g. clouds). Green-up of a running season uses a fixed
+rise because its amplitude is not known before the peak. `GREENUP_RISE` is `SOS_FRAC`
 of a typical amplitude (0.2 x ~0.6).
 
-Outputs: data/gold/sentinel/<aoi-slug>_seasons.parquet, one row per cell per season, with
-the cell's AOI unit (e.g. its desa) and, after `load_paddy`, its LBS paddy share; and
-<aoi-slug>_units.parquet, per unit x year x planting season (see `summarize_units`); and
-<aoi-slug>_current.parquet, one row per cell with its state at the end of the series.
+Outputs in data/gold/sentinel/:
+    - <aoi-slug>_seasons.parquet, one row per cell per season, with the cell's AOI unit
+      (e.g. its desa) and, after `load_paddy`, its LBS paddy share.
+    - <aoi-slug>_units.parquet, per unit x year x planting season (see `summarize_units`).
+    - <aoi-slug>_current.parquet, one row per cell with its state at the end of the series.
 """
 
 from __future__ import annotations
@@ -81,12 +82,12 @@ SOS_FRAC = 0.2
 EOS_FRAC = 0.5
 FLOOD_BEFORE_DAYS = 45
 FLOOD_AFTER_DAYS = 20
-# Rice thresholds, chosen from the Tikung 2020 VH distributions (wet season median -18.4 dB
+# rice thresholds, chosen from the Tikung 2020 VH distributions (wet season median -18.4 dB
 # at flooding, dry season median drop 1.8 dB), not validated on a second BPS year yet.
 RICE_FLOOD_VH_DB = -17.0
 RICE_VH_DROP_DB = 1.5
 PRE_SEASON_DAYS = (75, 30)
-# Longer than any cloud gap: S1 sees through clouds, so this only happens without bronze
+# longer than any cloud gap: S1 sees through clouds, so this only happens without bronze
 DATA_GAP_DAYS = 60
 # Tikung: 1 pass in the window -> 1% of seasons rice, 2 -> 23%, 4-8 -> 36-66%
 MIN_FLOOD_PASSES = 3
@@ -187,8 +188,8 @@ def current_season(
     state: dict[str, Any] = {"as_of": dates[-1], "stage": "unknown"}
     last = seasons[-1] if seasons else None
     if last and last["harvest_date"] is None and last["end_truncated"]:
-        # A crop still greening has its highest NDVI at the series end, which counts as a
-        # peak; only a later drop confirms it
+        # a crop still greening has its highest NDVI at the series end, which counts as a
+        # peak, and only a later drop confirms it
         later = (dates > last["peak_date"]) & np.isfinite(ndvi)
         confirmed = bool((ndvi[later] <= last["peak_ndvi"] - PEAK_CONFIRM_DROP).any())
         if confirmed:
@@ -203,7 +204,7 @@ def current_season(
     elif last["harvest_date"] is not None:
         after = dates > last["harvest_date"]
     else:
-        # Harvest hidden by clouds: start looking a season gap after the peak
+        # harvest hidden by clouds: start looking a season gap after the peak
         after = dates > last["peak_date"] + timedelta(days=MIN_SEASON_GAP_DAYS)
     seen = after & np.isfinite(ndvi)
     if not seen.any():
@@ -234,7 +235,7 @@ def seasons_for_cell(
 ) -> list[dict[str, Any]]:
     """Seasons of one cell from its 5-day NDVI and VH series (dates ascending).
 
-    `s1_dates` are the actual Sentinel-1 acquisition dates (sorted); the 5-day series is
+    `s1_dates` are the actual Sentinel-1 acquisition dates (sorted). The 5-day series is
     interpolated, so it cannot tell how many real passes a window had. Without them
     every window counts as well observed.
     """
@@ -242,20 +243,20 @@ def seasons_for_cell(
     if not observed.size:
         return []
     first_ndvi, last_ndvi = dates[observed[0]], dates[observed[-1]]
-    # Covered periods: runs of dates with any sensor value, split at long gaps
+    # covered periods: runs of dates with any sensor value, split at long gaps
     any_obs = dates[np.isfinite(ndvi) | np.isfinite(vh)]
     breaks = np.flatnonzero(np.diff(any_obs) > timedelta(days=DATA_GAP_DAYS))
     starts, ends = any_obs[np.r_[0, breaks + 1]], any_obs[np.r_[breaks, len(any_obs) - 1]]
     rows = []
     peaks = find_peaks(dates, ndvi)
     for season, p in enumerate(peaks, start=1):
-        # Harvest must come before the next season's peak, or it belongs to that season
+        # harvest must come before the next season's peak, or it belongs to that season
         stop = peaks[season] if season < len(peaks) else len(ndvi)
         peak_date = dates[p]
         period = int(np.searchsorted(starts, peak_date, side="right")) - 1
         first_obs, last_obs = max(starts[period], first_ndvi), min(ends[period], last_ndvi)
         back = (dates >= peak_date - timedelta(days=LOOKBACK_DAYS)) & (dates < peak_date) & np.isfinite(ndvi)
-        # The look-back reaches before the first observation: the real base may be missing
+        # the look-back reaches before the first observation: the real base may be missing
         start_truncated = peak_date - timedelta(days=LOOKBACK_DAYS) < first_obs
         row: dict[str, Any] = {
             "season": season,
@@ -288,7 +289,7 @@ def seasons_for_cell(
                 row.update(_flooding(dates, vh, g, s1_dates))
             idx = np.arange(len(ndvi))
             h = _first((idx > p) & (idx < stop) & (ndvi <= float(ndvi[p]) - EOS_FRAC * amp))
-            # A null run between peak and the drop means the drop date is unknown
+            # a null run between peak and the drop means the drop date is unknown
             if h is not None and np.isfinite(ndvi[p:h]).all():
                 row["harvest_date"] = dates[h]
             else:
@@ -373,7 +374,7 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
     silver = pl.read_parquet(Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet")
     cells_dir = Path(data_dir) / "bronze" / "sentinel" / slug
     cells = pl.read_parquet(cells_dir / "cells.parquet").select("cell_id", "unit")
-    # Paddy share from the LBS map, when `load_paddy` has been run for this AOI
+    # paddy share from the LBS map, when `load_paddy` has been run for this AOI
     if (cells_dir / "paddy.parquet").exists():
         cells = cells.join(pl.read_parquet(cells_dir / "paddy.parquet"), on="cell_id", how="left")
     s1_dates = (

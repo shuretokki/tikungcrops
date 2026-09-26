@@ -1,4 +1,4 @@
-"""Harvest outlook: expected harvested area per unit and week for seasons still running.
+"""Expected harvested area per unit and week for seasons still running.
 
 Uses each cell's state at the end of the series (`gold_sentinel.current_season`) and the
 forecasts of `forecast_harvest`, trained on every reliable complete season:
@@ -7,7 +7,7 @@ forecasts of `forecast_harvest`, trained on every reliable complete season:
       is older with still no peak was usually a false rise seen through clouds (weeds,
       the previous crop) and the real planting came later: in Tikung January backtests
       the error was 30 days within 30 days of green-up, 53 days at 30-60 and 92+ beyond,
-      all too early;
+      all too early.
     - `peaked` cells get the peak forecast (peak -> harvest).
 Each cell's area (paddy share, else 1 ha) is spread evenly over the days of its 80%
 range, then summed per unit and ISO week, so the weekly curve carries the uncertainty.
@@ -167,7 +167,7 @@ def backtest(aoi_spec: str, as_of: list[date], data_dir: str | Path = "data") ->
         past, current = build_gold(silver.filter(pl.col("date") <= day), [d for d in s1_dates if d <= day])
         train = training_table(past.join(cells, on="cell_id", how="left"), rain).filter(pl.col("harvest_date") <= day)
         per_cell = predict(train, forecast_rows(current.join(cells, on="cell_id", how="left"), rain), units)
-        # Truth: the harvest of the same season in the full series - the season whose peak
+        # truth: the harvest of the same season in the full series - the season whose peak
         # matches (peak forecast) or the first peak after the issue date (planting
         # forecast). Undetected harvests stay null rather than borrowing the next season's.
         later = full.filter(pl.col("peak_date") >= day - timedelta(days=PEAK_MATCH_DAYS)).sort("peak_date")
@@ -206,7 +206,7 @@ def backtest(aoi_spec: str, as_of: list[date], data_dir: str | Path = "data") ->
                     "range_coverage": _mean(found["inside"], 2),
                 }
             )
-        # Per unit: median predicted vs detected harvest date
+        # per unit: median predicted vs detected harvest date
         per_unit = (
             scored.filter(pl.col("actual").is_not_null())
             .group_by("unit")

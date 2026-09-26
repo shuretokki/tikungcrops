@@ -3,20 +3,20 @@
 For every year that has reference data and satellite coverage for all its seasons, each
 unit's satellite area is summed over the year's seasons and compared with the reference
 harvested area (which also counts each season):
-    - rice: rice-season area (`rice_area_ha`) vs reference rice;
+    - rice: rice-season area (`rice_area_ha`) vs reference rice.
     - all crops: all-season area (`area_ha`) vs the sum of every reference crop that
       year (rice only in years whose source lists nothing else).
 
 A year counts as covered when the silver series (what gold was built from) has data in
 every month from September of the year before
 (wet-season crops planted then peak in the year) to April of the year after (so
-September-December crops are not cut off before harvest); seasons cut by missing months
+September-December crops are not cut off before harvest). Seasons cut by missing months
 are left out of the unit summaries, which would understate the year.
 
 Reported per year: units compared, Pearson r across units (None below 3 units or when
 either side is constant), the ratio of totals (satellite / reference) and the median
 absolute difference per unit in percent.
-Without reference data for the AOI the check is skipped; the pipeline results are then
+Without reference data for the AOI the check is skipped, and the pipeline results are then
 unvalidated for that area.
 
 Outputs: data/gold/sentinel/<aoi>_validation.csv (per year and measure) and
@@ -101,7 +101,7 @@ def run_validation(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -
 
     Returns:
         The per-year summary rows, reference years left out for lack of satellite data,
-        and output paths; or a note when there is nothing to compare.
+        and output paths, or a note when there is nothing to compare.
 
     Raises:
         ReferenceDataError: If the reference file has problems (all listed).
@@ -112,11 +112,11 @@ def run_validation(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -
     slug = aoi.slug
     reference = read_reference(aoi, data)
     if reference is None:
-        return {"aoi": slug, "note": f"no reference statistics ({reference_path(aoi, data)}); results are unvalidated"}
+        return {"aoi": slug, "note": f"no reference statistics ({reference_path(aoi, data)}), results are unvalidated"}
     units_path = data / "gold" / "sentinel" / f"{slug}_units.parquet"
     silver_path = data / "silver" / "sentinel" / f"{slug}.parquet"
     if not units_path.exists() or not silver_path.exists():
-        raise FileNotFoundError(f"{units_path} or {silver_path} not found; run `just silver` and `just gold` first")
+        raise FileNotFoundError(f"{units_path} or {silver_path} not found, run `just silver` and `just gold` first")
 
     ref_years = sorted(set(reference["year"].to_list()))
     years = covered_years(silver_path, ref_years)

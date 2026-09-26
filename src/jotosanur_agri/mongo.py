@@ -5,13 +5,13 @@ and the aggregations (`mongo_agg`).
 
 Collections:
     - harvests: polymorphic by `sector` (reference statistics per AOI unit, e.g. BPS
-      village tables; partner input of crops or fish ponds).
+      village tables, partner input of crops or fish ponds).
     - planting_seasons: satellite planting seasons per AOI unit, year and season
       (MT1-MT3), from `pipeline.gold_sentinel.summarize_units`.
     - harvest_outlook: expected harvested area per AOI unit and week for seasons still
-      running, from `pipeline.harvest_outlook`; replaced on every load.
+      running, from `pipeline.harvest_outlook`, replaced on every load.
 
-Field names are English; values copied from sources (commodities such as ``padi``,
+Field names are English. Values copied from sources (commodities such as ``padi``,
 place names) stay as published. `source.code` is free text: ``partner_input``,
 ``sentinel``, or a reference publication id such as ``bps_tikung_2021``.
 """
@@ -42,7 +42,7 @@ _SOURCE_SCHEMA = {
         "is_synthetic": {"bsonType": "bool"},
     },
 }
-# Reference statistics can predate the satellites
+# reference statistics can predate the satellites
 _YEAR_SCHEMA = {"bsonType": "int", "minimum": 1900, "maximum": 2100}
 _WINDOW_SCHEMA = {
     "bsonType": "object",
@@ -115,7 +115,7 @@ VALIDATORS = {
     },
 }
 
-# One index per access pattern: A1-A2 on harvests, A4 on planting_seasons; A3 needs none.
+# one index per access pattern: A1-A2 on harvests, A4 on planting_seasons, A3 needs none
 INDEXES = {
     "harvests": [
         [("commodity", ASCENDING), ("period.year", ASCENDING)],
@@ -213,7 +213,7 @@ def harvest_doc(
         _id: Deterministic id, e.g. ``"bps2020:padi:Jotosanur"``.
         sector: ``"crops"`` or ``"fisheries"``.
         commodity: Commodity as the source names it, e.g. ``"padi"``.
-        location: ``{level, name, aoi?, village?, district?}``; reference rows use level
+        location: ``{level, name, aoi?, village?, district?}``. Reference rows use level
             ``"aoi_unit"`` with the AOI slug.
         period: ``{year, start_date?, harvest_date?, cycle?}``.
         source: Output of `source`.

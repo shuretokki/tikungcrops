@@ -7,10 +7,10 @@ complete in the third week of the following month.
 Each monthly file is a Cloud-Optimized GeoTIFF, so only the window over the AOI is
 range-read over HTTP. The raster is sampled at the centre of every monitored 100 m cell
 and averaged per unit, so a desa spanning two CHIRPS pixels gets their area-weighted
-mean. CHIRPS covers 50S-50N only; an AOI outside that band is rejected.
+mean. CHIRPS covers 50S-50N only, so an AOI outside that band is rejected.
 
 Incremental batch: the bronze parquet is the cache. A run fetches months not yet in
-bronze, plus the last `REFETCH_LAST` months in case CHC revised them; --refresh
+bronze, plus the last `REFETCH_LAST` months in case CHC revised them. --refresh
 refetches everything.
 
 Outputs:
@@ -66,10 +66,10 @@ def fetch_month(year: int, month: int, points: pl.DataFrame, names: list[str]) -
         year: Year.
         month: Month.
         points: Monitored cells with ``lon``, ``lat`` and ``unit``.
-        names: Unit names; each gets a row.
+        names: Unit names, each gets a row.
 
     Returns:
-        One bronze row per unit; `precip_mm` is None when the unit has no cell with data.
+        One bronze row per unit. `precip_mm` is None when the unit has no cell with data.
     """
     lon, lat = points["lon"].to_numpy(), points["lat"].to_numpy()
     url = f"/vsicurl/{BASE_URL}/chirps-v3.0.{year}.{month:02d}.cog"
@@ -80,7 +80,7 @@ def fetch_month(year: int, month: int, points: pl.DataFrame, names: list[str]) -
         data = src.read(1, window=window, boundless=True, fill_value=-9999)
         rows, cols = rowcol(src.window_transform(window), lon, lat)
     values = data[np.asarray(rows), np.asarray(cols)].astype("float64")
-    # Ocean/no-data pixels are negative (-9999)
+    # ocean/no-data pixels are negative (-9999)
     frame = points.select("unit").with_columns(pl.Series("v", np.where(values >= 0, values, np.nan)).fill_nan(None))
     means = dict(frame.group_by("unit").agg(pl.col("v").mean()).iter_rows())
     fetched_on = date.today().isoformat()
@@ -127,7 +127,7 @@ def to_silver(bronze: pl.DataFrame) -> tuple[pl.DataFrame, pl.DataFrame]:
     """Derive the monthly series with 1991-2020 normals and anomalies, and annual totals.
 
     Returns:
-        (monthly, annual). Annual keeps complete years only; a partial year would
+        (monthly, annual). Annual keeps complete years only, since a partial year would
         understate the total.
     """
     monthly = bronze.with_columns(

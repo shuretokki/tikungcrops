@@ -7,12 +7,12 @@ geometries. Silver puts every cell on one 5-day calendar:
     2. S1: remove each orbit direction's per-cell offset, so ascending and descending
        passes do not zig-zag.
     3. Interpolate each sensor linearly onto the 5-day grid, only across gaps up to
-       `MAX_GAP_DAYS`; longer gaps stay null rather than invented.
+       `MAX_GAP_DAYS`. Longer gaps stay null rather than invented.
     4. Smooth with a centred rolling median over 3 steps (15 days).
     5. Add the VH-VV difference (dB, the VH/VV ratio) and a water flag (LSWI > NDVI,
        standing water such as flooded paddy at transplanting).
 
-Silver is rebuilt from all bronze months each run; it is small, and rebuilding keeps
+Silver is rebuilt from all bronze months each run. It is small, and rebuilding keeps
 it consistent when a month is reprocessed.
 
 Output: data/silver/sentinel/<aoi-slug>.parquet, one row per cell per 5-day step.
@@ -157,7 +157,7 @@ def run_silver_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "dat
         raise ValueError(f"{slug}: no bronze months, run load_sentinel first")
     bronze = pl.read_parquet(months)
     if bronze.filter(pl.col("ndvi").is_not_null()).is_empty():
-        raise ValueError(f"{slug}: bronze has no Sentinel-2 NDVI; seasons cannot be detected from radar alone")
+        raise ValueError(f"{slug}: bronze has no Sentinel-2 NDVI, seasons cannot be detected from radar alone")
     silver = build_silver(bronze)
     return {
         "rows": silver.height,

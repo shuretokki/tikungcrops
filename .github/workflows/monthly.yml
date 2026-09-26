@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      AOI: ${{ inputs.aoi || 'Lamongan/Tikung' }}
+      AOI: ${{ inputs.aoi || 'Lamongan/Tikung' }} # inputs reach the shell only through env, never interpolated
       START: ${{ inputs.start }}
       END: ${{ inputs.end }}
     steps:
