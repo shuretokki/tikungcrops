@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 import urllib.request
 from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
@@ -51,6 +52,7 @@ import numpy as np
 import polars as pl
 import rasterio
 from affine import Affine
+from rasterio.errors import RasterioError
 from rasterio.features import rasterize
 from rasterio.warp import Resampling, reproject, transform, transform_bounds, transform_geom
 
@@ -88,6 +90,8 @@ GDAL_ENV: dict[str, Any] = {
     "GDAL_HTTP_MAX_RETRY": "4",
     "GDAL_HTTP_RETRY_DELAY": "5",
 }
+READ_RETRIES = 3
+RETRY_PAUSE_S = 10
 
 BRONZE_SCHEMA = {
     "cell_id": pl.Int64,
@@ -211,19 +215,33 @@ def unit_raster(aoi: Aoi, grid: Grid) -> np.ndarray:
 
 
 def read_to_grid(href: str, grid: Grid, resampling: Resampling = Resampling.nearest) -> np.ndarray:
-    """Read band 1 of a raster warped onto `grid`. Nodata becomes NaN."""
-    out = np.full(grid.shape, np.nan, dtype="float32")
-    with rasterio.Env(**GDAL_ENV), rasterio.open(href) as src:
-        reproject(
-            rasterio.band(src, 1),
-            out,
-            src_nodata=src.nodata,
-            dst_transform=grid.transform,
-            dst_crs=grid.crs,
-            dst_nodata=np.nan,
-            resampling=resampling,
-        )
-    return out
+    """Read band 1 of a raster warped onto `grid`. Nodata becomes NaN.
+
+    GDAL retries HTTP errors itself, but a short read (0 bytes for a tile) comes back as a
+    plain read error. Such reads are retried `READ_RETRIES` times with a growing pause.
+    If they still fail, the scene counts as nodata for this block and the run goes on,
+    as stackstac's `errors_as_nodata` does. One lost scene costs a date, a crash costs the month.
+    """
+    for attempt in range(READ_RETRIES + 1):
+        out = np.full(grid.shape, np.nan, dtype="float32")
+        try:
+            with rasterio.Env(**GDAL_ENV), rasterio.open(href) as src:
+                reproject(
+                    rasterio.band(src, 1),
+                    out,
+                    src_nodata=src.nodata,
+                    dst_transform=grid.transform,
+                    dst_crs=grid.crs,
+                    dst_nodata=np.nan,
+                    resampling=resampling,
+                )
+            return out
+        except RasterioError as e:
+            if attempt == READ_RETRIES:
+                print(f"[sentinel] read failed {READ_RETRIES + 1} times, using nodata: {href.split('?')[0]} ({e})")
+                return np.full(grid.shape, np.nan, dtype="float32")
+            time.sleep(RETRY_PAUSE_S * (attempt + 1))
+    raise AssertionError("unreachable")
 
 
 def read_cropland(aoi: Aoi, grid: Grid) -> np.ndarray:
