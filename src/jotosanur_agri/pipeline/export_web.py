@@ -7,14 +7,15 @@ Outputs in data/web/<aoi-slug>/, all row-oriented JSON:
     - meta.json: AOI slug, series end date, export time, units with cell count, paddy
       area and centre, and which of the files below exist.
     - cells.json: one row per 100 m cell with position, unit, paddy share and current
-      stage. The map draws these points. GADM boundaries are not exported, because
-      their licence forbids redistribution.
+      stage. The map draws these points.
     - current.json: paddy hectares per unit and current stage.
     - seasons.json: per unit, year and season (`summarize_units`).
     - intensity.json: cropping intensity per unit and year (`intensity_units`).
     - outlook.json: expected harvested hectares per unit and week (`harvest_outlook`).
     - rain.json: CHIRPS monthly rainfall per unit from `RAIN_FROM_YEAR`.
     - validation.json: satellite vs reference areas, and harvest forecast scores.
+    - boundaries.geojson: unit outlines, written by `load_boundaries` (GADM's licence
+      forbids publishing its own outlines). Listed when present.
 A missing input skips its file, e.g. an area without reference data has no validation.
 
 Usage: `python -m jotosanur_agri.pipeline.export_web [AOI]` (default Lamongan/Tikung).
@@ -112,6 +113,8 @@ def run_export_web(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -
         validation = {k: json.loads(df.write_json()) if df is not None else [] for k, df in parts.items()}
         (out / "validation.json").write_text(json.dumps(validation))
         files.append("validation.json")
+    if (out / "boundaries.geojson").exists():
+        files.append("boundaries.geojson")
 
     units = (
         cells.group_by("unit")

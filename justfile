@@ -73,6 +73,10 @@ validate aoi=aoi:
 mongo aoi=aoi: up
     {{py}}.pipeline.load_mongo "{{aoi}}"
 
+# Publishable unit outlines (geoBoundaries) for the web map in data/web/<aoi>/
+boundaries aoi=aoi:
+    {{py}}.pipeline.load_boundaries "{{aoi}}"
+
 # Static JSON for the public web app in data/web/<aoi>/ (needs gold)
 web aoi=aoi:
     {{py}}.pipeline.export_web "{{aoi}}"
@@ -85,7 +89,7 @@ agg: up
 monthly aoi=aoi: (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (outlook aoi) (mongo aoi) (web aoi)
 
 # Setup of an area after its first `just sentinel` run
-setup aoi=aoi: (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (outlook aoi) (mongo aoi) (web aoi)
+setup aoi=aoi: (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (outlook aoi) (mongo aoi) (boundaries aoi) (web aoi)
 
 # Run the dashboard
 app:
