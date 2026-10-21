@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Leakage and conservation checks for the forecast table and the weekly outlook.
 
 The leakage tests follow the anti-pattern idea in temporalcv's testing strategy: change only

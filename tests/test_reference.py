@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Reference statistics reader: valid files, spreadsheet exports and every kind of bad row."""
 
 from __future__ import annotations

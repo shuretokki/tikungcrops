@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+// SPDX-License-Identifier: Apache-2.0
+
 // Areas the site shows, and loaders for the JSON that `just web` exports per area, copied to public/json.
 
 export interface Area {

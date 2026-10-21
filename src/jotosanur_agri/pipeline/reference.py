@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Reader for an AOI's reference statistics (data/reference/<aoi>/harvested_area.csv).
 
 The file is typed in by hand, so it is checked before anything uses it, and every

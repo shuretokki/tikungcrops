@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Web export on a tiny fake area: files written, optional inputs skipped."""
 
 from __future__ import annotations

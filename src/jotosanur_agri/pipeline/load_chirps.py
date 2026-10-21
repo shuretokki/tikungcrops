@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """CHIRPS v3.0 monthly rainfall per unit of an AOI (bronze and silver).
 
 Source: Climate Hazards Center, UCSB. CHIRPS v3.0 global monthly (final, not prelim),

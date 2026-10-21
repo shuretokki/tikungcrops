@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Shared fixtures: synthetic satellite series and a small offline AOI."""
 
 from __future__ import annotations

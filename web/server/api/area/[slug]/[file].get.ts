@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+// SPDX-License-Identifier: Apache-2.0
+
 // Serves one exported JSON file from data/web while pages prerender.
 // Nitro does not serve public/ files to $fetch during prerender, server assets it does.
 export default defineEventHandler(async (event) => {

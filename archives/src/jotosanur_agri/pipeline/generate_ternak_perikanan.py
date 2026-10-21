@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Synthetic cattle census and pond harvests for Kampung Pandu Sakti.
 
 Kept apart from `generate_synthetic` (rice) because the dynamics differ: cattle

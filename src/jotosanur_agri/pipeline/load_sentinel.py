@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Turn S1 and S2 scenes into a cell x date table for an area of interest.
 
 Sources, all public and read over HTTP as Cloud-Optimized GeoTIFFs:

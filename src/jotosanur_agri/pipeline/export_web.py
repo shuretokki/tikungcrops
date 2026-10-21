@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Export one AOI's gold results as static JSON for the public web app.
 
 The web app has no server: it reads these files at build time. Data changes once a month,

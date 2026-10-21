@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Expected harvested area per unit and week for seasons still running.
 
 Uses each cell's state at the end of the series (`gold_sentinel.current_season`) and the

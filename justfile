@@ -1,109 +1,176 @@
-# AOI arguments are GADM name paths (e.g. Lamongan/Tikung)
-# or GeoJSON files; see src/jotosanur_agri/pipeline/aoi.py.
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
 
-set dotenv-load
+# AOI arguments are GADM name paths (e.g. Lamongan/Tikung)
+# or GeoJSON files, see src/jotosanur_agri/pipeline/aoi.py.
+
 set default-list := true
+set dotenv-load := true
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# https://docs.astral.sh/uv
+uv := require("uv")
 
 aoi := "Lamongan/Tikung"
 py := "uv run python -m jotosanur_agri"
+PATHS := "src tests scripts app.py"
+
+# Install the project and its dev tools
+sync:
+    uv sync
 
 # Check Docker is installed and the daemon is reachable
 [private]
 docker-check:
-    @command -v docker >/dev/null || { echo "docker not found; install Docker Engine: https://docs.docker.com/engine/install/"; exit 1; }
-    @docker info >/dev/null 2>&1 || { echo "docker daemon not reachable; start it (e.g. sudo service docker start)"; exit 1; }
+    @command -v docker >/dev/null || { echo "docker not found, install Docker Engine: https://docs.docker.com/engine/install/"; exit 1; }
+    @docker info >/dev/null 2>&1 || { echo "docker daemon not reachable, start it (e.g. sudo service docker start)"; exit 1; }
 
 # Start MongoDB and wait until healthy
+[group("db")]
 up: docker-check
     docker compose up -d --wait
 
 # Stop MongoDB
+[group("db")]
 down: docker-check
     docker compose down
 
 # Open a Mongo shell on the project db
+[group("db")]
 mongosh:
-    {{require("mongosh")}} "$MONGO_URI" --eval 'db = db.getSiblingDB("'"$MONGO_DB"'")' --shell
-
-# Sentinel-1/2 bronze for an area and month range, e.g. `just sentinel Lamongan/Tikung 2020-01 2020-12`, defaults previous month
-sentinel aoi=aoi start="" end="":
-    {{py}}.pipeline.load_sentinel "{{aoi}}" {{start}} {{end}}
-
-# Paddy share per cell from the official Lahan Baku Sawah map (needs the Sentinel cells)
-paddy aoi=aoi:
-    {{py}}.pipeline.load_paddy "{{aoi}}"
-
-# Soil properties per cell and unit from SoilGrids (needs the Sentinel cells)
-soilgrids aoi=aoi:
-    {{py}}.pipeline.load_soilgrids "{{aoi}}"
-
-# CHIRPS monthly rainfall per unit (needs the Sentinel cells); add --refresh to refetch all months
-chirps aoi=aoi *args:
-    {{py}}.pipeline.load_chirps "{{aoi}}" {{args}}
-
-# Rebuild the 5-day silver time series for an area from all bronze months
-silver aoi=aoi:
-    {{py}}.pipeline.silver_sentinel "{{aoi}}"
-
-# Detect seasons per cell (flooding, green-up, peak, harvest, rice) and summarise per unit
-gold aoi=aoi:
-    {{py}}.pipeline.gold_sentinel "{{aoi}}"
-
-# Expected harvested area per unit and week for seasons still running (needs gold and CHIRPS)
-outlook aoi=aoi:
-    {{py}}.pipeline.harvest_outlook "{{aoi}}"
-
-# Score harvest-date forecasts (planting and peak) with leave-one-year-out; needs gold and CHIRPS
-forecast aoi=aoi:
-    {{py}}.pipeline.forecast_harvest "{{aoi}}"
-
-# Compare baseline, Ridge, random forest and gradient boosting, each tuned with Optuna inside the training years (~1 h for Tikung)
-compare aoi=aoi:
-    {{py}}.pipeline.compare_models "{{aoi}}"
-
-# Run the test suite
-test:
-    uv run pytest
-
-# Compare season areas with the area's reference statistics (data/reference/<aoi>/), if any
-validate aoi=aoi:
-    {{py}}.pipeline.validate_reference "{{aoi}}"
-
-# Sync the area's reference statistics and season summaries into MongoDB
-mongo aoi=aoi: up
-    {{py}}.pipeline.load_mongo "{{aoi}}"
-
-# Publishable unit outlines (geoBoundaries) for the web map in data/web/<aoi>/
-boundaries aoi=aoi:
-    {{py}}.pipeline.load_boundaries "{{aoi}}"
-
-# Static JSON for the public web app in data/web/<aoi>/ (needs gold)
-web aoi=aoi:
-    {{py}}.pipeline.export_web "{{aoi}}"
+    {{ require("mongosh") }} "$MONGO_URI" --eval 'db = db.getSiblingDB("'"$MONGO_DB"'")' --shell
 
 # Print aggregation results and query plans (IXSCAN vs COLLSCAN)
+[group("db")]
 agg: up
-    {{py}}.mongo_agg
+    {{ py }}.mongo_agg
+
+# Sentinel-1/2 bronze for an area and month range, e.g. `just sentinel Lamongan/Tikung 2020-01 2020-12`, defaults previous month
+[group("pipeline")]
+sentinel aoi=aoi start="" end="":
+    {{ py }}.pipeline.load_sentinel "{{ aoi }}" {{ start }} {{ end }}
+
+# Paddy share per cell from the official Lahan Baku Sawah map (needs the Sentinel cells)
+[group("pipeline")]
+paddy aoi=aoi:
+    {{ py }}.pipeline.load_paddy "{{ aoi }}"
+
+# Soil properties per cell and unit from SoilGrids (needs the Sentinel cells)
+[group("pipeline")]
+soilgrids aoi=aoi:
+    {{ py }}.pipeline.load_soilgrids "{{ aoi }}"
+
+# CHIRPS monthly rainfall per unit (needs the Sentinel cells), add --refresh to refetch all months
+[group("pipeline")]
+chirps aoi=aoi *args:
+    {{ py }}.pipeline.load_chirps "{{ aoi }}" {{ args }}
+
+# Rebuild the 5-day silver time series for an area from all bronze months
+[group("pipeline")]
+silver aoi=aoi:
+    {{ py }}.pipeline.silver_sentinel "{{ aoi }}"
+
+# Detect seasons per cell (flooding, green-up, peak, harvest, rice) and summarise per unit
+[group("pipeline")]
+gold aoi=aoi:
+    {{ py }}.pipeline.gold_sentinel "{{ aoi }}"
+
+# Expected harvested area per unit and week for seasons still running (needs gold and CHIRPS)
+[group("pipeline")]
+outlook aoi=aoi:
+    {{ py }}.pipeline.harvest_outlook "{{ aoi }}"
+
+# Compare season areas with the area's reference statistics (data/reference/<aoi>/), if any
+[group("pipeline")]
+validate aoi=aoi:
+    {{ py }}.pipeline.validate_reference "{{ aoi }}"
+
+# Sync the area's reference statistics and season summaries into MongoDB
+[group("pipeline")]
+mongo aoi=aoi: up
+    {{ py }}.pipeline.load_mongo "{{ aoi }}"
+
+# Publishable unit outlines (geoBoundaries) for the web map in data/web/<aoi>/
+[group("pipeline")]
+boundaries aoi=aoi:
+    {{ py }}.pipeline.load_boundaries "{{ aoi }}"
+
+# Static JSON for the public web app in data/web/<aoi>/ (needs gold)
+[group("pipeline")]
+web aoi=aoi:
+    {{ py }}.pipeline.export_web "{{ aoi }}"
 
 # What the scheduled job runs: last month's scenes, CHIRPS, silver, gold, harvest outlook, MongoDB, web JSON
+[group("pipeline")]
 monthly aoi=aoi: (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (outlook aoi) (mongo aoi) (web aoi)
 
 # Setup of an area after its first `just sentinel` run
+[group("pipeline")]
 setup aoi=aoi: (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (outlook aoi) (mongo aoi) (boundaries aoi) (web aoi)
 
+# Score harvest-date forecasts (planting and peak) with leave-one-year-out, needs gold and CHIRPS
+[group("model")]
+forecast aoi=aoi:
+    {{ py }}.pipeline.forecast_harvest "{{ aoi }}"
+
+# Compare baseline, Ridge, random forest and gradient boosting, each tuned with Optuna inside the training years (~2 h for Tikung)
+[group("model")]
+compare aoi=aoi:
+    {{ py }}.pipeline.compare_models "{{ aoi }}"
+
 # Build the public web site into web/.output/public (needs `just web` for each area first)
-site:
-    rm -rf web/public/json && mkdir -p web/public/json && cp -r data/web/* web/public/json/
-    cd web && pnpm install --frozen-lockfile && pnpm generate
+[group("web")]
+[working-directory("web")]
+site: _site-data
+    {{ require("pnpm") }} install --frozen-lockfile
+    pnpm generate
 
-# Web site with live reload
-site-dev:
-    cd web && pnpm dev
+# Serve the web site with live reload
+[group("web")]
+[working-directory("web")]
+site-dev: _site-data
+    {{ require("pnpm") }} dev
 
-# Run the dashboard
+# Copy every area's exported JSON into the site's download folder
+@_site-data:
+    rm -rf web/public/json
+    mkdir -p web/public/json
+    cp -r data/web/* web/public/json/
+
+# Run the Streamlit dashboard with the input forms
+[group("web")]
 app:
     uv run streamlit run app.py
 
-# Compile a typst as PDF
+# Lint and check types
+[group("checks")]
+@lint:
+    uv run ruff check {{ PATHS }}
+    uv run ruff format --check {{ PATHS }}
+    uv run basedpyright src tests
+
+# Check that every file has a license and a copyright holder, and that LICENSES/ matches (REUSE)
+[group("checks")]
+@license-check:
+    uvx reuse lint
+
+# Run the tests, or only some: just test tests/test_gold_sentinel.py -k rice
+[group("test")]
+@test *args:
+    uv run pytest {{ args }}
+alias t := test
+
+# Run the tests with line coverage
+[group("test")]
+@coverage:
+    uv run pytest --cov=jotosanur_agri --cov-report=term-missing
+
+# Add license headers from the REUSE.toml rules: just annotate --dry-run, --replace to rewrite, or limit it to a path
+[group("maintenance")]
+@annotate *args:
+    uv run python scripts/annotate_from_reuse.py --exclude "**/*.vue" --exclude "**/*.md" --exclude "**/*.json" --exclude "**/*.csv" --exclude "documents/**" --exclude "**/*.lock" --exclude "**/*.yaml" {{ args }}
+
+# Compile a typst document as PDF
+[group("docs")]
 pdf target="proposal":
-    typst compile documents/{{target}}.typ
+    {{ require("typst") }} compile documents/{{ target }}.typ

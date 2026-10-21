@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Boundary matching: the three cases found on real data, offline with toy outlines."""
 
 from __future__ import annotations

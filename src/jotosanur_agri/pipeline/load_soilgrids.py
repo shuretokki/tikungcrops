@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Soil properties per cell and per unit of an AOI from the SoilGrids 2.0 global maps.
 
 Source: ISRIC SoilGrids 2.0 (Poggio et al., 2021), 250 m, CC BY 4.0. The global

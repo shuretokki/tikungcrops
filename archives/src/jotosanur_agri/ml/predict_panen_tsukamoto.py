@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Tsukamoto system for Kampung Pandu Sakti rice yield (engine: `tsukamoto`).
 
 Status v1: the ranges and rules are initial assumptions from general agronomy and

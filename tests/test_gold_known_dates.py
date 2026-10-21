@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Season detection against curves with known dates, single-rule edge cases and invariants.
 
 Known-date curves follow how phenofit and greenbrown test phenology extraction: build a

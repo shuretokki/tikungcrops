@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """MongoDB connection, schema and document builders for the `jotosanur` database.
 
 Shared by the batch ETL (`pipeline.load_mongo`), the dashboard forms (`store`)

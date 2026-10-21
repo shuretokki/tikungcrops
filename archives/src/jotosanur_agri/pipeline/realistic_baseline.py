@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Season yield baselines sampled from a Gaussian copula fitted to real BPS data.
 
 Training data: rice in the 13 desa of Kecamatan Tikung for 2013 and 2020 (BPS

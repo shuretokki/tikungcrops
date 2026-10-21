@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Batch pipelines.
 
 - Satellite crop monitoring for an area of interest: `aoi`, `load_sentinel` (bronze),

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Publishable unit outlines for the web map, from geoBoundaries.
 
 GADM, which defines the AOI units, must not be redistributed. The web map uses geoBoundaries

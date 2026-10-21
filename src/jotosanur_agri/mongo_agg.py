@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """MongoDB aggregation pipelines for the dashboard and API access patterns.
 
 Each pipeline starts with a `$match` on the leading key of its index (see

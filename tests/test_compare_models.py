@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Model comparison on a small synthetic table with a learnable signal."""
 
 from __future__ import annotations

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Compare harvest-date models with leave-one-year-out and tuning inside the training years.
 
 The design follows CY-Bench (Paudel et al., WUR AgML, github.com/WUR-AI/AgML-CY-Bench), the

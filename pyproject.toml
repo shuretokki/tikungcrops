@@ -1,8 +1,13 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 [project]
 name = "jotosanur-agri"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "LICENSES/*", "REUSE.toml"]
 authors = [
     { name = "Tri Rianto Utomo", email = "tri.r.utomo@proton.me" }
 ]
@@ -40,7 +45,8 @@ dev = [
 [tool.ruff]
 line-length = 120
 target-version = "py313"
-extend-exclude = ["typings", "archives"]
+# scripts/annotate_from_reuse.py is copied unchanged from shirabe-profiling, keep it in sync there
+extend-exclude = ["typings", "archives", "scripts/annotate_from_reuse.py"]
 
 [tool.ruff.lint]
 select = [

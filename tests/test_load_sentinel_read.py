@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Remote reads: a short read is retried, a scene that keeps failing becomes nodata."""
 
 from __future__ import annotations

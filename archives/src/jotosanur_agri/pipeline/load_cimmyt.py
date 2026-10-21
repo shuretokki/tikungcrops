@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Bronze/silver pipeline for the CIMMYT rice survey (real data, South Asia).
 
 Context: data/raw/sumber-data/README.md section 8 and

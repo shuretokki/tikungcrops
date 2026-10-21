@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Shared evaluation for the scikit-learn baselines: grouped CV on train, then one holdout."""
 
 from __future__ import annotations

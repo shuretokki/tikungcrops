@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Sync MongoDB (db `jotosanur`) with the batch outputs of one AOI.
 
 Sources:

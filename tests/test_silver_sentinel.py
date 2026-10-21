@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Silver cleaning: cloud and haze filter, orbit offsets, gap limit and smoothing."""
 
 from __future__ import annotations

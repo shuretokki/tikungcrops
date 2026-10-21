@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Random-forest baseline for rice yield on the synthetic Kampung Pandu Sakti data.
 
 A comparison baseline, not the proposal's main method (that is fuzzy Tsukamoto, see

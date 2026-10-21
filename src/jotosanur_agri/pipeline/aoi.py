@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Named units to monitor (area of interest, AOI) from GADM admin boundaries or a GeoJSON file.
 
 Spec forms:

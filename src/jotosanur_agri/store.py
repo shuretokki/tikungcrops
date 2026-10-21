@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Storage for the dashboard input forms: SQLite for distribution, MongoDB for partner harvests.
 
 SQLite `data/relational.db` holds users, destinations and distributions (spec section 4).

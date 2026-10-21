@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Generic Tsukamoto fuzzy inference engine.
 
 Used for rice yield (`predict_panen_tsukamoto`) but not tied to that domain.

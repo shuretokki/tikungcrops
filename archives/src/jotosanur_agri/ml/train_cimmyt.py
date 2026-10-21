@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Random-forest benchmark trained on real rice data: the CIMMYT survey of 44,607 South Asian fields.
 
 A "real data" benchmark, separate from the Jotosanur-specific Tsukamoto system and

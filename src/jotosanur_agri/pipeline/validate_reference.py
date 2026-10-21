@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Compare satellite season areas of an AOI with its reference statistics.
 
 For every year that has reference data and satellite coverage for all its seasons, each

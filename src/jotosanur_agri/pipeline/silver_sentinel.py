@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Cleaned per-cell S1/S2 time series from the monthly bronze files.
 
 Bronze has irregular dates, cloudy Sentinel-2 rows and two Sentinel-1 viewing

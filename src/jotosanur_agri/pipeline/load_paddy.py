@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Paddy share per cell from the official Lahan Baku Sawah (LBS) map.
 
 WorldCover's cropland class mixes rice, maize and dry fields. The national paddy field

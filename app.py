@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Streamlit dashboard for the Kampung Pandu Sakti management information system.
 
 Run with `just app` (or `uv run streamlit run app.py`).

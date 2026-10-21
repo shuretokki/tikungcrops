@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /* Chart and map colors, validated with the dataviz palette checker on the design surfaces. */
 /* The first three reference slots pass all-pairs in both modes, so maps use no more than three hues. */
 /* Light aqua is below 3:1 on the cream surface, so every map and chart ships labels and a table. */

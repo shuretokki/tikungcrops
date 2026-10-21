@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Synthetic rice harvests for Kampung Pandu Sakti (variety PMJ 01).
 
 Stand-in training data while the mitra desa (Kecamatan Tikung) has not replied.

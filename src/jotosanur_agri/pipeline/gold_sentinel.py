@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Rice seasons per cell (flooding, green-up, peak, harvest) from the silver time series.
 
 For every cell, each NDVI peak above `PEAK_MIN` that is at least `MIN_SEASON_GAP_DAYS`

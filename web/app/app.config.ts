@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+// SPDX-License-Identifier: Apache-2.0
+
 // Overrides for Nuxt UI 4 from the design.
 // Copy to app/app.config.ts.
 //

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
 """Evaluate harvest-date forecasts per cell, trained on satellite-detected seasons.
 
 Two forecasts, each issued as soon as its inputs are known (nothing after the issue
