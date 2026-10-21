@@ -19,22 +19,22 @@ SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
 path = [
-  "web/public/fonts/IBMPlexSans-Regular.ttf",
-  "web/public/fonts/IBMPlexSans-SemiBold.ttf",
-  "web/public/fonts/IBMPlexSans-LICENSE.txt",
+  "site/public/fonts/IBMPlexSans-Regular.ttf",
+  "site/public/fonts/IBMPlexSans-SemiBold.ttf",
+  "site/public/fonts/IBMPlexSans-LICENSE.txt",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "2017 IBM Corp. with Reserved Font Name \"Plex\""
 SPDX-License-Identifier = "OFL-1.1-RFN"
 
 [[annotations]]
-path = ["web/public/fonts/Lilex-Regular.ttf", "web/public/fonts/Lilex-OFL.txt"]
+path = ["site/public/fonts/Lilex-Regular.ttf", "site/public/fonts/Lilex-OFL.txt"]
 precedence = "override"
 SPDX-FileCopyrightText = "2019 The Lilex Project Authors (https://github.com/mishamyrt/Lilex)"
 SPDX-License-Identifier = "OFL-1.1-no-RFN"
 
 [[annotations]]
-path = "web/app/assets/css/theme.css"
+path = "site/app/assets/css/theme.css"
 precedence = "override"
 SPDX-FileCopyrightText = ["2026 Tri Rianto Utomo", "2019 sainnhe (Everforest palette colors)"]
 SPDX-License-Identifier = "Apache-2.0 AND MIT"
@@ -44,3 +44,16 @@ path = "documents/laporan/unesa.png"
 precedence = "override"
 SPDX-FileCopyrightText = "Universitas Negeri Surabaya"
 SPDX-License-Identifier = "LicenseRef-UNESA-Logo"
+
+[[annotations]]
+path = [
+  "site/eslint.config.mjs",
+  "site/tsconfig.json",
+  "site/.editorconfig",
+  "site/.gitignore",
+  "site/pnpm-workspace.yaml",
+  "site/public/favicon.ico",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2025 Nuxt UI Templates"
+SPDX-License-Identifier = "MIT"

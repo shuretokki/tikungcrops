@@ -125,10 +125,22 @@ const legend = Object.entries(STAGES).filter(([k]) => k !== 'unknown')
 
 <template>
   <div class="relative h-full min-h-80 w-full overflow-hidden rounded-md ring ring-default">
-    <div ref="container" class="h-full w-full" role="region" aria-label="Peta sel sawah dan batas wilayah" />
+    <div
+      ref="container"
+      class="h-full w-full"
+      role="region"
+      aria-label="Peta sel sawah dan batas wilayah"
+    />
     <ul class="absolute bottom-2 left-2 flex flex-col gap-1 rounded-lg bg-muted px-2 py-1.5 text-xs shadow-(--shadow-elev)">
-      <li v-for="[key, s] in legend" :key="key" class="flex items-center gap-1.5">
-        <span class="size-2.5 rounded-full" :style="{ background: s.color }" />
+      <li
+        v-for="[key, s] in legend"
+        :key="key"
+        class="flex items-center gap-1.5"
+      >
+        <span
+          class="size-2.5 rounded-full"
+          :style="{ background: s.color }"
+        />
         <span>{{ s.label }}</span>
       </li>
     </ul>

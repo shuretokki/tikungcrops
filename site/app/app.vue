@@ -9,13 +9,22 @@ const links = [
 
 <template>
   <UApp>
-    <UHeader title="Tanam Padi Lamongan" to="/">
-      <UNavigationMenu :items="links" class="hidden md:flex" />
+    <UHeader
+      title="Tanam Padi Lamongan"
+      to="/"
+    >
+      <UNavigationMenu
+        :items="links"
+        class="hidden md:flex"
+      />
       <template #right>
         <UColorModeButton />
       </template>
       <template #body>
-        <UNavigationMenu :items="links" orientation="vertical" />
+        <UNavigationMenu
+          :items="links"
+          orientation="vertical"
+        />
       </template>
     </UHeader>
     <UMain>

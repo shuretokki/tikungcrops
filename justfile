@@ -123,24 +123,24 @@ forecast aoi=aoi:
 compare aoi=aoi:
     {{ py }}.pipeline.compare_models "{{ aoi }}"
 
-# Build the public web site into web/.output/public (needs `just web` for each area first)
+# Build the public web site into site/.output/public (needs `just web` for each area first)
 [group("web")]
-[working-directory("web")]
+[working-directory("site")]
 site: _site-data
     {{ require("pnpm") }} install --frozen-lockfile
     pnpm generate
 
 # Serve the web site with live reload
 [group("web")]
-[working-directory("web")]
+[working-directory("site")]
 site-dev: _site-data
     {{ require("pnpm") }} dev
 
 # Copy every area's exported JSON into the site's download folder
 @_site-data:
-    rm -rf web/public/json
-    mkdir -p web/public/json
-    cp -r data/web/* web/public/json/
+    rm -rf site/public/json
+    mkdir -p site/public/json
+    cp -r data/web/* site/public/json/
 
 # Run the Streamlit dashboard with the input forms
 [group("web")]

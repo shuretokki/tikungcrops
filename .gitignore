@@ -33,11 +33,7 @@ documents/local/
 data/reference/*/sources/*.md
 
 # web app
-/web/node_modules/
-/web/.nuxt/
-/web/.output/
-/web/.data/
-/web/public/json/
-/web/dist
+/site/public/json/
 .coverage
 archives/sumber-data/*-parsed.md
+/web/

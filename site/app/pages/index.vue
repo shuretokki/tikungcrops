@@ -62,28 +62,52 @@ useSeoMeta({ title: 'Ringkasan - Tanam Padi Lamongan' })
     <UPageBody>
       <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <UCard>
-          <p class="text-xs text-muted">Sawah dipantau</p>
-          <p class="text-xl font-semibold">{{ formatHa(totals.paddy) }}</p>
+          <p class="text-xs text-muted">
+            Sawah dipantau
+          </p>
+          <p class="text-xl font-semibold">
+            {{ formatHa(totals.paddy) }}
+          </p>
         </UCard>
         <UCard>
-          <p class="text-xs text-muted">{{ STAGES.planted.label }}</p>
-          <p class="text-xl font-semibold">{{ formatHa(totals.planted) }}</p>
+          <p class="text-xs text-muted">
+            {{ STAGES.planted.label }}
+          </p>
+          <p class="text-xl font-semibold">
+            {{ formatHa(totals.planted) }}
+          </p>
         </UCard>
         <UCard>
-          <p class="text-xs text-muted">{{ STAGES.peaked.label }}</p>
-          <p class="text-xl font-semibold">{{ formatHa(totals.peaked) }}</p>
+          <p class="text-xs text-muted">
+            {{ STAGES.peaked.label }}
+          </p>
+          <p class="text-xl font-semibold">
+            {{ formatHa(totals.peaked) }}
+          </p>
         </UCard>
         <UCard>
-          <p class="text-xs text-muted">Perkiraan panen, musim berjalan</p>
-          <p class="text-xl font-semibold">{{ formatHa(totals.outlook) }}</p>
+          <p class="text-xs text-muted">
+            Perkiraan panen, musim berjalan
+          </p>
+          <p class="text-xl font-semibold">
+            {{ formatHa(totals.outlook) }}
+          </p>
         </UCard>
       </div>
 
       <div class="h-[28rem]">
         <ClientOnly>
-          <AreaMap :outer="kecamatan" :inner="desa" :cells="cells" :selected="selected" @select="open" />
+          <AreaMap
+            :outer="kecamatan"
+            :inner="desa"
+            :cells="cells"
+            :selected="selected"
+            @select="open"
+          />
           <template #fallback>
-            <div class="flex h-full items-center justify-center rounded-md bg-muted text-sm text-muted">Memuat peta...</div>
+            <div class="flex h-full items-center justify-center rounded-md bg-muted text-sm text-muted">
+              Memuat peta...
+            </div>
           </template>
         </ClientOnly>
       </div>
@@ -95,14 +119,33 @@ useSeoMeta({ title: 'Ringkasan - Tanam Padi Lamongan' })
         description="Tanggal berasal dari deteksi satelit, belum dicek dengan catatan panen petani. Pada musim hujan awan menutupi awal musim, jadi perkiraan bisa meleset 3-5 minggu. Musim kemarau meleset sekitar 1-2 minggu."
       />
 
-      <UTable :data="rows" :columns="columns" @select="(_e: unknown, row: { original: { unit: string } }) => open(row.original.unit)">
-        <template #paddy-cell="{ row }">{{ formatHa(row.original.paddy) }}</template>
-        <template #planted-cell="{ row }">{{ formatHa(row.original.planted) }}</template>
-        <template #peaked-cell="{ row }">{{ formatHa(row.original.peaked) }}</template>
-        <template #outlook-cell="{ row }">{{ formatHa(row.original.outlook) }}</template>
-        <template #topWeek-cell="{ row }">{{ formatDate(row.original.topWeek, { day: 'numeric', month: 'short' }) }}</template>
+      <UTable
+        :data="rows"
+        :columns="columns"
+        @select="(_e: unknown, row: { original: { unit: string } }) => open(row.original.unit)"
+      >
+        <template #paddy-cell="{ row }">
+          {{ formatHa(row.original.paddy) }}
+        </template>
+        <template #planted-cell="{ row }">
+          {{ formatHa(row.original.planted) }}
+        </template>
+        <template #peaked-cell="{ row }">
+          {{ formatHa(row.original.peaked) }}
+        </template>
+        <template #outlook-cell="{ row }">
+          {{ formatHa(row.original.outlook) }}
+        </template>
+        <template #topWeek-cell="{ row }">
+          {{ formatDate(row.original.topWeek, { day: 'numeric', month: 'short' }) }}
+        </template>
         <template #unit-cell="{ row }">
-          <NuxtLink :to="`/desa/${encodeURIComponent(row.original.unit)}`" class="text-primary hover:underline" @mouseenter="selected = row.original.unit" @mouseleave="selected = null">
+          <NuxtLink
+            :to="`/desa/${encodeURIComponent(row.original.unit)}`"
+            class="text-primary hover:underline"
+            @mouseenter="selected = row.original.unit"
+            @mouseleave="selected = null"
+          >
             {{ row.original.unit }}
           </NuxtLink>
         </template>
