@@ -60,12 +60,26 @@ FEATURES = {
         "rain_mm",
         "unit",
     ],
-    "peak": ["peak_doy", "peak_ndvi", "peak_after_flood", "peak_after_greenup", "rice", "rain_mm", "unit"],
+    "peak": [
+        "peak_doy",
+        "peak_ndvi",
+        "peak_after_flood",
+        "peak_after_greenup",
+        "rice",
+        "rain_mm",
+        "unit",
+    ],
 }
-TARGET = {"planting": "flood_to_harvest", "peak": "peak_to_harvest"}
+TARGET = {
+    "planting": "flood_to_harvest",
+    "peak": "peak_to_harvest",
+}
 
 
-def training_table(seasons: pl.DataFrame, rain: pl.DataFrame) -> pl.DataFrame:
+def training_table(
+    seasons: pl.DataFrame,
+    rain: pl.DataFrame,
+) -> pl.DataFrame:
     """Reliable complete seasons with features and targets for both forecasts."""
     s = seasons.filter(
         pl.col("greenup_reliable").fill_null(False),
