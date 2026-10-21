@@ -19,8 +19,8 @@ licence, listed here. Published outputs (the web app and its JSON) must show the
 
 | Item | Licence | Credit |
 |---|---|---|
-| IBM Plex Sans (`web/public/fonts/`) | SIL Open Font License 1.1, licence file shipped with the fonts | IBM |
-| Lilex (`web/public/fonts/`) | SIL Open Font License 1.1, licence file shipped with the font | Mikhail Bykovskiy |
+| IBM Plex Sans (`web/public/fonts/`) | SIL Open Font License 1.1, Reserved Font Name "Plex" | IBM Corp. |
+| Lilex (`web/public/fonts/`) | SIL Open Font License 1.1, licence file shipped with the font | The Lilex Project Authors (github.com/mishamyrt/Lilex) |
 | Lucide icons (through Nuxt UI) | ISC | Lucide contributors |
 | OpenFreeMap basemap | free public instance, OpenStreetMap data under ODbL | © OpenStreetMap contributors, OpenFreeMap |
 | MapLibre GL JS | BSD-3-Clause | MapLibre contributors |
