@@ -11,7 +11,7 @@ Collections:
     - harvest_outlook: expected harvested area per AOI unit and week for seasons still
       running, from `pipeline.harvest_outlook`, replaced on every load.
 
-Field names are English. Values copied from sources (commodities such as ``padi``,
+Values copied from sources (commodities such as ``padi``,
 place names) stay as published. `source.code` is free text: ``partner_input``,
 ``sentinel``, or a reference publication id such as ``bps_tikung_2021``.
 """
