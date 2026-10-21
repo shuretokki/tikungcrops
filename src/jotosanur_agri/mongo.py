@@ -10,6 +10,8 @@ Collections:
       (MT1-MT3), from `pipeline.gold_sentinel.summarize_units`.
     - harvest_outlook: expected harvested area per AOI unit and week for seasons still
       running, from `pipeline.harvest_outlook`, replaced on every load.
+    - cropping_intensity: seasons per hectare of paddy per AOI unit and year, from
+      `pipeline.gold_sentinel.intensity_units`.
 
 Values copied from sources (commodities such as ``padi``,
 place names) stay as published. `source.code` is free text: ``partner_input``,
@@ -113,6 +115,23 @@ VALIDATORS = {
             "source": _SOURCE_SCHEMA,
         },
     },
+    "cropping_intensity": {
+        "bsonType": "object",
+        "required": ["schema_version", "aoi", "unit", "year", "cells", "paddy_ha", "complete", "source"],
+        "properties": {
+            "schema_version": {"enum": [SCHEMA_VERSION]},
+            "aoi": {"bsonType": "string", "minLength": 1},
+            "unit": {"bsonType": "string", "minLength": 1},
+            "year": _YEAR_SCHEMA,
+            "cells": {"bsonType": "int", "minimum": 0},
+            "paddy_ha": {"bsonType": "double", "minimum": 0},
+            "ip_all": {"bsonType": ["double", "null"], "minimum": 0},
+            "ip_rice": {"bsonType": ["double", "null"], "minimum": 0},
+            "share_3plus": {"bsonType": ["double", "null"], "minimum": 0, "maximum": 1},
+            "complete": {"bsonType": "bool"},
+            "source": _SOURCE_SCHEMA,
+        },
+    },
 }
 
 # one index per access pattern: A1-A2 on harvests, A4 on planting_seasons, A3 needs none
@@ -126,6 +145,9 @@ INDEXES = {
     ],
     "harvest_outlook": [
         [("aoi", ASCENDING), ("week", ASCENDING)],
+    ],
+    "cropping_intensity": [
+        [("aoi", ASCENDING), ("year", ASCENDING)],
     ],
 }
 

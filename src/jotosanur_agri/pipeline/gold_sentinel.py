@@ -58,13 +58,14 @@ Outputs in data/gold/sentinel/:
     - <aoi-slug>_seasons.parquet, one row per cell per season, with the cell's AOI unit
       (e.g. its desa) and, after `load_paddy`, its LBS paddy share.
     - <aoi-slug>_units.parquet, per unit x year x planting season (see `summarize_units`).
+    - <aoi-slug>_intensity.parquet, cropping intensity per unit x year (see `intensity_units`).
     - <aoi-slug>_current.parquet, one row per cell with its state at the end of the series.
 """
 
 from __future__ import annotations
 
 import sys
-from datetime import timedelta
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -364,6 +365,56 @@ def summarize_units(gold: pl.DataFrame) -> pl.DataFrame:
     )
 
 
+def intensity_units(gold: pl.DataFrame, cells: pl.DataFrame, first: date, last: date) -> pl.DataFrame:
+    """Per unit and year: cropping intensity, i.e. seasons per hectare of paddy in a year.
+
+    Each season counts in the year of its NDVI peak. Cells with no season that year count
+    as zero, so idle paddy lowers the mean. Cells are weighted like `summarize_units`.
+    `ip_rice` counts only seasons flagged rice, so seasons with unknown rice status make
+    it a lower bound. `share_3plus` is the paddy share with three or more seasons.
+    A year is `complete` when the series covers `LOOKBACK_DAYS` before it and its last day.
+    Edge years lose seasons and read low.
+    Wet years can also read high, because rain makes extra NDVI peaks (Tikung 2021: 2.86).
+    Compare units within one year rather than one unit across years.
+    """
+    weight = pl.col("paddy_frac").fill_null(0.0) if "paddy_frac" in cells.columns else pl.lit(1.0)
+    years = pl.DataFrame({"year": list(range(first.year, last.year + 1))}, schema={"year": pl.Int32})
+    per_cell = (
+        gold.with_columns(pl.col("peak_date").dt.year().alias("year"))
+        .group_by("cell_id", "year")
+        .agg(pl.len().alias("n"), pl.col("rice").fill_null(False).sum().alias("n_rice"))
+    )
+    grid = (
+        cells.with_columns(weight.alias("w"))
+        .select("cell_id", "unit", "w")
+        .join(years, how="cross")
+        .join(per_cell, on=["cell_id", "year"], how="left")
+        .with_columns(pl.col("n", "n_rice").fill_null(0))
+    )
+    w = pl.col("w")
+    total = w.sum()
+    return (
+        grid.group_by("unit", "year")
+        .agg(
+            pl.len().alias("cells"),
+            total.alias("paddy_ha"),
+            ((w * pl.col("n")).sum() / total).alias("ip_all"),
+            ((w * pl.col("n_rice")).sum() / total).alias("ip_rice"),
+            ((w * (pl.col("n") >= 3).cast(pl.Float64)).sum() / total).alias("share_3plus"),
+        )
+        .with_columns(
+            pl.when(pl.col("paddy_ha") > 0).then(pl.col(c)).alias(c) for c in ("ip_all", "ip_rice", "share_3plus")
+        )
+        .with_columns(
+            (
+                (pl.date(pl.col("year"), 1, 1) - timedelta(days=LOOKBACK_DAYS) >= first)
+                & (pl.date(pl.col("year"), 12, 31) <= last)
+            ).alias("complete")
+        )
+        .sort("unit", "year")
+    )
+
+
 def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dict[str, Any]:
     """Detect seasons for an AOI from its silver table, then summarise them per unit.
 
@@ -388,6 +439,8 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
     gold = gold.join(cells, on="cell_id", how="left")
     current = current.join(cells, on="cell_id", how="left")
     units = summarize_units(gold)
+    span = silver.select(first=pl.col("date").min(), last=pl.col("date").max()).row(0, named=True)
+    intensity = intensity_units(gold, cells, span["first"], span["last"])
     gold_dir = Path(data_dir) / "gold" / "sentinel"
     return {
         "seasons": gold.height,
@@ -399,6 +452,7 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
         },
         "path": save(gold, gold_dir / f"{slug}_seasons.parquet"),
         "units_path": save(units, gold_dir / f"{slug}_units.parquet"),
+        "intensity_path": save(intensity, gold_dir / f"{slug}_intensity.parquet"),
         "current": dict(current["stage"].value_counts().iter_rows()),
         "current_path": save(current, gold_dir / f"{slug}_current.parquet"),
     }

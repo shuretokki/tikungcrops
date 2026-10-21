@@ -2,9 +2,9 @@
 
 Run with `just app` (or `uv run streamlit run app.py`).
 
-Shows satellite planting seasons per desa (MongoDB `planting_seasons`) and the mitra
-input forms: harvests go to MongoDB, distribution records to SQLite (see
-`jotosanur_agri.store`). Database names are English, everything on screen is Indonesian.
+Shows satellite planting seasons and cropping intensity per desa (MongoDB `planting_seasons`,
+`cropping_intensity`) and the mitra input forms: harvests go to MongoDB, distribution records
+to SQLite (see `jotosanur_agri.store`). Database names are English, everything on screen is Indonesian.
 The earlier version with synthetic data and yield predictors is kept in archives/app.py.
 """
 
@@ -167,6 +167,66 @@ def render_outlook(outlook: Collection | None):
         st.dataframe(df.sort_values(["week", "unit"]), width="stretch", hide_index=True)
 
 
+def render_intensitas(intensity: Collection | None):
+    """Cropping intensity per desa and year, and the paddy share planted three or more times."""
+    st.subheader("Intensitas Tanam per Desa (Satelit)")
+    st.caption(
+        "Intensitas tanam = jumlah musim tanam per hektare sawah dalam setahun (dihitung dari puncak kehijauan "
+        "NDVI per sel 100 m, dibobot luas sawah LBS). Tahun basah bisa terbaca terlalu tinggi karena hujan "
+        "membuat puncak kehijauan tambahan, jadi bandingkan antar desa pada tahun yang sama, bukan satu desa "
+        "antar tahun. Hanya tahun yang tercakup penuh oleh data satelit yang ditampilkan."
+    )
+    if intensity is None:
+        st.info(MONGO_DOWN_MSG)
+        return
+    aois = sorted(intensity.distinct("aoi"))
+    if not aois:
+        st.info("Belum ada data intensitas tanam - jalankan `just gold` lalu `just mongo`.")
+        return
+    aoi = st.selectbox(
+        "Wilayah", aois, index=aois.index(DEFAULT_AOI) if DEFAULT_AOI in aois else 0, key="intensity_aoi"
+    )
+    df = pd.DataFrame(
+        list(intensity.find({"aoi": aoi, "complete": True}, {"_id": 0, "source": 0, "schema_version": 0}))
+    )
+    if df.empty:
+        st.info("Belum ada tahun yang tercakup penuh untuk wilayah ini.")
+        return
+    desa = sorted(df["unit"].unique())
+    fokus = st.selectbox("Desa yang dibandingkan", desa, index=desa.index("Jotosanur") if "Jotosanur" in desa else 0)
+    others = df[df["unit"] != fokus].groupby("year", as_index=False)[["ip_all", "share_3plus"]].median()
+    compare = pd.concat(
+        [df[df["unit"] == fokus].assign(grup=fokus), others.assign(grup="Median desa lain")], ignore_index=True
+    )
+    col1, col2 = st.columns(2)
+    col1.plotly_chart(
+        px.line(
+            compare,
+            x="year",
+            y="ip_all",
+            color="grup",
+            markers=True,
+            labels={"year": "Tahun", "ip_all": "Musim per ha sawah", "grup": ""},
+            title="Intensitas tanam",
+        ),
+        width="stretch",
+    )
+    col2.plotly_chart(
+        px.line(
+            compare.assign(share_3plus=compare["share_3plus"] * 100),
+            x="year",
+            y="share_3plus",
+            color="grup",
+            markers=True,
+            labels={"year": "Tahun", "share_3plus": "Sawah ditanami 3 kali atau lebih (%)", "grup": ""},
+            title="Sawah dengan 3 musim tanam atau lebih",
+        ),
+        width="stretch",
+    )
+    with st.expander("Tabel"):
+        st.dataframe(df.sort_values(["year", "unit"]), width="stretch", hide_index=True)
+
+
 def render_input_panen(harvests: Collection | None):
     """Harvest entry form and the list of mitra harvests."""
     st.subheader("Catat Panen (Input Mitra)")
@@ -310,11 +370,13 @@ def main():
     db = get_db()
     harvests = db["harvests"] if db is not None else None
 
-    tab_musim, tab_outlook, tab_panen, tab_distribusi = st.tabs(
-        ["Musim Tanam (Satelit)", "Perkiraan Panen", "Catat Panen", "Distribusi"]
+    tab_musim, tab_intensitas, tab_outlook, tab_panen, tab_distribusi = st.tabs(
+        ["Musim Tanam (Satelit)", "Intensitas Tanam", "Perkiraan Panen", "Catat Panen", "Distribusi"]
     )
     with tab_musim:
         render_musim_tanam(db["planting_seasons"] if db is not None else None)
+    with tab_intensitas:
+        render_intensitas(db["cropping_intensity"] if db is not None else None)
     with tab_outlook:
         render_outlook(db["harvest_outlook"] if db is not None else None)
     with tab_panen:

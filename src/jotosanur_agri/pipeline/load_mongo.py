@@ -7,6 +7,8 @@ Sources:
       -> planting_seasons.
     - Harvest outlook per unit and week (data/gold/sentinel/<aoi>_outlook_weekly.parquet)
       -> harvest_outlook.
+    - Cropping intensity per unit and year (data/gold/sentinel/<aoi>_intensity.parquet)
+      -> cropping_intensity.
 
 Every document has a deterministic `_id` and is replace-upserted. Documents of the AOI
 that the load no longer produces are deleted, and documents from `RETIRED_SOURCES` are
@@ -107,6 +109,25 @@ def harvest_outlook(weekly_parquet: Path, cells_parquet: Path, aoi: str, now: da
     ]
 
 
+def cropping_intensity(intensity_parquet: Path, aoi: str, now: datetime) -> list[Doc]:
+    """Map gold cropping intensity (unit x year) to `cropping_intensity` documents."""
+    return [
+        {
+            "_id": f"intensity:{aoi}:{r['unit']}:{r['year']}",
+            "schema_version": SCHEMA_VERSION,
+            "aoi": aoi,
+            "unit": r["unit"],
+            "year": r["year"],
+            "cells": r["cells"],
+            "paddy_ha": float(r["paddy_ha"]),
+            **{k: None if r[k] is None else float(r[k]) for k in ("ip_all", "ip_rice", "share_3plus")},
+            "complete": r["complete"],
+            "source": source("sentinel", False, now),
+        }
+        for r in pl.read_parquet(intensity_parquet).iter_rows(named=True)
+    ]
+
+
 def sync(db: Database, collection: str, docs: list[Doc], owned: Doc) -> Doc:
     """Replace-upsert `docs` by `_id`, then delete the `owned` documents not among them.
 
@@ -168,6 +189,11 @@ def main(aoi_spec: str = DEFAULT_AOI) -> None:
     if outlook.exists() and outlook.stat().st_size:
         docs = harvest_outlook(outlook, GOLD / f"{aoi}_outlook_cells.parquet", aoi, now)
         report["harvest_outlook"] = sync(db, "harvest_outlook", docs, {"aoi": aoi})
+
+    intensity = GOLD / f"{aoi}_intensity.parquet"
+    if intensity.exists():
+        docs = cropping_intensity(intensity, aoi, now)
+        report["cropping_intensity"] = sync(db, "cropping_intensity", docs, {"aoi": aoi})
 
     for collection, counts in report.items():
         total = db[collection].count_documents({})
