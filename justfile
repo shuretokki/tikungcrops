@@ -57,6 +57,14 @@ outlook aoi=aoi:
 forecast aoi=aoi:
     {{py}}.pipeline.forecast_harvest "{{aoi}}"
 
+# Compare baseline, Ridge, random forest and gradient boosting, each tuned with Optuna inside the training years (~1 h for Tikung)
+compare aoi=aoi:
+    {{py}}.pipeline.compare_models "{{aoi}}"
+
+# Run the test suite
+test:
+    uv run pytest
+
 # Compare season areas with the area's reference statistics (data/reference/<aoi>/), if any
 validate aoi=aoi:
     {{py}}.pipeline.validate_reference "{{aoi}}"
