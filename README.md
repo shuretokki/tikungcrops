@@ -13,7 +13,7 @@
 nix develop     # or: direnv allow
 just            # list recipes
 just up         # start MongoDB
-just etl        # full batch pipeline
+just setup      # full batch pipeline, after a first `just sentinel` run
 just app        # dashboard
 ```
 
