@@ -26,5 +26,5 @@ documents/local/
 # personal polars practice
 /src/jotosanur_agri/test/
 
-CHANGELOG.local.md
+*.local.md
 data/reference/*/sources/*.md
