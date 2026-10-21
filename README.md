@@ -15,6 +15,7 @@ just            # list recipes
 just up         # start MongoDB
 just setup      # full batch pipeline, after a first `just sentinel` run
 just app        # dashboard
+just dekit up   # dev tasks from dekit.yaml: site on :3017, then just dekit start app (needs mongo)
 ```
 
 Data layout: `data/README.md`. Reference statistics and their provenance: `data/reference/README.md`.

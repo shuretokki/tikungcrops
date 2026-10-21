@@ -19,6 +19,11 @@ PATHS := "src tests scripts app.py"
 sync:
     uv sync
 
+# Run dekit, which starts the dev tasks in dekit.yaml: just dekit up
+[group("dev")]
+@dekit *args:
+    uv run dekit {{ args }}
+
 # Check Docker is installed and the daemon is reachable
 [private]
 docker-check:

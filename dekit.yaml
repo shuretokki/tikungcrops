@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
+tasks:
+  site:
+    cmd: ["just", "site-dev"]
+    ready: {http: "http://localhost:3017"}
+    tags: [web]
+    autostart: true
+
+  mongo:
+    cmd: ["docker", "compose", "up"]
+    ready: {tcp: 27017, timeout: 60s}
+    # compose exits by itself once its containers stop
+    stop: {cmd: ["docker", "compose", "stop"]}
+    tags: [db]
+
+  app:
+    cmd: ["uv", "run", "streamlit", "run", "app.py", "--server.headless", "true"]
+    deps: [mongo]
+    ready: {http: "http://localhost:8501"}
+    tags: [web]
+
+  export:
+    type: job
+    cmd: ["just", "web"]
+    tags: [pipeline]

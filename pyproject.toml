@@ -35,6 +35,7 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "basedpyright>=1.40.1",
+    "dekit-cli>=0.10.2",
     "hypothesis>=6.170.5",
     "pandas-stubs>=3.0.5.260914",
     "pytest>=9.1.1",
