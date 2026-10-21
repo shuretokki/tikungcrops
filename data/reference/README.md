@@ -69,6 +69,14 @@ kept in `archives/sumber-data/`.
 |---|---|---|---|
 | `bps_ksa_lamongan_2020_2022` | BPS Kabupaten Lamongan, *Luas Panen dan Produksi Padi di Kabupaten Lamongan 2020-2022* (released 22 Dec 2023) | Lampiran 1, p. 63 | 2020 |
 | `bps_ksa_lamongan_2023` | BPS Kabupaten Lamongan, *Luas Panen dan Produksi Padi di Kabupaten Lamongan 2023*, publication 35240.24045 | Lampiran 1, p. 53 | 2021-2023 |
+| `dkpp_lamongan_2021` | Satu Data Kabupaten Lamongan (satudata.lamongankab.go.id), "Luas Panen Tanaman Pangan Menurut Kecamatan dan Jenis Tanaman", producer DKPP | rows 1.1.1-1.1.27 (padi) | 2021 |
+
+- `harvested_area.csv` holds the DKPP kecamatan rice area for 2021, the only year with
+  kecamatan figures found. The page lists values and row labels separately, so the
+  mapping was checked against five kecamatan named in the Diskominfo news post of
+  2 Feb 2022 (Sugio 10,991, Modo 9,345, Laren 9,061, Kembangbahu 8,912, Kedungpring
+  8,632 ha). All five match. The 27 rows sum to 154,209 ha, the post gives 154,204 ha
+  and a DKPP post gives 154,206 ha.
 
 - Monthly rice harvest from the area-sampling survey (KSA), kabupaten total only. None of
   the four KSA reports (2020-2021, 2020-2022, 2023, 2024) has kecamatan tables.
