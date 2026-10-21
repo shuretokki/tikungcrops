@@ -96,8 +96,12 @@ function fit() {
   if (!b.isEmpty()) map.fitBounds(b, { padding: 24, duration: 0 })
 }
 
-onMounted(() => {
-  map = new MapLibreMap({ container: container.value!, style: basemap(), attributionControl: { compact: true } })
+onMounted(async () => {
+  // a .client component swaps its placeholder for the real template only after mount,
+  // so the container element exists one tick later
+  await nextTick()
+  if (!container.value) return
+  map = new MapLibreMap({ container: container.value, style: basemap(), attributionControl: { compact: true } })
   map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
   // sources and layers go in after the style loads, and again after every style change
   map.on('style.load', () => {
