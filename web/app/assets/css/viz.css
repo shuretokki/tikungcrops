@@ -1,0 +1,19 @@
+/* Chart and map colors, validated with the dataviz palette checker on the design surfaces. */
+/* The first three reference slots pass all-pairs in both modes, so maps use no more than three hues. */
+/* Light aqua is below 3:1 on the cream surface, so every map and chart ships labels and a table. */
+
+:root {
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-3: #1baf7a;
+  --viz-neutral: #a6b0a0;
+  --viz-outline: #5c6a72;
+}
+
+.dark {
+  --viz-1: #3987e5;
+  --viz-2: #d95926;
+  --viz-3: #199e70;
+  --viz-neutral: #62746b;
+  --viz-outline: #aabdb4;
+}

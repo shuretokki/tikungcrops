@@ -91,6 +91,15 @@ monthly aoi=aoi: (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (outlook ao
 # Setup of an area after its first `just sentinel` run
 setup aoi=aoi: (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (outlook aoi) (mongo aoi) (boundaries aoi) (web aoi)
 
+# Build the public web site into web/.output/public (needs `just web` for each area first)
+site:
+    rm -rf web/public/json && mkdir -p web/public/json && cp -r data/web/* web/public/json/
+    cd web && pnpm install --frozen-lockfile && pnpm generate
+
+# Web site with live reload
+site-dev:
+    cd web && pnpm dev
+
 # Run the dashboard
 app:
     uv run streamlit run app.py

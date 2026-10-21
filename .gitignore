@@ -28,3 +28,12 @@ documents/local/
 
 *.local.md
 data/reference/*/sources/*.md
+
+# web app
+/web/node_modules/
+/web/.nuxt/
+/web/.output/
+/web/.data/
+/web/public/json/
+/web/dist
+.coverage

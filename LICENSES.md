@@ -14,3 +14,14 @@ licence, listed here. Published outputs (the web app and its JSON) must show the
 | Lahan Baku Sawah (BIG Satu Peta) | not stated, check before publishing | Badan Informasi Geospasial | paddy share per cell only |
 | BPS publications (Kecamatan Tikung Dalam Angka, KSA rice reports) | cite the source | Badan Pusat Statistik Kabupaten Lamongan | transcribed reference figures |
 | Satu Data Lamongan (DKPP table) | not stated | Pemerintah Kabupaten Lamongan, DKPP | transcribed reference figures |
+
+## Web site
+
+| Item | Licence | Credit |
+|---|---|---|
+| IBM Plex Sans (`web/public/fonts/`) | SIL Open Font License 1.1, licence file shipped with the fonts | IBM |
+| Lilex (`web/public/fonts/`) | SIL Open Font License 1.1, licence file shipped with the font | Mikhail Bykovskiy |
+| Lucide icons (through Nuxt UI) | ISC | Lucide contributors |
+| OpenFreeMap basemap | free public instance, OpenStreetMap data under ODbL | © OpenStreetMap contributors, OpenFreeMap |
+| MapLibre GL JS | BSD-3-Clause | MapLibre contributors |
+| Chart and map palette | reference palette of the dataviz method, validated on the design surfaces | see `web/app/assets/css/viz.css` |
