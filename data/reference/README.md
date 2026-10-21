@@ -32,6 +32,18 @@ reference/<aoi-slug>/sources/          original publications (not tracked)
 Harvested area counts each season separately (a field harvested twice counts twice),
 which is what the satellite season areas are compared against.
 
+## `harvested_area_monthly.csv` (optional)
+
+Harvested area per calendar month for the whole AOI, used to check harvest timing.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `year` | int | Data year |
+| `month` | int | 1-12 |
+| `crop` | text | Crop as the source names it |
+| `harvested_area_ha` | float | Harvested area in that month |
+| `source` | text | Short id of the publication, described below |
+
 ## Sources
 
 ### idn-jawatimur-lamongan-tikung (Kecamatan Tikung, Lamongan)
@@ -50,3 +62,17 @@ which is what the satellite season areas are compared against.
 
 Earlier source notes (livestock, fisheries, CIMMYT, news figures on the program) are
 kept in `archives/sumber-data/`.
+
+### idn-jawatimur-lamongan (Kabupaten Lamongan)
+
+| `source` | Publication | Tables | Data year |
+|---|---|---|---|
+| `bps_ksa_lamongan_2020_2022` | BPS Kabupaten Lamongan, *Luas Panen dan Produksi Padi di Kabupaten Lamongan 2020-2022* (released 22 Dec 2023) | Lampiran 1, p. 63 | 2020 |
+| `bps_ksa_lamongan_2023` | BPS Kabupaten Lamongan, *Luas Panen dan Produksi Padi di Kabupaten Lamongan 2023*, publication 35240.24045 | Lampiran 1, p. 53 | 2021-2023 |
+
+- Monthly rice harvest from the area-sampling survey (KSA), kabupaten total only. None of
+  the four KSA reports (2020-2021, 2020-2022, 2023, 2024) has kecamatan tables.
+- 2020 is published in thousand hectares, so its months sum to 148,020 ha against the
+  printed total of 148,030 ha.
+- The agriculture office (DKPP) reports 154,204 ha for 2021, 11% above KSA's 138,450 ha.
+  Do not mix the two series.

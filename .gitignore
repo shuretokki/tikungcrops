@@ -27,3 +27,4 @@ documents/local/
 /src/jotosanur_agri/test/
 
 CHANGELOG.local.md
+data/reference/*/sources/*.md
