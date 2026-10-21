@@ -65,15 +65,19 @@ validate aoi=aoi:
 mongo aoi=aoi: up
     {{py}}.pipeline.load_mongo "{{aoi}}"
 
+# Static JSON for the public web app in data/web/<aoi>/ (needs gold)
+web aoi=aoi:
+    {{py}}.pipeline.export_web "{{aoi}}"
+
 # Print aggregation results and query plans (IXSCAN vs COLLSCAN)
 agg: up
     {{py}}.mongo_agg
 
-# What the scheduled job runs: last month's scenes, CHIRPS, silver, gold, harvest outlook, MongoDB
-monthly aoi=aoi: (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (outlook aoi) (mongo aoi)
+# What the scheduled job runs: last month's scenes, CHIRPS, silver, gold, harvest outlook, MongoDB, web JSON
+monthly aoi=aoi: (sentinel aoi) (chirps aoi) (silver aoi) (gold aoi) (outlook aoi) (mongo aoi) (web aoi)
 
 # Setup of an area after its first `just sentinel` run
-setup aoi=aoi: (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (outlook aoi) (mongo aoi)
+setup aoi=aoi: (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) (validate aoi) (outlook aoi) (mongo aoi) (web aoi)
 
 # Run the dashboard
 app:
