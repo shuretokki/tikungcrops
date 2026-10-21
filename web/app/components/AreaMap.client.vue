@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { LngLatBounds, Map as MapLibreMap, NavigationControl } from 'maplibre-gl'
+import { LngLatBounds, Map as MapLibreMap, NavigationControl, setWorkerUrl } from 'maplibre-gl'
+// MapLibre 6 finds its worker with new URL(..., import.meta.url) at runtime, which Vite does not see,
+// so the ?url import makes Vite emit the file and setWorkerUrl points MapLibre at it
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import type { FeatureCollection } from 'geojson'
 import { STAGES, type Cell } from '~/composables/useArea'
 
@@ -10,6 +13,7 @@ const props = defineProps<{
   selected?: string | null
 }>()
 const emit = defineEmits<{ select: [unit: string] }>()
+setWorkerUrl(workerUrl)
 
 const container = ref<HTMLDivElement>()
 const colorMode = useColorMode()
@@ -121,7 +125,7 @@ const legend = Object.entries(STAGES).filter(([k]) => k !== 'unknown')
 
 <template>
   <div class="relative h-full min-h-80 w-full overflow-hidden rounded-md ring ring-default">
-    <div ref="container" class="absolute inset-0" role="region" aria-label="Peta sel sawah dan batas wilayah" />
+    <div ref="container" class="h-full w-full" role="region" aria-label="Peta sel sawah dan batas wilayah" />
     <ul class="absolute bottom-2 left-2 flex flex-col gap-1 rounded-lg bg-muted px-2 py-1.5 text-xs shadow-(--shadow-elev)">
       <li v-for="[key, s] in legend" :key="key" class="flex items-center gap-1.5">
         <span class="size-2.5 rounded-full" :style="{ background: s.color }" />
