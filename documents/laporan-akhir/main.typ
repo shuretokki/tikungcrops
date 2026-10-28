@@ -221,9 +221,9 @@ Sebuah musim digolongkan sebagai padi bila VH saat penggenangan paling tinggi -1
 
 === Validasi
 
-Hasil pengolahan dibandingkan dengan dua jenis data resmi. Pertama, luas tanam satelit per desa pada tahun 2020 dibandingkan dengan luas panen per desa dari publikasi Kecamatan Tikung Dalam Angka @bpslamongan2021tikung. Kesesuaiannya diukur dengan koefisien korelasi Pearson dan rasio luas satelit terhadap luas BPS.
+Hasil pengolahan dibandingkan dengan dua jenis data resmi. Pertama, luas tanam satelit per desa pada tahun 2020 dan 2021 dibandingkan dengan luas panen per desa dari publikasi Kecamatan Tikung Dalam Angka @bpslamongan2021tikung @bpslamongan2022tikung. Tahun 2021 menjadi uji yang independen karena ambang deteksi padi ditetapkan dari data 2020. Kesesuaiannya diukur dengan koefisien korelasi Pearson dan rasio luas satelit terhadap luas BPS.
 
-Kedua, waktu panen dibandingkan dengan luas panen padi bulanan Kabupaten Lamongan dari Survei Kerangka Sampel Area tahun 2020 sampai 2023 @bpslamongan2023ksa @bpslamongan2024ksa. Karena Tikung hanya satu dari 27 kecamatan, yang dibandingkan adalah porsi panen per bulan, bukan luasnya. Ukurannya adalah korelasi porsi bulanan dan selisih porsi panen pada Januari sampai Mei.
+Kedua, waktu panen dibandingkan dengan luas panen padi bulanan Kabupaten Lamongan dari Survei Kerangka Sampel Area tahun 2020 sampai 2023 @bpslamongan2023ksa @bpslamongan2024ksa. Karena Tikung hanya satu dari 27 kecamatan, proyek ini membandingkan porsi panen per bulan. Ukurannya adalah korelasi porsi bulanan dan selisih porsi panen pada Januari sampai Mei.
 
 === Pemodelan Prakiraan Waktu Panen
 
@@ -233,7 +233,7 @@ Fitur prakiraan tanam meliputi hari penggenangan dalam tahun, jarak penggenangan
 
 Model utama adalah gradient boosting untuk nilai tengah, ditambah dua model kuantil untuk persentil ke-10 dan ke-90. Kedua model kuantil membentuk rentang 80%. Rentang ini kemudian dilebarkan dengan conformalized quantile regression @Romano_2019, memakai seperempat tahun pelatihan sebagai data kalibrasi. Pelebaran ini diperlukan karena musim dalam satu tahun berbagi cuaca yang sama, sehingga rentang dari data gabungan terlalu sempit untuk tahun baru.
 
-Model dinilai dengan validasi silang yang menahan satu tahun panen penuh sebagai data uji. Sebagai pembanding, dipakai perkiraan sederhana berupa lama musim median dari tahun pelatihan. Rancangan pembandingan mengikuti CY-Bench @Kallenberg_2026, yaitu perkiraan sederhana dibandingkan dengan Ridge, random forest, dan gradient boosting. Hiperparameter setiap model dicari dengan Optuna @Akiba_2019 sebanyak 10 percobaan, dengan tiga lipatan yang dibagi per tahun dan hanya di dalam tahun pelatihan.
+Model dinilai dengan _cross-validation_ yang menahan satu tahun panen penuh sebagai data uji. Sebagai pembanding, dipakai perkiraan sederhana berupa lama musim median dari tahun pelatihan. Rancangan pembandingan mengikuti CY-Bench @Kallenberg_2026, yaitu perkiraan sederhana dibandingkan dengan Ridge, random forest, dan gradient boosting. Hiperparameter setiap model dicari dengan Optuna @Akiba_2019 sebanyak 10 percobaan, dengan tiga fold yang dibagi per tahun dan hanya di dalam tahun pelatihan.
 
 Untuk musim yang masih berjalan, luas sawah setiap sel dibagi merata pada rentang 80% tanggal panennya. Hasilnya dijumlahkan per desa dan per minggu sebagai perkiraan luas panen mingguan. Prakiraan ini juga diuji ulang pada tanggal-tanggal di masa lalu. Pada uji ulang tersebut, model hanya dilatih dengan musim yang sudah panen sebelum tanggal itu.
 
@@ -243,11 +243,11 @@ Hasil pengolahan diekspor menjadi berkas data per desa dan disimpan dalam basis 
 
 === Pengujian
 
-Kebenaran alur data dan model diperiksa dengan 60 uji otomatis. Sebagian uji memakai deret waktu buatan yang tanggal tanam dan panennya sudah diketahui, sehingga hasil deteksi dapat dibandingkan dengan jawaban yang benar. Uji lain memastikan bahwa data dari tahun uji tidak pernah masuk ke data pelatihan. Pada saat laporan ini disusun, seluruh uji lulus.
+Kebenaran alur data dan model diperiksa dengan 60 uji otomatis. Sebagian uji memakai deret waktu buatan yang tanggal tanam dan panennya sudah diketahui, sehingga hasil deteksi dapat dibandingkan dengan jawaban yang benar. Uji lain memastikan bahwa data dari tahun uji tidak pernah masuk ke data pelatihan.
 
 == Pembelajaran Hal Baru
 
-Pembelajaran selama studi ini disusun dengan model refleksi 4R, yaitu melaporkan kejadian, mengaitkannya dengan konsep, menjelaskan sebabnya, lalu menyusun ulang cara kerja @Ryan_2013. Empat pembelajaran utama dijelaskan di bawah ini, kemudian kendala selama kegiatan dirangkum pada @tabel-kendala.
+Pembelajaran selama studi ini disusun dengan model refleksi 4R, yaitu melaporkan kejadian, mengaitkannya dengan konsep, menjelaskan sebabnya, lalu menyusun ulang cara kerja @Ryan_2013. Empat pembelajaran utama dijelaskan pada sub-sub-bab di bawah ini.
 
 === Model Tidak Dapat Menggantikan Data Lokal
 
@@ -259,35 +259,13 @@ Dalam materi pembelajaran mesin, kemampuan model untuk berlaku di data baru bias
 
 Model prakiraan waktu panen semula dinilai dengan menahan satu tahun penuh sebagai data uji dan memberi galat 11,8 hari. Ketika prakiraan diuji ulang seperti dipakai pada tanggal sebenarnya, hasilnya lebih buruk. Prakiraan tanam yang dikeluarkan pada Januari meleset 21 sampai 41 hari, sedangkan yang dikeluarkan pada Juni meleset 11 sampai 20 hari.
 
-Perbedaan ini muncul karena penilaian awal hanya memakai musim yang belakangan terbukti andal. Padahal, pada saat prakiraan dikeluarkan, informasi itu belum tersedia. Pelajaran ini sejalan dengan rancangan CY-Bench yang menahan tahun penuh dan mencari hiperparameter hanya di dalam tahun pelatihan @Kallenberg_2026. Sejak itu, perkiraan panen mingguan juga diuji ulang dengan data yang dipotong pada tanggal prakiraan.
+Perbedaan ini muncul karena penilaian awal hanya memakai musim yang belakangan terbukti andal. Padahal, pada saat prakiraan dikeluarkan, informasi itu belum tersedia. Hal tersebut sejalan dengan rancangan CY-Bench yang menahan tahun penuh dan mencari hiperparameter hanya di dalam tahun pelatihan @Kallenberg_2026. Sejak itu, perkiraan panen mingguan juga diuji ulang dengan data yang dipotong pada tanggal prakiraan.
 
 === Citra Satelit Memiliki Celah
 
 Teori pada Bab II menyebut bahwa radar dapat menembus awan. Dalam praktik, ketersediaan citra tetap menjadi kendala. Pada November sampai Februari, hanya 4 sampai 9 citra Sentinel-2 per bulan yang jernih selama sembilan tahun, dibandingkan dengan sampai 67 citra pada Juli sampai September. Lintasan Sentinel-1 di atas Tikung juga turun dari 53 sampai 57 kali per tahun menjadi 24 kali pada 2023.
 
-Akibatnya, awal musim hujan sering tidak terlihat, dan status padi pada tahun 2022 dan 2023 sebagian tidak diketahui. Celah ini tidak bisa diisi dengan menebak. Oleh karena itu, musim dengan data terlalu sedikit ditandai sebagai tidak diketahui, bukan dianggap bukan padi.
-
-=== Layanan Data Publik Perlu Ditangani dengan Hati-Hati
-
-Saat cakupan diperluas dari satu kecamatan ke satu kabupaten, dua layanan data gagal. Layanan peta Lahan Baku Sawah habis waktu setelah sekitar 60 detik ketika diminta untuk wilayah sebesar kabupaten. Sebaliknya, wilayah berukuran 0,1 derajat dijawab dalam sekitar dua detik. Server CHIRPS juga menolak akses setelah ratusan berkas diunduh melalui empat koneksi bersamaan.
-
-Kedua kejadian ini menunjukkan bahwa alur data harus menghormati batas layanan pihak lain. Permintaan kini dipecah menjadi potongan kecil, diulang secara otomatis bila gagal, dan jumlah unduhan bersamaan dikurangi.
-
-#figure(
-  table(
-    columns: (auto, 1fr, 1fr),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: left,
-    table.header([*Kendala*], [*Dampak*], [*Penanganan*]),
-    [Data operasional mitra tidak tersedia], [Sistem pencatatan dan prediksi hasil panen tidak dapat dibangun], [Arah studi dialihkan ke pemantauan tanam dari citra satelit],
-    [Koordinasi dengan pengelola program tidak terlaksana], [Belum ada uji coba langsung bersama pengguna], [Pengguna sasaran diperluas ke warga dan pemerintah desa],
-    [Awan pada musim hujan], [Awal musim sering tidak terlihat], [Citra radar dipakai dan musim yang meragukan ditandai],
-    [Lintasan radar berkurang sejak 2022], [Status padi sebagian tidak diketahui], [Musim dengan kurang dari tiga lintasan ditandai tidak diketahui],
-    [Layanan data gagal pada wilayah besar], [Pengolahan Kabupaten Lamongan tertunda], [Permintaan dipecah, diulang, dan dikurangi],
-  ),
-  caption: [Kendala selama kegiatan dan penanganannya],
-) <tabel-kendala>
+Akibatnya, awal musim hujan sering tidak terlihat, dan status padi pada tahun 2022 dan 2023 sebagian tidak diketahui. Celah ini tidak bisa diisi dengan menebak. Oleh karena itu, musim dengan data terlalu sedikit ditandai sebagai tidak diketahui, dan tidak lagi dianggap bukan padi.
 
 = Hasil dan Pembahasan
 

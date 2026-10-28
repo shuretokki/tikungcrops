@@ -111,13 +111,16 @@ export const COPY = {
     },
     validation: {
       title: 'Seberapa Tepat Datanya',
-      body: (r: string, ratio: string, units: number) => `Luas dari satelit dibandingkan dengan luas panen BPS 2020 untuk ${units} desa, dengan korelasi ${r}. Satelit mencatat luas sekitar ${ratio} kali luas BPS, karena peta lahan pertanian juga mencakup jagung dan lahan kering.`,
-      x: 'Luas panen BPS 2020 (ha)',
-      y: 'Luas dari satelit (ha)',
+      body: (years: string, units: number) => `Luas dari satelit dibandingkan dengan luas panen BPS per desa untuk ${units} desa pada tahun ${years}. Satelit mencatat luas semua tanaman lebih besar dari BPS, karena peta lahan pertanian juga mencakup jagung dan lahan kering.`,
+      scatterNote: (year: number) => `Grafik menunjukkan padi pada ${year}, tahun yang tidak dipakai untuk menyetel ambang deteksi padi.`,
+      x: 'Luas panen padi BPS (ha)',
+      y: 'Luas padi dari satelit (ha)',
       equal: 'Sama dengan BPS',
       readout: (unit: string, ref: string, sat: string) => `${unit}: BPS ${ref}, satelit ${sat}`,
       hint: 'Arahkan kursor ke titik untuk melihat nama desa.',
-      columns: { unit: 'Desa', reference: 'BPS 2020', satellite: 'Satelit' }
+      crops: { rice: 'Padi', all_crops: 'Semua tanaman' } as Record<string, string>,
+      summaryColumns: { year: 'Tahun', crop: 'Tanaman', r: 'Korelasi', ratio: 'Satelit / BPS' },
+      columns: { unit: 'Desa', reference: 'BPS', satellite: 'Satelit' }
     },
     limits: {
       title: 'Batas Data Ini',

@@ -5,8 +5,12 @@ const t = COPY.metode
 const { data: validation } = await useAreaFile<Validation>(AREAS.tikung, 'validation.json')
 
 const num = (v: number) => v.toLocaleString('id-ID', { maximumFractionDigits: 2 })
-const allCrops = computed(() => validation.value?.area.find(a => a.measure === 'all_crops'))
-const points = computed(() => (validation.value?.area_units ?? []).filter(p => p.measure === 'all_crops' && p.year === allCrops.value?.year))
+const summary = computed(() => [...(validation.value?.area ?? [])].sort((a, b) => a.year - b.year || a.measure.localeCompare(b.measure)))
+const years = computed(() => [...new Set(summary.value.map(a => a.year))])
+// The scatter shows rice in the newest year, because the rice thresholds were tuned on the oldest one.
+const latestYear = computed(() => years.value.at(-1))
+const points = computed(() => (validation.value?.area_units ?? []).filter(p => p.measure === 'rice' && p.year === latestYear.value))
+const units = computed(() => Math.max(0, ...summary.value.map(a => a.units)))
 
 useSeoMeta({ title: t.seoTitle })
 </script>
@@ -46,13 +50,25 @@ useSeoMeta({ title: t.seoTitle })
       </section>
 
       <section
-        v-if="allCrops"
+        v-if="summary.length && latestYear"
         class="flex flex-col gap-4"
       >
         <h2 class="text-xl font-semibold">
           {{ t.validation.title }}
         </h2>
-        <p>{{ t.validation.body(num(allCrops.r), num(allCrops.ratio), points.length) }}</p>
+        <p>{{ t.validation.body(years.join(' dan '), units) }}</p>
+        <UTable
+          :data="summary.map(a => ({ year: a.year, crop: t.validation.crops[a.measure] ?? a.measure, r: num(a.r), ratio: num(a.ratio) }))"
+          :columns="[
+            { accessorKey: 'year', header: t.validation.summaryColumns.year },
+            { accessorKey: 'crop', header: t.validation.summaryColumns.crop },
+            { accessorKey: 'r', header: t.validation.summaryColumns.r },
+            { accessorKey: 'ratio', header: t.validation.summaryColumns.ratio }
+          ]"
+        />
+        <p class="text-sm text-muted">
+          {{ t.validation.scatterNote(latestYear) }}
+        </p>
         <ValidationScatter :points="points" />
         <ChartTable
           :caption="t.validation.title"
