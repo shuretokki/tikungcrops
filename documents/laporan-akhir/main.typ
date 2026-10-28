@@ -86,7 +86,7 @@
 ]
 
 #frontmatter(title: [Catatan Kerangka])[
-  Dokumen ini masih kerangka, kecuali Bab I, Bab II, serta subbab 3.1 dan 3.2 yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
+  Dokumen ini masih kerangka, kecuali Bab I, Bab II, serta subbab 3.1 sampai 3.3 yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
 
   Daftar isi templat dan isi templat tidak sama. Daftar isi memuat Rumusan Masalah, Urgensi, dan Temuan yang Ditargetkan pada Bab I, serta Waktu dan Tempat pada Bab III. Isi templat tidak memuatnya. Kerangka ini memakai susunan yang lebih lengkap supaya isi laporan sejalan dengan proposal.
 
@@ -109,7 +109,7 @@ Seluruh kegiatan dilaksanakan secara daring. Data citra satelit, curah hujan, da
 
 Wilayah kajian utama adalah Kecamatan Tikung, Kabupaten Lamongan, Jawa Timur. Wilayah ini terletak antara 112,37° dan 112,45° Bujur Timur serta antara 7,12° dan 7,25° Lintang Selatan. Kecamatan Tikung terdiri atas tiga belas desa, yaitu Bakalanpule, Balongwangi, Botoputih, Dukuhagung, Guminingrejo, Jatirejo, Jotosanur, Kelorarum, Pengumbulanadi, Soko, Takeranklating, Tambakrigadung, dan Wonokromo. Luas sawah yang dipantau di wilayah ini sekitar 4.420 hektare.
 
-Data yang diolah untuk Kecamatan Tikung mencakup citra Oktober 2017 sampai September 2026. Rentang ini memuat musim tanam yang berakhir pada tahun 2018 sampai 2026. Selain itu, citra September 2024 sampai September 2026 untuk 27 kecamatan di Kabupaten Lamongan sudah diunduh sebagai tahap perluasan. Pengolahan data kabupaten tersebut masih berlangsung pada saat laporan ini disusun.
+Data yang diolah untuk Kecamatan Tikung mencakup citra Oktober 2017 sampai September 2026. Rentang ini memuat musim tanam yang berakhir pada tahun 2018 sampai 2026.
 
 #figure(
   table(
@@ -160,43 +160,93 @@ Studi ini dikerjakan oleh satu mahasiswa, sehingga mahasiswa memegang seluruh ta
   caption: [Kedudukan pekerjaan mahasiswa dalam alur studi. Kotak abu-abu adalah bagian yang dikerjakan mahasiswa.],
 ) <gambar-kedudukan>
 
-Dalam rantai informasi pertanian, proyek ini berada di bawah statistik resmi. Badan Pusat Statistik mengukur luas panen padi setiap bulan melalui Survei Kerangka Sampel Area dan menyajikannya per kabupaten @bpslamongan2025padi. Proyek ini mengisi lapisan yang lebih rinci, yaitu tahap tanam per desa yang diperbarui setiap bulan dari citra satelit. Hasil proyek dibandingkan dengan data BPS, sehingga proyek ini melengkapi statistik resmi dan tidak menggantikannya.
+Dalam rantai informasi pertanian, proyek ini berada di bawah statistik resmi. Badan Pusat Statistik mengukur luas panen padi setiap bulan melalui Survei Kerangka Sampel Area dan menyajikannya per kabupaten @bpslamongan2025padi. Proyek ini mengisi lapisan setelahnya, yaitu tahap tanam per desa yang diperbarui setiap bulan dari citra satelit. Hasil proyek dibandingkan dengan data BPS, sehingga proyek ini melengkapi statistik resmi dan tidak menggantikannya.
 
-Kedudukan ini berbeda dari rencana proposal. Proposal menempatkan mahasiswa sebagai pengembang sistem bagi Satgas Pandu, dengan koordinasi melalui Kecamatan Tikung. Koordinasi tersebut tidak terlaksana selama masa studi, sehingga pengguna sasaran bergeser ke warga dan pemerintah desa di seluruh Kecamatan Tikung. Desa Jotosanur tetap termasuk dalam wilayah yang dipantau. @tabel-peran merinci pekerjaan mahasiswa pada setiap tahap beserta buktinya di repositori kode.
+Kedudukan ini berbeda dari rencana proposal. Proposal menempatkan mahasiswa sebagai pengembang sistem bagi Satgas Pandu, dengan koordinasi melalui Kecamatan Tikung. Koordinasi tersebut tidak terlaksana selama masa studi, sehingga pengguna sasaran bergeser ke warga dan pemerintah desa di seluruh Kecamatan Tikung. Desa Jotosanur tetap termasuk dalam wilayah yang dipantau. @tabel-peran merinci pekerjaan mahasiswa pada setiap tahap.
 
 #figure(
   table(
-    columns: (auto, 1fr, auto),
+    columns: (auto, 1fr),
     stroke: 0.5pt,
     inset: 5pt,
     align: left,
-    table.header([*Tahap*], [*Pekerjaan mahasiswa*], [*Bukti di repositori*]),
-    [Pengambilan data], [Mengunduh citra Sentinel-1 dan Sentinel-2, curah hujan CHIRPS, peta Lahan Baku Sawah, dan batas desa], [`load_sentinel`, `load_chirps`, `load_paddy`, `load_boundaries`],
-    [Pengolahan], [Menyusun deret waktu lima harian per sel dan mendeteksi musim tanam], [`silver_sentinel`, `gold_sentinel`],
-    [Validasi], [Membandingkan luas dan waktu panen dengan data BPS dan KSA], [`validate_reference`],
-    [Pemodelan], [Melatih dan membandingkan model prakiraan waktu panen], [`forecast_harvest`, `compare_models`, `harvest_outlook`],
-    [Penyajian], [Mengekspor data per desa dan membangun situs web], [`export_web`, `load_mongo`, folder `site`],
-    [Pengujian], [Menulis 60 uji otomatis untuk alur data dan model], [folder `tests`],
-    [Otomatisasi], [Menyiapkan jadwal pengambilan data bulanan], [`.github/workflows/monthly.yml`],
+    table.header([*Tahap*], [*Pekerjaan mahasiswa*]),
+    [Pengambilan data], [Mengunduh citra Sentinel-1 dan Sentinel-2, curah hujan CHIRPS, peta Lahan Baku Sawah, dan batas desa],
+    [Pengolahan], [Menyusun deret waktu lima harian per sel dan mendeteksi musim tanam],
+    [Validasi], [Membandingkan luas dan waktu panen dengan data BPS dan KSA],
+    [Pemodelan], [Melatih dan membandingkan model prakiraan waktu panen],
+    [Penyajian], [Mengekspor data per desa dan membangun situs web],
+    [Pengujian], [Menulis 60 uji otomatis untuk alur data dan model],
+    [Otomatisasi], [Menyiapkan jadwal pengambilan data bulanan],
   ),
   caption: [Pekerjaan mahasiswa pada setiap tahap],
 ) <tabel-peran>
 
 == Metodologi Penyelesaian Tugas
 
-#wajib[Uraikan masalah menjadi topik bahasan. Gunakan teori atau metode untuk menjelaskan kasus, bukan sekadar mendeskripsikan teori. Sebut referensi yang valid.]
-#rubrik[Perencanaan dan Pelaksanaan Program, 15%.]
-#fakta[
-  + Pengambilan data: 924 citra Sentinel-2 dan 505 citra Sentinel-1 di atas Jotosanur, 2015 sampai 2026, tanpa akun berbayar (§2).
-  + Bronze: satu baris per sel 100 m per citra. Silver: kalender 5 harian, awan dibuang, celah hingga 30 hari diinterpolasi (§4).
-  + Gold: tanggal penggenangan, puncak, dan panen per sel per musim. Masker sawah dari Lahan Baku Sawah (§8).
-  + Model prakiraan panen: desain CY-Bench, satu tahun ditahan sebagai uji, baseline median dibandingkan dengan Ridge, random forest, dan gradient boosting (§23, M01).
-  + Validasi terhadap BPS 2020 per desa dan KSA bulanan 2020 sampai 2023.
-  + Jadwal otomatis bulanan lewat GitHub Actions dan `just monthly`.
-]
-#panduan[
-  Tulis langkah sampai pembaca lain dapat mengulanginya. Rujuk metode yang sudah terbit alih-alih menjelaskannya ulang (Gastel dan Day, How to Write and Publish a Scientific Paper, bab Materials and Methods). Satu diagram alur dengan paket fletcher, seperti contoh pada templat jilid, sudah cukup.
-]
+// Rujukan tanpa DOI yang entrinya belum disetujui pengguna, ditandai merah sampai entri BibTeX dibuat.
+#let belum(sumber) = text(fill: rgb("#b03a3a"))[(#sumber; entri pustaka belum dibuat)]
+
+Masalah studi ini diuraikan menjadi enam tahap, yaitu pengambilan data, pengolahan data, validasi, pemodelan, penyajian, dan pengujian. Setiap tahap memakai konsep pada Bab II untuk menjelaskan keadaan sawah di Kecamatan Tikung.
+
+=== Pengambilan Data
+
+Unit analisis studi ini adalah sel persegi berukuran 100 meter, yaitu gabungan 10 × 10 piksel Sentinel-2. Sel hanya dipakai bila paling sedikit setengah luasnya berupa lahan pertanian menurut peta ESA WorldCover 2021 @Zanaga_2022. Dengan aturan ini, Kecamatan Tikung terbagi menjadi 4.954 sel. Setiap sel dimasukkan ke desa yang menutupi bagian terbesarnya. @tabel-sumber-data merangkum data yang diambil untuk setiap sel.
+
+#figure(
+  table(
+    columns: (auto, 1fr, auto, auto),
+    stroke: 0.5pt,
+    inset: 5pt,
+    align: left,
+    table.header([*Data*], [*Sumber*], [*Resolusi*], [*Rentang*]),
+    [Citra optik], [Copernicus Sentinel-2 Level-2A, ESA], [10 m], [Okt 2017 sampai Sep 2026],
+    [Citra radar VV dan VH], [Copernicus Sentinel-1 RTC, ESA], [10 m], [Okt 2017 sampai Sep 2026],
+    [Lahan pertanian], [ESA WorldCover 2021 @Zanaga_2022], [10 m], [2021],
+    [Peta sawah], [Lahan Baku Sawah, Badan Informasi Geospasial], [Poligon], [Satu edisi],
+    [Curah hujan bulanan], [CHIRPS @Funk_2015], [0,05°], [1981 sampai 2026],
+    [Batas desa], [GADM versi 4.1], [Poligon], [Satu edisi],
+  ),
+  caption: [Sumber data yang dipakai],
+) <tabel-sumber-data>
+
+Semua data tersebut tersedia secara terbuka dan dibaca langsung dari server penyedia tanpa akun berbayar. Dari setiap citra Sentinel-2, sistem menghitung NDVI dan LSWI pada piksel yang tidak tertutup awan menurut klasifikasi citra. Dari setiap citra Sentinel-1, sistem menghitung rata-rata pantulan VV dan VH dalam desibel. Hasilnya disimpan sebagai data mentah dengan satu baris untuk setiap sel pada setiap tanggal citra.
+
+=== Pengolahan Data
+
+Data mentah memiliki tanggal yang tidak teratur dan banyak baris berawan. Oleh karena itu, setiap sel disusun ulang menjadi deret waktu dengan selang lima hari. Baris Sentinel-2 hanya dipakai bila paling sedikit 60% sel bebas awan. Penurunan NDVI pada satu tanggal saja juga dibuang karena biasanya berasal dari kabut yang lolos dari klasifikasi awan. Selisih pantulan antara lintasan satelit naik dan turun dihapus agar deret radar tidak bergerigi.
+
+Celah data sampai 30 hari diisi dengan interpolasi linear, sedangkan celah yang lebih panjang dibiarkan kosong. Deret waktu kemudian dihaluskan dengan nilai tengah bergerak selebar 15 hari. Sel juga ditandai tergenang bila nilai LSWI lebih besar daripada NDVI, yang menunjukkan air di permukaan sawah.
+
+Dari deret waktu yang bersih, musim tanam dideteksi dengan urutan fenologi pada subbab 2.1.1. Setiap puncak NDVI di atas 0,6 yang berjarak paling sedikit 60 hari dari puncak lain dianggap satu musim. Awal tumbuh adalah saat NDVI naik melewati 20% selisih antara nilai dasar dan puncak. Tanggal tanam diambil dari nilai VH terendah di sekitar awal tumbuh, karena sawah yang tergenang menurunkan pantulan radar @Manago_2020. Tanggal panen adalah saat NDVI turun melewati 50% selisih tersebut sesudah puncak.
+
+Sebuah musim digolongkan sebagai padi bila VH saat penggenangan paling tinggi -17 desibel atau turun paling sedikit 1,5 desibel dari keadaan sebelum tanam. Ambang ini ditetapkan dari data tahun 2020. Bila satelit radar melintas kurang dari tiga kali pada masa penggenangan, status padi musim itu dicatat tidak diketahui. Luas sawah setiap sel dihitung dari porsi sel yang berada di dalam peta Lahan Baku Sawah. Terakhir, setiap sel diberi tahap tanam terkini pada tanggal data terakhir, yaitu ditanami, menjelang panen, bera, atau tertutup awan.
+
+=== Validasi
+
+Hasil pengolahan dibandingkan dengan dua jenis data resmi. Pertama, luas tanam satelit per desa pada tahun 2020 dibandingkan dengan luas panen per desa dari publikasi Kecamatan Tikung Dalam Angka #belum[BPS Kabupaten Lamongan, 2021]. Kesesuaiannya diukur dengan koefisien korelasi Pearson dan rasio luas satelit terhadap luas BPS.
+
+Kedua, waktu panen dibandingkan dengan luas panen padi bulanan Kabupaten Lamongan dari Survei Kerangka Sampel Area tahun 2020 sampai 2023 #belum[BPS Kabupaten Lamongan, 2023, 2024]. Karena Tikung hanya satu dari 27 kecamatan, yang dibandingkan adalah porsi panen per bulan, bukan luasnya. Ukurannya adalah korelasi porsi bulanan dan selisih porsi panen pada Januari sampai Mei.
+
+=== Pemodelan Prakiraan Waktu Panen
+
+Studi ini membuat dua prakiraan waktu panen untuk setiap sel. Prakiraan tanam dikeluarkan 20 hari sesudah awal tumbuh dan memperkirakan jumlah hari dari penggenangan sampai panen. Prakiraan puncak dikeluarkan saat NDVI mencapai puncak dan memperkirakan jumlah hari dari puncak sampai panen. Kedua prakiraan hanya memakai informasi yang sudah tersedia pada tanggal dikeluarkannya.
+
+Fitur prakiraan tanam meliputi hari penggenangan dalam tahun, jarak penggenangan ke awal tumbuh, status padi, nilai VH, besar penurunan VH, NDVI dasar, jumlah lintasan radar, curah hujan, dan nama desa. Fitur prakiraan puncak meliputi hari puncak dalam tahun, nilai NDVI puncak, jarak dari penggenangan dan awal tumbuh ke puncak, status padi, curah hujan, dan nama desa. Model hanya dilatih pada musim yang awal tumbuhnya benar-benar teramati, karena celah awan pada musim lain membuat tanggalnya keliru.
+
+Model utama adalah gradient boosting untuk nilai tengah, ditambah dua model kuantil untuk persentil ke-10 dan ke-90. Kedua model kuantil membentuk rentang 80%. Rentang ini kemudian dilebarkan dengan conformalized quantile regression @Romano_2019, memakai seperempat tahun pelatihan sebagai data kalibrasi. Pelebaran ini diperlukan karena musim dalam satu tahun berbagi cuaca yang sama, sehingga rentang dari data gabungan terlalu sempit untuk tahun baru.
+
+Model dinilai dengan validasi silang yang menahan satu tahun panen penuh sebagai data uji. Sebagai pembanding, dipakai perkiraan sederhana berupa lama musim median dari tahun pelatihan. Rancangan pembandingan mengikuti CY-Bench @Kallenberg_2026, yaitu perkiraan sederhana dibandingkan dengan Ridge, random forest, dan gradient boosting. Hiperparameter setiap model dicari dengan Optuna @Akiba_2019 sebanyak 10 percobaan, dengan tiga lipatan yang dibagi per tahun dan hanya di dalam tahun pelatihan.
+
+Untuk musim yang masih berjalan, luas sawah setiap sel dibagi merata pada rentang 80% tanggal panennya. Hasilnya dijumlahkan per desa dan per minggu sebagai perkiraan luas panen mingguan. Prakiraan ini juga diuji ulang pada tanggal-tanggal di masa lalu. Pada uji ulang tersebut, model hanya dilatih dengan musim yang sudah panen sebelum tanggal itu.
+
+=== Penyajian dan Otomatisasi
+
+Hasil pengolahan diekspor menjadi berkas data per desa dan disimpan dalam basis data MongoDB. Berkas tersebut dibaca oleh situs web statis yang menampilkan kondisi sawah, kalender tanam, jadwal tanam per desa, dan perkiraan panen. Pengambilan citra dan curah hujan bulan sebelumnya dijadwalkan berjalan otomatis setiap tanggal 25.
+
+=== Pengujian
+
+Kebenaran alur data dan model diperiksa dengan 60 uji otomatis. Sebagian uji memakai deret waktu buatan yang tanggal tanam dan panennya sudah diketahui, sehingga hasil deteksi dapat dibandingkan dengan jawaban yang benar. Uji lain memastikan bahwa data dari tahun uji tidak pernah masuk ke data pelatihan. Pada saat laporan ini disusun, seluruh uji lulus.
 
 == Pembelajaran Hal Baru
 
