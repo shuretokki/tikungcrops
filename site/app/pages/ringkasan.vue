@@ -58,7 +58,7 @@ useSeoMeta({ title: t.seoTitle })
   <UPage>
     <UPageHeader
       :title="t.title"
-      :description="COPY.common.asOf(formatDate(meta?.as_of))"
+      :description="t.description(formatDate(meta?.as_of))"
     />
     <UPageBody>
       <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -107,11 +107,18 @@ useSeoMeta({ title: t.seoTitle })
           />
           <template #fallback>
             <div class="flex h-full items-center justify-center rounded-md bg-muted text-sm text-muted">
-              {{ COPY.common.mapLoading }}
+              {{ t.mapLoading }}
             </div>
           </template>
         </ClientOnly>
       </div>
+
+      <UAlert
+        color="warning"
+        icon="i-lucide-cloud-rain"
+        :title="t.alertTitle"
+        :description="t.alert"
+      />
 
       <UTable
         :data="rows"

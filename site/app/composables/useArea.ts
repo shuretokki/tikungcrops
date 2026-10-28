@@ -15,10 +15,10 @@ export const AREAS = {
 } satisfies Record<string, Area>
 
 export const STAGES = {
-  planted: { label: COPY.stages.planted, color: 'var(--viz-3)' },
-  peaked: { label: COPY.stages.peaked, color: 'var(--viz-2)' },
-  fallow: { label: COPY.stages.fallow, color: 'var(--viz-neutral)' },
-  unknown: { label: COPY.stages.unknown, color: 'transparent' }
+  planted: { label: 'Sedang ditanam', color: 'var(--viz-3)' },
+  peaked: { label: 'Menjelang panen', color: 'var(--viz-2)' },
+  fallow: { label: 'Bera', color: 'var(--viz-neutral)' },
+  unknown: { label: 'Tidak terbaca (awan)', color: 'transparent' }
 } as const
 
 export type Stage = keyof typeof STAGES
