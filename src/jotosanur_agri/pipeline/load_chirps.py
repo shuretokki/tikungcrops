@@ -51,7 +51,8 @@ FILE_RE = re.compile(r"chirps-v3\.0\.(\d{4})\.(\d{2})\.cog")
 
 NORMAL_YEARS = (1991, 2020)  # WMO standard normal period
 REFETCH_LAST = 2
-WORKERS = 4
+# Four parallel readers over a full 549-month backfill got the host blocked (HTTP 403) on 2026-10-28.
+WORKERS = 2
 MAX_LAT = 50
 # GDAL retries HTTP error codes, but not a tile body that arrives empty.
 # One such read lost a whole 549-month Lamongan fetch, so each month is retried here too.
