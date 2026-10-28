@@ -51,14 +51,20 @@ Harvested area per calendar month for the whole AOI, used to check harvest timin
 | `source` | Publication | Tables | Data year |
 |---|---|---|---|
 | `bps_tikung_2014` | BPS Kabupaten Lamongan, *Kecamatan Tikung Dalam Angka 2014*, catalogue 1102001.3524140 | 5.3, p. 56 | 2013 |
-| `bps_tikung_2021` | BPS Kabupaten Lamongan, *Kecamatan Tikung Dalam Angka 2021*, publication 35240, ISSN 2798-7892 | 5.1-5.5, pp. 119-123 | 2020 |
+| `bps_tikung_2021` | BPS Kabupaten Lamongan, *Kecamatan Tikung Dalam Angka 2021*, publication 35240.2117, ISSN 2798-7892 | 5.1-5.5, pp. 119-123 | 2020 |
+| `bps_tikung_2022` | BPS Kabupaten Lamongan, *Kecamatan Tikung Dalam Angka 2022*, released 26 Sep 2022 | 5.3 (rice), 5.4 (maize), pp. 120-121 | 2021 |
 
-- 2013: rice only. 2020: rice and hybrid maize (`jagung_hibrida`).
-- Both years predate Kampung Pandu Sakti (started ~2025), so they are a pre-program
-  baseline.
-- Editions 2016 and 2022-2024 are cited elsewhere but no download was found
-  (searched 2026-09-18); since 2018 BPS estimates rice with the area-sampling survey
-  (KSA), so newer editions may not list rice per desa.
+- 2013: rice only. 2020 and 2021: rice and hybrid maize (`jagung_hibrida`).
+- 2021 rows: every row's production divided by area matches the printed productivity, and the
+  areas sum to the printed totals (rice 7,402 ha, maize 1,255 ha). The printed production totals
+  (53,220 t rice, 9,513 t maize) are 36 t and 83 t below the sums of the rows, an inconsistency in
+  the source. The rows are kept as printed.
+- All three years predate Kampung Pandu Sakti (started ~2025), so they are a pre-program
+  baseline. 2021 is the first year the rice thresholds were not tuned on (they come from 2020).
+- Editions 2023-2026 (downloaded 2026-10-28) give food crops only for the whole kecamatan,
+  sourced from DKPP (rice area 7,042 ha in 2021, 7,659 in 2022, 7,658 in 2023, 5,830 in 2024),
+  so they cannot validate per desa. Note DKPP's 2021 kecamatan rice area (7,042 ha) differs
+  from the BPS desa table (7,402 ha). Do not mix the two series.
 
 Earlier source notes (livestock, fisheries, CIMMYT, news figures on the program) are
 kept in `archives/sumber-data/`.
