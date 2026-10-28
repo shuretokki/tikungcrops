@@ -1,16 +1,16 @@
 <script setup lang="ts">
 const links = [
-  { label: 'Ringkasan', to: '/', icon: 'i-lucide-map' },
-  { label: 'Perbandingan', to: '/perbandingan', icon: 'i-lucide-chart-column' },
-  { label: 'Metode', to: '/metode', icon: 'i-lucide-microscope' },
-  { label: 'Data', to: '/data', icon: 'i-lucide-download' }
+  { label: COPY.nav.ringkasan, to: '/ringkasan', icon: 'i-lucide-map' },
+  { label: COPY.nav.perbandingan, to: '/perbandingan', icon: 'i-lucide-chart-column' },
+  { label: COPY.nav.metode, to: '/metode', icon: 'i-lucide-microscope' },
+  { label: COPY.nav.data, to: '/data', icon: 'i-lucide-download' }
 ]
 </script>
 
 <template>
   <UApp>
     <UHeader
-      title="Tanam Padi Lamongan"
+      :title="COPY.site.title"
       to="/"
     >
       <UNavigationMenu
@@ -35,8 +35,7 @@ const links = [
     <UFooter>
       <template #left>
         <p class="text-xs text-muted">
-          Data turunan Copernicus Sentinel-1/2 (ESA), CHIRPS, ESA WorldCover, Lahan Baku Sawah (BIG).
-          Batas wilayah: geoBoundaries (OCHA ROAP, BPS 2019), CC BY 3.0 IGO. Peta dasar: OpenFreeMap, © OpenStreetMap.
+          {{ COPY.site.footer }}
         </p>
       </template>
     </UFooter>
