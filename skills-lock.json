@@ -67,6 +67,12 @@
       "skillPath": "skills/sklearn-pipelines/SKILL.md",
       "computedHash": "273f84b0e9687b735a5e1ad0d8d23af14fb85b88c599eb281701264897080bf6"
     },
+    "storytelling-with-data": {
+      "source": "booklib-ai/booklib",
+      "sourceType": "github",
+      "skillPath": "skills/storytelling-with-data/SKILL.md",
+      "computedHash": "ca42914316ad44f0539c2eae14bc480cbaee2544fa6d3243c506b8bc6001051e"
+    },
     "typst": {
       "source": "lucifer1004/claude-skill-typst",
       "sourceType": "github",
