@@ -1,19 +1,13 @@
 // SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
 // SPDX-License-Identifier: CC-BY-4.0
 
-// Kerangka Laporan Akhir PMB Studi Independen.
-// Setiap subbab memuat isi wajib dari templat, bobot rubrik, fakta proyek yang sudah terverifikasi, rujukan, panduan menulis, dan data yang masih harus dilengkapi.
-// Templat resmi: documents/local/official/laporan-akhir-template.txt (hasil parse PDF, 28 halaman).
-// Rubrik: Pedoman PMB 2026, Lampiran 5 (Rubrik Penilaian Laporan Akhir).
-// Fakta: FINDING.local.md (F, S, L) dan documents/local/temuan-teknis.md (§).
-
 #import "@preview/jilid:0.2.0": appendix, frontmatter, jilid, signature, signatures
 
 #show: jilid.with(
-  title: [Pemantauan Musim Tanam Padi Berbasis Citra Satelit dan Machine Learning di Kecamatan Tikung, Kabupaten Lamongan],
-  kind: [Laporan Akhir Program Mahasiswa Berdampak \ Studi Independen],
-  cover: (kind-pos: "top"),
-  cover-details: (([Mitra Kolaborator:], [Dicoding Indonesia]),),
+  title: [Laporan Akhir Program Mahasiswa Berdampak],
+  kind: [Studi Independen],
+  cover: (kind-pos: "bottom", details: (size: 12pt), title: (size: 12pt), kind: (size: 12pt)),
+  cover-details: ((upper()[Pemantauan Musim Tanam Padi Berbasis Citra Satelit dan Machine Learning di Kecamatan Tikung, Kabupaten Lamongan],[]),([Mitra Kolaborator:], [Dicoding Indonesia]),),
   students: ((name: "Tri Rianto Utomo", id: "24051204104"),),
   program: "Teknik Informatika",
   faculty: "Teknik",
@@ -21,10 +15,10 @@
   year: "2026",
   bibliography: bibliography("refs.bib", style: "harvard-cite-them-right"),
   typography: (font-family: "Times New Roman"),
-  margin: "print",
+  margin: "digital",
+  numbering: (position: "top"),
 )
 
-// Kotak catatan kerangka. Hapus semua kotak ini saat naskah final ditulis.
 #let kotak(judul, warna, isi) = block(
   width: 100%,
   inset: 8pt,
@@ -41,41 +35,58 @@
 
 #frontmatter(title: [Lembar Pengesahan])[
   #table(
-    columns: (auto, 1fr),
-    stroke: 0.5pt,
-    inset: 6pt,
-    [Judul Kegiatan], [Pemantauan Musim Tanam Padi Berbasis Citra Satelit dan Machine Learning di Kecamatan Tikung, Kabupaten Lamongan],
-    [Nama Mitra], [Dicoding Indonesia],
-    [Alamat Instansi], [Dicoding Space, Jl. Batik Kumeli No. 50, Sukaluyu, Kec. Cibeunying Kaler, Kota Bandung, Jawa Barat 40123],
-    [Nama], [Tri Rianto Utomo],
-    [NIM], [24051204104],
-    [Prodi/Jurusan], [Teknik Informatika],
-    [Fakultas], [Teknik],
-    [No. Tlp.], [089678986450],
-    [Alamat Email], [24051204104\@mhs.unesa.ac.id],
-    [Periode Riset], [Agustus sampai Desember 2026],
+    columns: 2,
+    align: (left, left),
+    stroke: 0.5pt + luma(80),
+    inset: (x: 6pt, y: 6pt),
+    [*Judul Kegiatan*], [Studi Independen],
+    [*Nama Mitra*], [Dicoding Indonesia],
+    [*Alamat Instansi*], [Dicoding Space Jl. Batik Kumeli No.50, Sukaluyu, Kec. Cibeunying Kaler, Kota Bandung Jawa Barat 40123],
+    [*Identitas Mahasiswa*], [
+      #grid(
+        columns: (auto, 1fr),
+        row-gutter: 0.5em,
+        column-gutter: 0.4em,
+        [*Nama*], [: Tri Rianto Utomo],
+        [*NIM*], [: 24051204104],
+        [*Prodi/Jurusan*], [: Teknik Informatika],
+        [*Fakultas*], [: Teknik],
+        [*No Tlp.*], [: 089678986450],
+        [*Alamat Email*], [: 24051204104\@mhs.unesa.ac.id],
+      )
+    ],
+    [*Periode Studi Independen*], [2026],
   )
-  #perlu[
-    - Nama dan NIP Dosen Pembimbing Lapangan serta Koordinator Program Studi.
-    - Judul baru di atas masih usulan. Judul proposal menyebut sistem informasi manajemen Kampung Pandu Sakti, sedangkan luaran nyata berupa pemantauan tanam berbasis satelit. Pastikan DPL setuju judul berubah.
-  ]
+
+  // #table(
+  //   columns: (auto, 1fr),
+  //   stroke: 0.5pt,
+  //   inset: 6pt,
+  //   [Judul Kegiatan], [Pemantauan Musim Tanam Padi Berbasis Citra Satelit dan Machine Learning di Kecamatan Tikung, Kabupaten Lamongan],
+  //   [Nama Mitra], [Dicoding Indonesia],
+  //   [Alamat Instansi], [Dicoding Space, Jl. Batik Kumeli No. 50, Sukaluyu, Kec. Cibeunying Kaler, Kota Bandung, Jawa Barat 40123],
+  //   [Nama], [Tri Rianto Utomo],
+  //   [NIM], [24051204104],
+  //   [Prodi/Jurusan], [Teknik Informatika],
+  //   [Fakultas], [Teknik],
+  //   [No. Tlp.], [089678986450],
+  //   [Alamat Email], [24051204104\@mhs.unesa.ac.id],
+  //   [Periode Riset], [Agustus sampai Desember 2026],
+  // )
+
+
   #v(1cm)
   #signatures(
     header: [Mengetahui,],
-    signature(role: [Dosen Pembimbing Lapangan], name: "NAMA DPL", id: "NIP"),
+    signature(role: [Dosen Pembimbing Lapangan], name: "Rifqi Abdillah, S.Tr.T., M.Kom.", id: "199911012024061001"),
     signature(role: [Mahasiswa], name: "Tri Rianto Utomo", id-label: "NIM", id: "24051204104"),
   )
   #v(0.5cm)
-  #signatures(header: [Menyetujui,], signature(role: [Koordinator Program Studi], name: "NAMA KOORPRODI", id: "NIP"))
-]
-
-#frontmatter(title: [Kata Pengantar])[
-  #wajib[Pedoman PMB 2026 bab 10.3 menempatkan Kata Pengantar sesudah Lembar Pengesahan. Templat PDF tidak memuatnya, jadi bagian ini boleh dibuat singkat.]
-  #panduan[Satu halaman: ucapan syukur, terima kasih kepada DPL, Dicoding Indonesia, dan Kecamatan Tikung, lalu harapan singkat. Hindari klaim hasil di sini.]
+  #signatures(header: [Menyetujui,], signature(role: [Koordinator Program Studi], name: "Paramitha Nerisafitra, S.ST., M.Kom.", id: "198905292019032013"))
 ]
 
 #frontmatter(title: [Catatan Kerangka])[
-  Dokumen ini masih kerangka, kecuali Bab I dan Bab II yang sudah berupa naskah. Rujukan bertanda merah pada Bab I belum memiliki entri pustaka karena sumbernya tidak memiliki DOI. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
+  Dokumen ini masih kerangka, kecuali Bab I, Bab II, dan subbab 3.1 yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
 
   Daftar isi templat dan isi templat tidak sama. Daftar isi memuat Rumusan Masalah, Urgensi, dan Temuan yang Ditargetkan pada Bab I, serta Waktu dan Tempat pada Bab III. Isi templat tidak memuatnya. Kerangka ini memakai susunan yang lebih lengkap supaya isi laporan sejalan dengan proposal.
 
@@ -92,9 +103,35 @@
 
 == Waktu dan Tempat Pelaksanaan
 
-#wajib[Daftar isi templat mencantumkan subbab ini.]
-#fakta[Agustus sampai Desember 2026, daring. Objek: 13 desa Kecamatan Tikung, lalu perluasan ke 27 kecamatan Kabupaten Lamongan.]
-#perlu[Tanggal mulai dan selesai resmi dari MELISA.]
+Studi independen ini berlangsung dari Agustus sampai Desember 2026 sesuai jadwal Program Mahasiswa Berdampak. Laporan ini disusun pada akhir Oktober 2026, sehingga hasil yang dilaporkan mencakup pekerjaan sampai saat itu. Pekerjaan sesudah tanggal tersebut dicatat sebagai rencana tindak lanjut pada Bab VI.
+
+Seluruh kegiatan dilaksanakan secara daring. Data citra satelit, curah hujan, dan peta sawah diambil dari katalog data terbuka, sehingga studi ini tidak memerlukan pengukuran lapangan. Pengolahan data, pemodelan, dan pengembangan situs dikerjakan di komputer mahasiswa.
+
+Wilayah kajian utama adalah Kecamatan Tikung, Kabupaten Lamongan, Jawa Timur. Wilayah ini terletak antara 112,37° dan 112,45° Bujur Timur serta antara 7,12° dan 7,25° Lintang Selatan. Kecamatan Tikung terdiri atas tiga belas desa, yaitu Bakalanpule, Balongwangi, Botoputih, Dukuhagung, Guminingrejo, Jatirejo, Jotosanur, Kelorarum, Pengumbulanadi, Soko, Takeranklating, Tambakrigadung, dan Wonokromo. Luas sawah yang dipantau di wilayah ini sekitar 4.420 hektare.
+
+Data yang diolah untuk Kecamatan Tikung mencakup citra Oktober 2017 sampai September 2026. Rentang ini memuat musim tanam yang berakhir pada tahun 2018 sampai 2026. Selain itu, citra September 2024 sampai September 2026 untuk 27 kecamatan di Kabupaten Lamongan sudah diunduh sebagai tahap perluasan. Pengolahan data kabupaten tersebut masih berlangsung pada saat laporan ini disusun.
+
+#figure(
+  table(
+    columns: (auto, 1fr),
+    stroke: 0.5pt,
+    inset: 5pt,
+    align: left,
+    table.header([*Aspek*], [*Keterangan*]),
+    [Waktu program], [Agustus sampai Desember 2026],
+    [Bentuk kegiatan], [Daring, tanpa pengukuran lapangan],
+    [Wilayah utama], [Kecamatan Tikung, 13 desa, sekitar 4.420 ha sawah],
+    [Rentang data Tikung], [Oktober 2017 sampai September 2026],
+    [Wilayah perluasan], [Kabupaten Lamongan, 27 kecamatan, citra September 2024 sampai September 2026],
+  ),
+  caption: [Ringkasan waktu dan tempat pelaksanaan],
+) <tabel-waktu-tempat>
+
+#perlu[
+  - Tanggal mulai dan selesai resmi dari MELISA. Ganti "Agustus sampai Desember 2026" bila tanggalnya berbeda.
+  - Cara bimbingan dengan DPL (daring, luring, atau campuran), bila ingin disebut pada subbab ini.
+  - Peta lokasi Kecamatan Tikung sebagai gambar. Peta bisa diambil dari situs dengan label desa.
+]
 
 == Posisi atau Kedudukan Kegiatan
 

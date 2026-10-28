@@ -1,14 +1,11 @@
 // SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
 // SPDX-License-Identifier: CC-BY-4.0
 
-// Rujukan tanpa DOI yang entrinya belum disetujui pengguna, ditandai merah sampai entri BibTeX dibuat.
-#let belum(sumber) = text(fill: rgb("#b03a3a"))[(#sumber; entri pustaka belum dibuat)]
-
 = Pendahuluan
 
 == Latar Belakang
 
-Padi adalah tanaman pangan utama di Jawa Timur, dan Kabupaten Lamongan memegang peran besar di dalamnya. Pada 2024, Lamongan menjadi kabupaten dengan produksi padi tertinggi di Jawa Timur, yaitu 776.290,66 ton gabah kering giling #belum[BPS Provinsi Jawa Timur, 2024]. Luas panen padi kabupaten ini pada tahun yang sama mencapai sekitar 130,67 ribu hektare #belum[BPS Kabupaten Lamongan, 2024]. Kecamatan Tikung, dengan tiga belas desa dan sekitar 4.420 hektare sawah, adalah salah satu wilayah penyumbang produksi tersebut.
+Padi adalah tanaman pangan utama di Jawa Timur, dan Kabupaten Lamongan memegang peran besar di dalamnya. Pada 2025, Lamongan menjadi kabupaten dengan produksi padi tertinggi di Jawa Timur, yaitu 879.993,80 ton gabah kering giling @bpsjatim2026padi. Keunggulan ini sangat tipis karena Kabupaten Bojonegoro mencatat 879.685,13 ton pada tahun yang sama. Luas panen padi Lamongan pada 2025 mencapai sekitar 152,56 ribu hektare @bpsjatim2026padi. Kecamatan Tikung, dengan tiga belas desa dan sekitar 4.420 hektare sawah, adalah salah satu wilayah penyumbang produksi tersebut.
 
 Bagi petani dan pemerintah desa, informasi waktu tanam dan waktu panen per desa sangat berguna. Waktu tanam yang serempak antardesa membantu pembagian air irigasi dan pengendalian hama. Informasi waktu panen juga dibutuhkan buruh tani, pemilik mesin panen, dan pedagang gabah untuk merencanakan pekerjaan. Akan tetapi, statistik pertanian resmi umumnya disajikan per kecamatan atau per kabupaten dan terbit setelah musim berlalu @bpslamongan2024. Akibatnya, warga belum memiliki gambaran musim tanam per desa yang diperbarui secara berkala.
 
@@ -30,9 +27,9 @@ Berdasarkan latar belakang tersebut, rumusan masalah studi ini adalah sebagai be
 
 Sesuai dengan rumusan masalah, studi independen ini memiliki tiga tujuan.
 
-+ Membangun alur pengolahan data bertahap yang memproses citra Sentinel-1 dan Sentinel-2 sejak Oktober 2017 untuk tiga belas desa di Kecamatan Tikung. Keberhasilan tujuan ini diukur dengan lulusnya seluruh uji otomatis pada kode program.
-+ Menguji kesesuaian hasil satelit dengan data luas panen BPS 2020 per desa dan data waktu panen bulanan Kerangka Sampel Area 2020 sampai 2023. Ukurannya adalah nilai korelasi luas per desa dan selisih porsi panen per musim.
-+ Mengembangkan model prakiraan waktu panen dan situs web yang menampilkan kondisi sawah, jadwal tanam per desa, dan perkiraan panen. Model dinilai berhasil bila galatnya lebih kecil daripada perkiraan sederhana berbasis nilai tengah.
++ Membangun alur pengolahan data bertahap yang memproses citra Sentinel-1 dan Sentinel-2 sejak Oktober 2017 untuk tiga belas desa di Kecamatan Tikung.
++ Menguji kesesuaian hasil satelit dengan data luas panen BPS 2020 per desa dan data waktu panen bulanan Kerangka Sampel Area 2020 sampai 2023.
++ Mengembangkan model prakiraan waktu panen dan situs web yang menampilkan kondisi sawah, jadwal tanam per desa, dan perkiraan panen.
 
 == Manfaat Studi Independen
 
@@ -44,7 +41,7 @@ Studi ini memberi contoh pemantauan musim tanam tingkat desa yang tidak memerluk
 
 === Manfaat bagi Masyarakat dan Pemerintah Desa
 
-Warga dan perangkat desa dapat melihat kapan desanya biasanya mulai tanam dan panen. Buruh tani dan pemilik mesin panen dapat melihat desa yang akan panen dalam beberapa minggu ke depan. Informasi ini tersedia tanpa biaya dan diperbarui seiring datangnya citra baru.
+Warga dan perangkat desa dapat melihat kapan biasanya desa mereka mulai tanam dan panen. Buruh tani dan pemilik mesin panen dapat melihat desa yang akan panen dalam beberapa minggu ke depan. Informasi ini tersedia tanpa biaya dan diperbarui seiring datangnya citra baru.
 
 === Pengembangan Keterampilan Mahasiswa
 
@@ -68,7 +65,7 @@ Perubahan arah studi membuat sebagian target proposal disesuaikan. @tabel-target
     [Dashboard pencatatan panen, ternak, dan distribusi bibit], [Situs pemantauan tanam untuk tiga belas desa dengan pembaruan bulanan],
     [Model prediksi hasil panen dengan MAPE di bawah 20%], [Model prakiraan waktu panen dengan galat lebih kecil daripada perkiraan nilai tengah],
     [Panduan operasional sistem], [Halaman metode di situs dan dokumentasi kode],
-    [Kanal pelaporan WhatsApp (opsional)], [Tidak dikerjakan],
+    [Kanal pelaporan WhatsApp], [Tidak dikerjakan],
   ),
   caption: [Perbandingan target proposal dan target revisi],
 ) <tabel-target>
