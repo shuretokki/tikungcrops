@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import re
 import sys
+import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
@@ -37,6 +38,7 @@ from typing import Any
 import numpy as np
 import polars as pl
 import rasterio
+from rasterio.errors import RasterioIOError
 from rasterio.transform import rowcol
 from rasterio.windows import from_bounds
 
@@ -51,6 +53,9 @@ NORMAL_YEARS = (1991, 2020)  # WMO standard normal period
 REFETCH_LAST = 2
 WORKERS = 4
 MAX_LAT = 50
+# GDAL retries HTTP error codes, but not a tile body that arrives empty.
+# One such read lost a whole 549-month Lamongan fetch, so each month is retried here too.
+RETRY_WAIT_S = (5, 15, 45)
 
 BRONZE_SCHEMA = {"unit": pl.Utf8, "year": pl.Int64, "month": pl.Int64, "precip_mm": pl.Float64, "fetched_on": pl.Utf8}
 
@@ -93,6 +98,19 @@ def fetch_month(year: int, month: int, points: pl.DataFrame, names: list[str]) -
     ]
 
 
+def fetch_month_retrying(year: int, month: int, points: pl.DataFrame, names: list[str]) -> list[dict[str, Any]]:
+    """`fetch_month`, tried again after a failed remote read with a growing wait."""
+    for wait in (*RETRY_WAIT_S, None):
+        try:
+            return fetch_month(year, month, points, names)
+        except RasterioIOError:
+            if wait is None:
+                raise
+            print(f"[chirps] {year}-{month:02d} read failed, retrying in {wait} s")
+            time.sleep(wait)
+    raise AssertionError("unreachable")
+
+
 def load_bronze(bronze_path: Path, points: pl.DataFrame, names: list[str], refresh: bool = False) -> pl.DataFrame:
     """Return the full bronze table, fetching only months missing from the cache.
 
@@ -120,7 +138,7 @@ def load_bronze(bronze_path: Path, points: pl.DataFrame, names: list[str], refre
     if todo:
         print(f"[chirps] fetching {len(todo)} months ({todo[0]} .. {todo[-1]})")
         with ThreadPoolExecutor(WORKERS) as pool:
-            for batch in pool.map(lambda ym: fetch_month(ym[0], ym[1], points, names), todo):
+            for batch in pool.map(lambda ym: fetch_month_retrying(ym[0], ym[1], points, names), todo):
                 rows.extend(batch)
     fresh = pl.DataFrame(rows, schema=BRONZE_SCHEMA)
     return pl.concat([cached, fresh]).sort("unit", "year", "month")
