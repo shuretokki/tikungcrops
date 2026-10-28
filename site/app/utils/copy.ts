@@ -18,45 +18,89 @@ export const COPY = {
 
   landing: {
     seoTitle: 'Tanam Padi Lamongan',
-    headline: 'Pemantauan musim tanam padi melalui citra satelit',
-    description: 'Situs ini menunjukkan desa yang sedang menanam padi dan perkiraan waktu panennya. Semua data berasal dari citra satelit sehingga tidak memerlukan survei lapangan.',
+    eyebrow: 'Kecamatan Tikung, Kabupaten Lamongan',
+    headline: 'Musim tanam padi di tiga belas desa, terpantau dari satelit',
+    description: 'Situs ini menunjukkan tahap tanam setiap desa, pola musim sejak 2017, dan perkiraan waktu panen. Semua angka berasal dari citra satelit sehingga tidak memerlukan survei lapangan.',
     primaryCta: 'Lihat ringkasan',
     secondaryCta: 'Pelajari metode',
     stats: {
       paddy: 'Luas sawah yang dipantau',
-      units: 'Jumlah desa di Kecamatan Tikung',
-      asOf: 'Tanggal data terakhir'
+      units: 'Desa',
+      since: 'Pengamatan sejak',
+      asOf: 'Data terakhir'
     },
-    featuresTitle: 'Informasi yang tersedia',
-    features: [
-      {
-        title: 'Tahap tanam saat ini',
-        description: 'Luas sawah yang sedang ditanami dan yang menjelang panen di setiap desa.',
-        icon: 'i-lucide-sprout',
-        to: '/ringkasan'
-      },
-      {
-        title: 'Perkiraan panen',
-        description: 'Minggu dengan luas panen terbesar pada musim berjalan di setiap desa.',
-        icon: 'i-lucide-calendar-range',
-        to: '/ringkasan'
-      },
-      {
-        title: 'Perbandingan antardesa',
-        description: 'Perbandingan luas tanam dan jumlah musim tanam per tahun sejak 2017.',
-        icon: 'i-lucide-chart-column',
-        to: '/perbandingan'
-      },
-      {
-        title: 'Data terbuka',
-        description: 'Tabel dan peta yang digunakan di situs ini dapat diunduh.',
-        icon: 'i-lucide-download',
-        to: '/data'
-      }
-    ],
+    tableToggle: 'Lihat tabel data',
+
+    now: {
+      kicker: 'Saat ini',
+      title: (pct: string, date: string) => `${pct} sawah sedang bera pada ${date}`,
+      body: (month: string) => `Sebagian besar sawah menunggu musim tanam berikutnya. Berdasarkan pola sejak 2017, penanaman musim utama biasanya dimulai pada bulan ${month}.`,
+      columns: { stage: 'Tahap', ha: 'Luas', share: 'Bagian' }
+    },
+
+    calendar: {
+      kicker: 'Pola tahunan',
+      title: (start: string, harvest: string) => `Musim utama mulai ditanam pada bulan ${start} dan dipanen pada bulan ${harvest}`,
+      body: 'Setiap pita menunjukkan rentang dari awal tanam sampai akhir panen. Waktunya adalah rata-rata semua desa sejak 2017.',
+      today: 'Hari ini',
+      plant: 'Puncak tanam',
+      harvest: 'Puncak panen',
+      seasons: { MT1: 'Musim tanam 1', MT2: 'Musim tanam 2', MT3: 'Musim tanam 3' },
+      seasonNote: { MT1: 'Musim utama', MT2: 'Musim kedua', MT3: 'Tidak setiap tahun' },
+      columns: { season: 'Musim', start: 'Awal tanam', plant: 'Puncak tanam', harvest: 'Puncak panen', end: 'Akhir panen' }
+    },
+
+    intensity: {
+      kicker: 'Intensitas',
+      title: (avg: string) => `Sawah ditanami rata-rata ${avg} kali per tahun`,
+      body: 'Angka ini disebut indeks pertanaman dan mencakup padi serta tanaman lain. Angka satelit lebih tinggi daripada angka BPS 2020 (2,18 berbanding 1,62), jadi bacalah sebagai batas atas.',
+      average: (v: string) => `Rata-rata ${v}`,
+      readout: (year: number, v: string) => `${year}: ${v} kali tanam`,
+      columns: { year: 'Tahun', value: 'Kali tanam per tahun' }
+    },
+
+    validation: {
+      kicker: 'Ketepatan',
+      title: (r: string) => `Luas dari satelit sejalan dengan luas panen BPS (korelasi ${r})`,
+      body: (ratio: string) => `Perbandingan ini memakai data BPS tahun 2020 untuk tiga belas desa. Satelit mencatat luas sekitar ${ratio} kali luas BPS karena peta lahan pertanian juga mencakup jagung dan lahan kering.`,
+      x: 'Luas panen BPS 2020 (ha)',
+      y: 'Luas dari satelit (ha)',
+      equal: 'Sama dengan BPS',
+      readout: (unit: string, ref: string, sat: string) => `${unit}: BPS ${ref}, satelit ${sat}`,
+      hint: 'Arahkan kursor ke titik untuk melihat nama desa.',
+      columns: { unit: 'Desa', reference: 'BPS 2020', satellite: 'Satelit' }
+    },
+
+    steps: {
+      kicker: 'Cara kerja',
+      title: 'Tiga langkah dari citra satelit ke kalender tanam',
+      items: [
+        {
+          icon: 'i-lucide-satellite',
+          title: 'Citra radar dan optik',
+          description: 'Sentinel-1 merekam permukaan sawah walaupun langit berawan, sedangkan Sentinel-2 merekam kehijauan tanaman.'
+        },
+        {
+          icon: 'i-lucide-waves',
+          title: 'Genangan dan pertumbuhan',
+          description: 'Genangan air menandai awal tanam, lalu puncak kehijauan menandai fase menjelang panen.'
+        },
+        {
+          icon: 'i-lucide-calendar-check',
+          title: 'Kalender per desa',
+          description: 'Hasilnya dirangkum per desa menjadi musim tanam, intensitas, dan perkiraan panen.'
+        }
+      ]
+    },
+
     limitsTitle: 'Keterbatasan data',
-    limits: 'Tanggal tanam dan panen diperoleh dari deteksi satelit dan belum dicocokkan dengan catatan panen petani. Hasilnya sudah dibandingkan dengan data BPS dan KSA. Meskipun demikian, perkiraan pada musim hujan masih dapat meleset beberapa minggu.',
-    limitsCta: 'Baca metode lengkap'
+    limits: 'Tanggal tanam dan panen diperoleh dari deteksi satelit dan belum dicocokkan dengan catatan panen petani. Sejak 2022 satelit radar lebih jarang melintas sehingga sebagian musim padi tidak terdeteksi. Perkiraan pada musim hujan juga dapat meleset beberapa minggu.',
+    limitsCta: 'Baca metode lengkap',
+
+    desa: {
+      title: 'Rincian per desa',
+      body: 'Pilih desa untuk melihat kalender tanam dan perkiraan panennya.'
+    }
   },
 
   ringkasan: {
