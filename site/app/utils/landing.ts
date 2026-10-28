@@ -42,10 +42,19 @@ function circularMean(points: [day: number, weight: number][]) {
   return Math.round((day + YEAR_DAYS) % YEAR_DAYS)
 }
 
+// MT1 seasons count only when their flooding peak falls in October to January.
+// Peaks in February to April come from the partial first year and from radar gaps (F08, F22), not from real planting.
+const SEP1 = dayOfYear('2001-09-01')
+const sinceSep = (iso: string) => (dayOfYear(iso) - SEP1 + 365) % 365
+function isReliable(r: SeasonRow) {
+  if (r.season !== 'MT1') return true
+  return !!r.flood_median && sinceSep(r.flood_median) >= 30 && sinceSep(r.flood_median) < 153
+}
+
 export function seasonBands(rows: SeasonRow[]): SeasonBand[] {
   const order: SeasonRow['season'][] = ['MT1', 'MT2', 'MT3']
   return order.flatMap((season) => {
-    const own = rows.filter(r => r.season === season && r.rice_area_ha > 0)
+    const own = rows.filter(r => r.season === season && r.rice_area_ha > 0 && isReliable(r))
     if (!own.length) return []
     const at = (key: 'flood_start' | 'flood_median' | 'harvest_median' | 'harvest_end') =>
       circularMean(own.filter(r => r[key]).map(r => [dayOfYear(r[key]!), r.rice_area_ha]))
@@ -69,16 +78,9 @@ export interface RainMonth { year: number, month: number, mm: number, normal: nu
 export interface MainSeasonDates { plant: number, harvest: number, seasons: number }
 
 // Typical main-season (MT1) dates for one desa, as day-of-year.
-// Only seasons whose flooding peak falls in October to January count.
-// Peaks in February to April come from the partial first year and from radar gaps (F08), not from real planting.
-// The median of the remaining seasons resists the odd year better than a mean.
+// The median of the reliable seasons resists the odd year better than a mean.
 export function mainSeasonDates(rows: SeasonRow[], minSeasons = 3): MainSeasonDates | null {
-  const SEP1 = dayOfYear('2001-09-01')
-  const rel = (iso: string) => (dayOfYear(iso) - SEP1 + 365) % 365
-  const OCT1 = 30
-  const FEB1 = 153
-  const ok = rows.filter(r => r.season === 'MT1' && r.rice_area_ha > 0 && r.flood_median && r.harvest_median)
-    .filter(r => rel(r.flood_median!) >= OCT1 && rel(r.flood_median!) < FEB1)
+  const ok = rows.filter(r => r.season === 'MT1' && r.rice_area_ha > 0 && r.harvest_median && isReliable(r))
   if (ok.length < minSeasons) return null
   const median = (v: number[]) => {
     const s = [...v].sort((a, b) => a - b)
@@ -87,8 +89,8 @@ export function mainSeasonDates(rows: SeasonRow[], minSeasons = 3): MainSeasonDa
   }
   const back = (d: number) => Math.round((d + SEP1) % 365)
   return {
-    plant: back(median(ok.map(r => rel(r.flood_median!)))),
-    harvest: back(median(ok.map(r => rel(r.harvest_median!)))),
+    plant: back(median(ok.map(r => sinceSep(r.flood_median!)))),
+    harvest: back(median(ok.map(r => sinceSep(r.harvest_median!)))),
     seasons: ok.length
   }
 }
