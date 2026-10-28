@@ -19,7 +19,10 @@ Usage: `python -m jotosanur_agri.pipeline.load_paddy [AOI]`.
 from __future__ import annotations
 
 import json
+import math
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -39,33 +42,70 @@ LBS_URL = (
 )
 LBS_DIR = Path("data/external/lbs")
 PAGE_SIZE = 1000  # service's MaxRecordCount
+# The service times out (HTTP 500 after about 60 s) on a kabupaten-sized envelope,
+# while a 0.1 degree envelope answers in about 2 s, so large AOIs are queried tile by tile.
+TILE_DEG = 0.1
+RETRY_WAIT_S = (5, 15, 45)
+
+
+def _tiles(west: float, south: float, east: float, north: float, step: float = TILE_DEG) -> list[tuple[float, ...]]:
+    """Envelopes of at most `step` degrees that cover the bounds, row by row from the south-west."""
+    nx = max(1, math.ceil((east - west) / step))
+    ny = max(1, math.ceil((north - south) / step))
+    dx, dy = (east - west) / nx, (north - south) / ny
+    return [
+        (west + i * dx, south + j * dy, west + (i + 1) * dx, south + (j + 1) * dy) for j in range(ny) for i in range(nx)
+    ]
+
+
+def _get(params: dict[str, str]) -> list[dict[str, Any]]:
+    """One query page, retried on server errors and timeouts with a growing wait."""
+    url = f"{LBS_URL}?{urllib.parse.urlencode(params)}"
+    for wait in (*RETRY_WAIT_S, None):
+        try:
+            with urllib.request.urlopen(url, timeout=120) as resp:
+                return json.load(resp)["features"]
+        except (urllib.error.URLError, TimeoutError) as err:
+            client_error = isinstance(err, urllib.error.HTTPError) and err.code < 500
+            if client_error or wait is None:
+                raise
+            time.sleep(wait)
+    raise AssertionError("unreachable")
 
 
 def fetch_lbs(aoi: Aoi) -> list[dict[str, Any]]:
-    """LBS paddy polygons (GeoJSON features, lon/lat) intersecting the AOI bounds, cached per AOI."""
+    """LBS paddy polygons (GeoJSON features, lon/lat) intersecting the AOI bounds, cached per AOI.
+
+    A polygon that crosses a tile edge comes back from both tiles, so features are kept once by
+    `objectid`.
+    """
     cached = LBS_DIR / f"{aoi.slug}.geojson"
     if cached.exists():
         return json.loads(cached.read_text())["features"]
-    west, south, east, north = aoi.bounds()
-    features: list[dict[str, Any]] = []
-    while True:
-        params = {
-            "where": "1=1",
-            "geometry": f"{west},{south},{east},{north}",
-            "geometryType": "esriGeometryEnvelope",
-            "inSR": "4326",
-            "spatialRel": "esriSpatialRelIntersects",
-            "outFields": "objectid,wadmkk,q_name19,luas_polyg",
-            "outSR": "4326",
-            "resultOffset": str(len(features)),
-            "resultRecordCount": str(PAGE_SIZE),
-            "f": "geojson",
-        }
-        with urllib.request.urlopen(f"{LBS_URL}?{urllib.parse.urlencode(params)}", timeout=120) as resp:
-            page = json.load(resp)["features"]
-        features += page
-        if len(page) < PAGE_SIZE:
-            break
+    by_id: dict[Any, dict[str, Any]] = {}
+    for west, south, east, north in _tiles(*aoi.bounds()):
+        offset = 0
+        while True:
+            page = _get(
+                {
+                    "where": "1=1",
+                    "geometry": f"{west},{south},{east},{north}",
+                    "geometryType": "esriGeometryEnvelope",
+                    "inSR": "4326",
+                    "spatialRel": "esriSpatialRelIntersects",
+                    "outFields": "objectid,wadmkk,q_name19,luas_polyg",
+                    "outSR": "4326",
+                    "resultOffset": str(offset),
+                    "resultRecordCount": str(PAGE_SIZE),
+                    "f": "geojson",
+                }
+            )
+            for f in page:
+                by_id.setdefault(f.get("properties", {}).get("objectid", id(f)), f)
+            offset += len(page)
+            if len(page) < PAGE_SIZE:
+                break
+    features = list(by_id.values())
     LBS_DIR.mkdir(parents=True, exist_ok=True)
     cached.write_text(json.dumps({"type": "FeatureCollection", "features": features}))
     return features
