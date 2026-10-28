@@ -132,37 +132,38 @@ export const COPY = {
   ringkasan: {
     seoTitle: 'Ringkasan - Tanam Padi Lamongan',
     title: 'Ringkasan Sawah Tikung',
-    description: (units: number, asOf: string) => `Kondisi sawah dan perkiraan panen di ${units} desa. Data per ${asOf}.`,
-    stats: {
-      paddy: 'Luas sawah',
-      outlook: 'Perkiraan panen ke depan'
-    },
+    description: (units: number, asOf: string) => `Kondisi sawah, jadwal tanam, dan perkiraan panen di ${units} desa. Data per ${asOf}.`,
     mapLoading: 'Memuat peta...',
-    layouts: {
-      label: 'Pilih tampilan',
-      table: 'Tabel',
-      map: 'Peta',
-      calendar: 'Kalender Panen'
+    now: {
+      title: 'Kondisi Sekarang'
     },
-    columns: {
-      unit: 'Desa',
-      paddy: 'Luas sawah',
-      outlook: 'Perkiraan panen',
-      topWeek: 'Panen terbanyak'
+    schedule: {
+      title: 'Jadwal Musim Tanam 1 Tiap Desa',
+      body: 'Berdasarkan pola sejak 2017. Desa paling atas biasanya mulai tanam paling dulu.',
+      plant: 'Puncak tanam',
+      harvest: 'Puncak panen',
+      today: 'Hari ini',
+      readout: (unit: string, plant: string, harvest: string) => `${unit}: puncak tanam ${plant}, puncak panen ${harvest}`,
+      hint: 'Arahkan kursor ke baris untuk melihat tanggalnya.'
     },
-    list: {
-      topWeek: (week: string) => `Panen terbanyak minggu ${week}`,
-      noHarvest: 'Belum ada perkiraan panen'
+    harvest: {
+      title: 'Panen 8 Minggu ke Depan',
+      body: 'Desa dengan perkiraan panen paling cepat ada di atas.',
+      row: (week: string, ha: string) => `Paling banyak minggu ${week}, total sekitar ${ha}`,
+      empty: (month: string) => `Belum ada panen besar dalam 8 minggu ke depan. Panen musim berikutnya biasanya memuncak bulan ${month}.`
     },
-    calendar: {
-      title: 'Kapan Panen di Desamu?',
-      body: 'Makin gelap kotaknya, makin luas sawah yang diperkirakan panen minggu itu.',
-      less: 'Sedikit',
-      more: 'Banyak',
-      today: 'Minggu ini',
-      readout: (unit: string, week: string, ha: string) => `${unit}, minggu ${week}: sekitar ${ha}`,
-      hint: 'Arahkan kursor ke kotak untuk melihat luasnya.',
-      empty: 'Belum ada perkiraan panen untuk beberapa minggu ke depan.'
+    map: {
+      title: 'Peta Sawah'
+    },
+    table: {
+      title: 'Semua Desa',
+      columns: {
+        unit: 'Desa',
+        paddy: 'Luas sawah',
+        stage: 'Tahap sekarang',
+        plant: 'Puncak tanam',
+        harvest: 'Puncak panen'
+      }
     }
   }
 }
