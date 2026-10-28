@@ -19,15 +19,14 @@ function pieces(b: SeasonBand) {
 const rows = computed(() => props.bands.map(b => ({
   ...b,
   main: b.season === 'MT1',
-  label: t.seasons[b.season],
-  note: t.seasonNote[b.season],
+  label: COPY.seasons[b.season],
   pieces: pieces(b)
 })))
 </script>
 
 <template>
   <figure class="flex flex-col gap-1">
-    <div class="grid grid-cols-[7.5rem_1fr] items-end gap-x-3 sm:grid-cols-[9rem_1fr]">
+    <div class="grid grid-cols-[4.5rem_1fr] items-end gap-x-3 sm:grid-cols-[5rem_1fr]">
       <span />
       <div class="relative h-5 text-xs text-muted">
         <span
@@ -45,15 +44,12 @@ const rows = computed(() => props.bands.map(b => ({
     <div
       v-for="r in rows"
       :key="r.season"
-      class="grid grid-cols-[7.5rem_1fr] items-center gap-x-3 sm:grid-cols-[9rem_1fr]"
+      class="grid grid-cols-[4.5rem_1fr] items-center gap-x-3 sm:grid-cols-[5rem_1fr]"
     >
-      <div class="flex flex-col leading-tight">
-        <span
-          class="text-sm"
-          :class="r.main ? 'font-semibold' : ''"
-        >{{ r.label }}</span>
-        <span class="text-xs text-muted">{{ r.note }}</span>
-      </div>
+      <span
+        class="text-sm"
+        :class="r.main ? 'font-semibold' : ''"
+      >{{ r.label }}</span>
       <div
         class="relative h-10"
         role="img"
@@ -90,7 +86,7 @@ const rows = computed(() => props.bands.map(b => ({
       </div>
     </div>
 
-    <div class="grid grid-cols-[7.5rem_1fr] gap-x-3 sm:grid-cols-[9rem_1fr]">
+    <div class="grid grid-cols-[4.5rem_1fr] gap-x-3 sm:grid-cols-[5rem_1fr]">
       <span />
       <div class="relative h-6">
         <span

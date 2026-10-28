@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <details class="text-sm">
     <summary class="cursor-pointer text-muted hover:text-default">
-      {{ COPY.landing.tableToggle }}
+      {{ COPY.common.tableToggle }}
     </summary>
     <table class="mt-2 w-full text-left tabular-nums">
       <caption class="sr-only">
