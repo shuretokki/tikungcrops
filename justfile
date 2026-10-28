@@ -118,6 +118,11 @@ setup aoi=aoi: (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) 
 forecast aoi=aoi:
     {{ py }}.pipeline.forecast_harvest "{{ aoi }}"
 
+# Compare nine untuned models (linear, spline, HGB, CatBoost, XGBoost, LightGBM, voting, stacking) with the same year-out loop
+[group("model")]
+compare-defaults aoi=aoi:
+    {{ py }}.pipeline.compare_models "{{ aoi }}" --defaults
+
 # Compare baseline, Ridge, random forest and gradient boosting, each tuned with Optuna inside the training years (~2 h for Tikung)
 [group("model")]
 compare aoi=aoi:

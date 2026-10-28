@@ -21,7 +21,14 @@ shows what the model choice alone changes.
 
 Output: data/gold/sentinel/<aoi>_model_comparison.csv, one row per forecast, year and model
 with mean absolute error in days and the chosen hyperparameters.
-Usage: `python -m jotosanur_agri.pipeline.compare_models [AOI]` (default Lamongan/Tikung).
+
+`--defaults` runs a wider comparison without tuning, in the style of a model zoo: a linear
+model with and without spline features, gradient boosting with and without feature
+interactions, CatBoost, XGBoost, LightGBM, a CatBoost-LightGBM vote and a stack of the
+boosting models. Every model keeps its default settings, so the table shows whether the
+model family matters before any time goes into tuning. It writes
+<aoi>_model_comparison_defaults.csv.
+Usage: `python -m jotosanur_agri.pipeline.compare_models [AOI] [--defaults]` (default Lamongan/Tikung).
 """
 
 from __future__ import annotations
@@ -36,20 +43,42 @@ import optuna
 import pandas as pd
 import polars as pl
 import skrub
-from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
+from catboost import CatBoostRegressor
+from lightgbm import LGBMRegressor
+from sklearn.ensemble import (
+    HistGradientBoostingRegressor,
+    RandomForestRegressor,
+    StackingRegressor,
+    VotingRegressor,
+)
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import Ridge, RidgeCV
 from sklearn.model_selection import GroupKFold
-from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import SplineTransformer, StandardScaler
+from xgboost import XGBRegressor
 
 from jotosanur_agri.pipeline.aoi import resolve
 from jotosanur_agri.pipeline.forecast_harvest import FEATURES, MIN_TEST_SEASONS, TARGET, training_table
 from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
 
 MODELS = ("ridge", "random_forest", "gradient_boosting")
+DEFAULT_MODELS = (
+    "linear",
+    "spline",
+    "hgb",
+    "hgb_no_interactions",
+    "catboost",
+    "xgboost",
+    "lightgbm",
+    "voting",
+    "stacking",
+)
 N_TRIALS = 10
 INNER_FOLDS = 3
 BASELINE_KEYS = {"planting": ["flood_month", "rice"], "peak": ["rice"]}
+SEED = 0
+THREADS = 4
 
 
 def _float(low: float, high: float, name: str, log: bool = False) -> Any:
@@ -106,6 +135,96 @@ def _baseline(train: pl.DataFrame, test: pl.DataFrame, forecast: str) -> np.ndar
     return test.join(medians, on=keys, how="left")["base"].fill_null(overall).to_numpy()
 
 
+def _catboost() -> CatBoostRegressor:
+    return CatBoostRegressor(
+        loss_function="MAE", random_seed=SEED, thread_count=THREADS, verbose=0, allow_writing_files=False
+    )
+
+
+def _lightgbm() -> LGBMRegressor:
+    return LGBMRegressor(objective="l1", random_state=SEED, n_jobs=THREADS, verbose=-1)
+
+
+def _default_pipeline(model: str, year_splits: list[tuple[np.ndarray, np.ndarray]]) -> Pipeline:
+    """Untuned model in `skrub.tabular_pipeline`, which adds the encoder, imputer and scaler it needs.
+
+    `year_splits` are the stacking model's inner folds. They are built from the training years,
+    so the meta-model never learns from a season of a year it also predicts.
+    """
+    hgb = {"loss": "absolute_error", "random_state": SEED}
+    estimators: dict[str, Any] = {
+        "linear": RidgeCV(alphas=np.logspace(-2, 2, 20)),
+        "spline": RidgeCV(alphas=np.logspace(-2, 2, 20)),
+        "hgb": HistGradientBoostingRegressor(**hgb),
+        "hgb_no_interactions": HistGradientBoostingRegressor(**hgb, interaction_cst="no_interactions"),
+        "catboost": _catboost(),
+        "xgboost": XGBRegressor(objective="reg:absoluteerror", random_state=SEED, n_jobs=THREADS),
+        "lightgbm": _lightgbm(),
+        "voting": VotingRegressor([("catboost", _catboost()), ("lightgbm", _lightgbm())]),
+        "stacking": StackingRegressor(
+            [("hgb", HistGradientBoostingRegressor(**hgb)), ("catboost", _catboost()), ("lightgbm", _lightgbm())],
+            final_estimator=RidgeCV(),
+            cv=year_splits,
+        ),
+    }
+    if model not in estimators:
+        raise ValueError(f"unknown model {model!r}, expected one of {DEFAULT_MODELS}")
+    steps: list[tuple[str, Any]] = []
+    if model == "spline":
+        # Splines only on numeric columns with many values. Day of year and NDVI bend, flags do not.
+        spline = SplineTransformer(extrapolation="linear", handle_missing="zeros")
+        # The skrub stubs type a combined selector as And, while ApplyToCols annotates cols as All.
+        many_values: Any = skrub.selectors.numeric() & ~skrub.selectors.cardinality_below(20)
+        steps.append(("spline", skrub.ApplyToCols(spline, cols=many_values)))
+    steps.append(("model", skrub.tabular_pipeline(estimators[model])))
+    return Pipeline(steps)
+
+
+def _held_out_years(table: pl.DataFrame, min_test_seasons: int) -> list[int]:
+    return [y for y, n in table.group_by("year").len().sort("year").iter_rows() if n >= min_test_seasons]
+
+
+def compare_defaults(
+    table: pl.DataFrame,
+    forecast: str,
+    models: tuple[str, ...] = DEFAULT_MODELS,
+    inner_folds: int = INNER_FOLDS,
+    min_test_seasons: int = MIN_TEST_SEASONS,
+) -> pl.DataFrame:
+    """Leave-one-year-out mean absolute error of the baseline and each untuned model.
+
+    Args:
+        table: Output of `forecast_harvest.training_table`.
+        forecast: ``"planting"`` or ``"peak"``.
+        models: Model names from `DEFAULT_MODELS`.
+        inner_folds: Year-grouped folds for the stacking model.
+        min_test_seasons: Years with fewer seasons are only used for training.
+
+    Returns:
+        The same columns as `compare`, with `params` always ``"{}"``.
+    """
+    unknown = set(models) - set(DEFAULT_MODELS)
+    if unknown:
+        raise ValueError(f"unknown model {sorted(unknown)[0]!r}, expected one of {DEFAULT_MODELS}")
+    target, features = TARGET[forecast], FEATURES[forecast]
+    rows: list[dict[str, Any]] = []
+    for year in _held_out_years(table, min_test_seasons):
+        train, test = table.filter(pl.col("year") != year), table.filter(pl.col("year") == year)
+        y_test = test[target].to_numpy()
+        common = {"forecast": forecast, "year": year, "seasons": test.height, "params": "{}"}
+        base = _baseline(train, test, forecast)
+        rows.append({**common, "model": "median_duration", "mae_days": float(np.mean(np.abs(base - y_test)))})
+        x_train, x_test = train.select(features).to_pandas(), test.select(features).to_pandas()
+        years = train["year"].to_numpy()
+        n_splits = min(inner_folds, len(np.unique(years)))
+        splits = list(GroupKFold(n_splits=n_splits).split(x_train, groups=years))
+        for model in models:
+            pipe = _default_pipeline(model, splits).fit(x_train, train[target].to_numpy())
+            point = np.asarray(pipe.predict(x_test), dtype=float)
+            rows.append({**common, "model": model, "mae_days": float(np.mean(np.abs(point - y_test)))})
+    return pl.DataFrame(rows)
+
+
 def compare(
     table: pl.DataFrame,
     forecast: str,
@@ -129,7 +248,7 @@ def compare(
         `mae_days` and `params` (JSON of the chosen hyperparameters).
     """
     target = TARGET[forecast]
-    years = [y for y, n in table.group_by("year").len().sort("year").iter_rows() if n >= min_test_seasons]
+    years = _held_out_years(table, min_test_seasons)
     rows: list[dict[str, Any]] = []
     for year in years:
         train, test = table.filter(pl.col("year") != year), table.filter(pl.col("year") == year)
@@ -157,8 +276,15 @@ def compare(
     return pl.DataFrame(rows)
 
 
-def run_compare_models(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dict[str, Any]:
+def run_compare_models(
+    aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data", defaults: bool = False
+) -> dict[str, Any]:
     """Compare models for both forecasts of an AOI and write the per-year table.
+
+    Args:
+        aoi_spec: Area of interest.
+        data_dir: Data root.
+        defaults: Run the untuned model zoo instead of the tuned comparison.
 
     Returns:
         Mean error over held-out years per forecast and model, and the output path.
@@ -169,8 +295,10 @@ def run_compare_models(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data
     seasons = pl.read_parquet(data / "gold" / "sentinel" / f"{slug}_seasons.parquet")
     rain = pl.read_parquet(data / "silver" / "chirps" / f"{slug}_monthly.parquet")
     table = training_table(seasons, rain)
-    result = pl.concat([compare(table, forecast) for forecast in FEATURES])
-    out = data / "gold" / "sentinel" / f"{slug}_model_comparison.csv"
+    run = compare_defaults if defaults else compare
+    result = pl.concat([run(table, forecast) for forecast in FEATURES])
+    suffix = "_defaults" if defaults else ""
+    out = data / "gold" / "sentinel" / f"{slug}_model_comparison{suffix}.csv"
     result.write_csv(out)
     summary = (
         result.group_by("forecast", "model")
@@ -181,7 +309,8 @@ def run_compare_models(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data
 
 
 if __name__ == "__main__":
-    result = run_compare_models(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_AOI)
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    result = run_compare_models(args[0] if args else DEFAULT_AOI, defaults="--defaults" in sys.argv)
     for row in result["summary"]:
         print(row)
     print(result["path"])

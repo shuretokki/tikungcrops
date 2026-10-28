@@ -11,7 +11,7 @@ import numpy as np
 import polars as pl
 import pytest
 
-from jotosanur_agri.pipeline.compare_models import compare
+from jotosanur_agri.pipeline.compare_models import compare, compare_defaults
 
 
 @pytest.fixture
@@ -49,3 +49,18 @@ def test_compare_scores_every_year_and_beats_baseline(peak_table):
 def test_compare_rejects_unknown_model(peak_table):
     with pytest.raises(ValueError, match="unknown model"):
         compare(peak_table, "peak", models=("svm",), n_trials=1, inner_folds=2, min_test_seasons=10)
+
+
+def test_defaults_score_every_year_and_model(peak_table):
+    models = ("linear", "spline", "hgb", "voting", "stacking")
+    out = compare_defaults(peak_table, "peak", models=models, inner_folds=2, min_test_seasons=10)
+    assert out.height == 4 * (len(models) + 1)
+    assert set(out["model"]) == {"median_duration", *models}
+    assert out["mae_days"].is_finite().all()
+    mae = dict(out.group_by("model").agg(pl.col("mae_days").mean()).iter_rows())
+    assert mae["linear"] < mae["median_duration"]
+
+
+def test_defaults_reject_unknown_model(peak_table):
+    with pytest.raises(ValueError, match="unknown model"):
+        compare_defaults(peak_table, "peak", models=("svm",), min_test_seasons=10)
