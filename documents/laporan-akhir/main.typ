@@ -86,7 +86,7 @@
 ]
 
 #frontmatter(title: [Catatan Kerangka])[
-  Dokumen ini masih kerangka, kecuali Bab I, Bab II, dan Bab III yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
+  Dokumen ini masih kerangka, kecuali Bab I sampai Bab IV yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
 
   Daftar isi templat dan isi templat tidak sama. Daftar isi memuat Rumusan Masalah, Urgensi, dan Temuan yang Ditargetkan pada Bab I, serta Waktu dan Tempat pada Bab III. Isi templat tidak memuatnya. Kerangka ini memakai susunan yang lebih lengkap supaya isi laporan sejalan dengan proposal.
 
@@ -267,41 +267,7 @@ Teori pada Bab II menyebut bahwa radar dapat menembus awan. Dalam praktik, keter
 
 Akibatnya, awal musim hujan sering tidak terlihat, dan status padi pada tahun 2022 dan 2023 sebagian tidak diketahui. Celah ini tidak bisa diisi dengan menebak. Oleh karena itu, musim dengan data terlalu sedikit ditandai sebagai tidak diketahui, dan tidak lagi dianggap bukan padi.
 
-= Hasil dan Pembahasan
-
-== Hasil
-
-#wajib[Deskripsi kegiatan, data dan hasil pengukuran (tabel, grafik, gambar), luaran konkret, dan capaian dibandingkan rencana awal. Tambahkan gambar hasil.]
-#rubrik[Hasil dan Dampak Program, 20%. Nilai tertinggi: berdampak nyata dan dirasakan masyarakat.]
-#fakta[
-  - Validasi luas 2020: korelasi 0,90 sampai 0,91 untuk semua tanaman, satelit 1,14 sampai 1,25 kali BPS. Padi saja: korelasi 0,77, tetapi ambangnya disetel pada tahun yang sama (F05, F07).
-  - Produktivitas tidak terbaca dari puncak NDVI: korelasi 0,07 sampai 0,27, tidak signifikan (§3).
-  - Waktu panen terhadap KSA: porsi panen Januari sampai Mei cocok dengan selisih 0,01 sampai 0,08 (§22).
-  - Prakiraan panen (galat rata-rata 9 tahun uji): tanggal tanam 11,9 hari dengan gradient boosting, baseline 15,2 hari. Puncak 9,3 hari, baseline 10,1 hari (§23).
-  - Backtest musim kemarau (terbit Juni): tanggal median per desa meleset 4 sampai 14 hari. Musim hujan (terbit Januari): 14 sampai 37 hari (§20).
-  - Jadwal tanam utama per desa: puncak tanam dari 20 November (Takeranklating) sampai 24 Desember (Tambakrigadung) (F22).
-  - Lamongan: unduhan 2024-09 sampai 2026-09 selesai untuk 27 kecamatan dan 109.504 sel. Masker sawah 86.565 ha (F23).
-  - Perangkat lunak: 60 uji otomatis lulus, patuh REUSE 3.3.
-]
-#panduan[
-  Sajikan hasil tanpa tafsiran. Tafsiran masuk ke 4.2 (Gastel dan Day, bab Results). Gunakan tabel capaian target lawan rencana seperti pada 1.6, lalu dua sampai empat gambar: peta tahap tanam, kalender tanam, jadwal per desa, dan grafik hujan dari situs.
-]
-#perlu[Tangkapan layar situs dan peta, serta bukti kegiatan dari logbook MELISA.]
-
-== Pembahasan
-
-#wajib[Tafsiran hasil, kaitan dengan teori dan literatur, kelebihan dan keterbatasan metode, dampak nyata dan keberlanjutan, serta refleksi pribadi.]
-#rubrik[Hasil dan Dampak 20%, serta Luaran 20%.]
-#fakta[
-  - Mengapa rencana berubah: data operasional Kampung Pandu Sakti tidak pernah tersedia, dan fuzzy Tsukamoto tidak bisa divalidasi tanpa data lokal (§1).
-  - Mengapa luas satelit lebih besar dari BPS: masker WorldCover mencakup jagung dan lahan kering, dan satelit menghitung lebih banyak musim (F05, F06).
-  - Keterbatasan: awan musim hujan menyembunyikan awal musim (§20), celah radar 2022 sampai 2023 (F08), dan belum ada data lapangan petani.
-  - Kaitan dengan literatur: galat tanggal tanam dari radar sekitar 5 sampai 6 hari di Cihea @Manago_2020, sedangkan proyek ini 11,9 hari tanpa data lapangan.
-]
-#panduan[
-  Ikuti urutan Hess @Hess_2023: buka dengan jawaban utama, bandingkan dengan penelitian lain, sebut keterbatasan secara terbuka, lalu tutup dengan implikasi. Fokus pada data proyek dan jangan mengulang angka dari 4.1.
-]
-#perlu[Bukti dampak nyata. Rubrik menilai keterlibatan masyarakat atau mitra. Saat ini belum ada demo ke desa dan belum ada surat pernyataan mitra.]
+#include "bab4.typ"
 
 = Korelasi Program Studi Independen dengan Konversi Mata Kuliah
 
