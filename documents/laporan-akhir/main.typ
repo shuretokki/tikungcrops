@@ -86,7 +86,7 @@
 ]
 
 #frontmatter(title: [Catatan Kerangka])[
-  Dokumen ini masih kerangka, kecuali Bab I, Bab II, serta subbab 3.1 sampai 3.3 yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
+  Dokumen ini masih kerangka, kecuali Bab I, Bab II, dan Bab III yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
 
   Daftar isi templat dan isi templat tidak sama. Daftar isi memuat Rumusan Masalah, Urgensi, dan Temuan yang Ditargetkan pada Bab I, serta Waktu dan Tempat pada Bab III. Isi templat tidak memuatnya. Kerangka ini memakai susunan yang lebih lengkap supaya isi laporan sejalan dengan proposal.
 
@@ -184,9 +184,6 @@ Kedudukan ini berbeda dari rencana proposal. Proposal menempatkan mahasiswa seba
 
 == Metodologi Penyelesaian Tugas
 
-// Rujukan tanpa DOI yang entrinya belum disetujui pengguna, ditandai merah sampai entri BibTeX dibuat.
-#let belum(sumber) = text(fill: rgb("#b03a3a"))[(#sumber; entri pustaka belum dibuat)]
-
 Masalah studi ini diuraikan menjadi enam tahap, yaitu pengambilan data, pengolahan data, validasi, pemodelan, penyajian, dan pengujian. Setiap tahap memakai konsep pada Bab II untuk menjelaskan keadaan sawah di Kecamatan Tikung.
 
 === Pengambilan Data
@@ -224,9 +221,9 @@ Sebuah musim digolongkan sebagai padi bila VH saat penggenangan paling tinggi -1
 
 === Validasi
 
-Hasil pengolahan dibandingkan dengan dua jenis data resmi. Pertama, luas tanam satelit per desa pada tahun 2020 dibandingkan dengan luas panen per desa dari publikasi Kecamatan Tikung Dalam Angka #belum[BPS Kabupaten Lamongan, 2021]. Kesesuaiannya diukur dengan koefisien korelasi Pearson dan rasio luas satelit terhadap luas BPS.
+Hasil pengolahan dibandingkan dengan dua jenis data resmi. Pertama, luas tanam satelit per desa pada tahun 2020 dibandingkan dengan luas panen per desa dari publikasi Kecamatan Tikung Dalam Angka @bpslamongan2021tikung. Kesesuaiannya diukur dengan koefisien korelasi Pearson dan rasio luas satelit terhadap luas BPS.
 
-Kedua, waktu panen dibandingkan dengan luas panen padi bulanan Kabupaten Lamongan dari Survei Kerangka Sampel Area tahun 2020 sampai 2023 #belum[BPS Kabupaten Lamongan, 2023, 2024]. Karena Tikung hanya satu dari 27 kecamatan, yang dibandingkan adalah porsi panen per bulan, bukan luasnya. Ukurannya adalah korelasi porsi bulanan dan selisih porsi panen pada Januari sampai Mei.
+Kedua, waktu panen dibandingkan dengan luas panen padi bulanan Kabupaten Lamongan dari Survei Kerangka Sampel Area tahun 2020 sampai 2023 @bpslamongan2023ksa @bpslamongan2024ksa. Karena Tikung hanya satu dari 27 kecamatan, yang dibandingkan adalah porsi panen per bulan, bukan luasnya. Ukurannya adalah korelasi porsi bulanan dan selisih porsi panen pada Januari sampai Mei.
 
 === Pemodelan Prakiraan Waktu Panen
 
@@ -250,14 +247,47 @@ Kebenaran alur data dan model diperiksa dengan 60 uji otomatis. Sebagian uji mem
 
 == Pembelajaran Hal Baru
 
-#wajib[Temuan pembelajaran baru, perbandingan dengan teori yang dipelajari, dan kendala selama kegiatan.]
-#fakta[
-  - Data sintetis membuat model sirkular. Random forest pada data sintetis Jotosanur memberi R² holdout -0,10 (§1).
-  - Model global CIMMYT tidak bisa dipindahkan ke Jawa. R² negatif di keenam wilayah uji (§1).
-  - Skor acak terlalu optimistis. Evaluasi harus per tahun (L19, §20).
-  - Layanan data pemerintah dan sains bisa gagal: peta LBS habis waktu pada area besar (F23), CHIRPS memblokir unduhan beruntun.
-]
-#panduan[Pakai model refleksi 4R @Ryan_2013: reporting (apa yang terjadi), relating (kaitan dengan pengalaman atau teori), reasoning (mengapa terjadi), reconstructing (apa yang akan dilakukan berbeda).]
+Pembelajaran selama studi ini disusun dengan model refleksi 4R, yaitu melaporkan kejadian, mengaitkannya dengan konsep, menjelaskan sebabnya, lalu menyusun ulang cara kerja @Ryan_2013. Empat pembelajaran utama dijelaskan di bawah ini, kemudian kendala selama kegiatan dirangkum pada @tabel-kendala.
+
+=== Model Tidak Dapat Menggantikan Data Lokal
+
+Pada awal studi, model prediksi hasil panen dicoba dengan data buatan karena data mitra belum tersedia. Model random forest pada data buatan tersebut hanya memberi nilai R² -0,10 pada data uji. Model ternyata hanya meniru rumus yang dipakai untuk membuat data. Model lain yang dilatih pada survei 44.299 lahan padi di Asia Selatan juga gagal, karena nilai R²-nya negatif di keenam wilayah uji.
+
+Dalam materi pembelajaran mesin, kemampuan model untuk berlaku di data baru biasanya diuji dengan data dari sumber yang sama. Pengalaman ini menunjukkan bahwa model yang baik di satu wilayah belum tentu berlaku di wilayah lain. Sebabnya, sifat tanah Jotosanur berada di luar rentang data survei tersebut. Sebaliknya, rata-rata produktivitas desa dari data BPS sudah memberi galat hanya 3,6%. Karena itu, ketersediaan dan kecocokan data lokal kini diperiksa sebelum model dipilih.
+
+=== Evaluasi Harus Mengikuti Urutan Waktu
+
+Model prakiraan waktu panen semula dinilai dengan menahan satu tahun penuh sebagai data uji dan memberi galat 11,8 hari. Ketika prakiraan diuji ulang seperti dipakai pada tanggal sebenarnya, hasilnya lebih buruk. Prakiraan tanam yang dikeluarkan pada Januari meleset 21 sampai 41 hari, sedangkan yang dikeluarkan pada Juni meleset 11 sampai 20 hari.
+
+Perbedaan ini muncul karena penilaian awal hanya memakai musim yang belakangan terbukti andal. Padahal, pada saat prakiraan dikeluarkan, informasi itu belum tersedia. Pelajaran ini sejalan dengan rancangan CY-Bench yang menahan tahun penuh dan mencari hiperparameter hanya di dalam tahun pelatihan @Kallenberg_2026. Sejak itu, perkiraan panen mingguan juga diuji ulang dengan data yang dipotong pada tanggal prakiraan.
+
+=== Citra Satelit Memiliki Celah
+
+Teori pada Bab II menyebut bahwa radar dapat menembus awan. Dalam praktik, ketersediaan citra tetap menjadi kendala. Pada November sampai Februari, hanya 4 sampai 9 citra Sentinel-2 per bulan yang jernih selama sembilan tahun, dibandingkan dengan sampai 67 citra pada Juli sampai September. Lintasan Sentinel-1 di atas Tikung juga turun dari 53 sampai 57 kali per tahun menjadi 24 kali pada 2023.
+
+Akibatnya, awal musim hujan sering tidak terlihat, dan status padi pada tahun 2022 dan 2023 sebagian tidak diketahui. Celah ini tidak bisa diisi dengan menebak. Oleh karena itu, musim dengan data terlalu sedikit ditandai sebagai tidak diketahui, bukan dianggap bukan padi.
+
+=== Layanan Data Publik Perlu Ditangani dengan Hati-Hati
+
+Saat cakupan diperluas dari satu kecamatan ke satu kabupaten, dua layanan data gagal. Layanan peta Lahan Baku Sawah habis waktu setelah sekitar 60 detik ketika diminta untuk wilayah sebesar kabupaten. Sebaliknya, wilayah berukuran 0,1 derajat dijawab dalam sekitar dua detik. Server CHIRPS juga menolak akses setelah ratusan berkas diunduh melalui empat koneksi bersamaan.
+
+Kedua kejadian ini menunjukkan bahwa alur data harus menghormati batas layanan pihak lain. Permintaan kini dipecah menjadi potongan kecil, diulang secara otomatis bila gagal, dan jumlah unduhan bersamaan dikurangi.
+
+#figure(
+  table(
+    columns: (auto, 1fr, 1fr),
+    stroke: 0.5pt,
+    inset: 5pt,
+    align: left,
+    table.header([*Kendala*], [*Dampak*], [*Penanganan*]),
+    [Data operasional mitra tidak tersedia], [Sistem pencatatan dan prediksi hasil panen tidak dapat dibangun], [Arah studi dialihkan ke pemantauan tanam dari citra satelit],
+    [Koordinasi dengan pengelola program tidak terlaksana], [Belum ada uji coba langsung bersama pengguna], [Pengguna sasaran diperluas ke warga dan pemerintah desa],
+    [Awan pada musim hujan], [Awal musim sering tidak terlihat], [Citra radar dipakai dan musim yang meragukan ditandai],
+    [Lintasan radar berkurang sejak 2022], [Status padi sebagian tidak diketahui], [Musim dengan kurang dari tiga lintasan ditandai tidak diketahui],
+    [Layanan data gagal pada wilayah besar], [Pengolahan Kabupaten Lamongan tertunda], [Permintaan dipecah, diulang, dan dikurangi],
+  ),
+  caption: [Kendala selama kegiatan dan penanganannya],
+) <tabel-kendala>
 
 = Hasil dan Pembahasan
 
