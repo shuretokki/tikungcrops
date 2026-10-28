@@ -3,7 +3,7 @@
 
 // Kecamatan-level facts for the landing page, derived from the per-desa JSON.
 
-import type { CurrentRow, IntensityRow, SeasonRow, Stage } from '~/composables/useArea'
+import type { CurrentRow, RainRow, SeasonRow, Stage } from '~/composables/useArea'
 
 export interface ValidationUnit { unit: string, year: number, measure: string, reference_ha: number, satellite_ha: number }
 export interface Validation {
@@ -63,24 +63,23 @@ export function seasonBands(rows: SeasonRow[]): SeasonBand[] {
   })
 }
 
-export interface IntensityYear { year: number, all: number, rice: number }
+export interface RainMonth { year: number, month: number, mm: number, normal: number }
 
-// Only years where every desa has a full year of images, weighted by paddy area.
-export function intensityByYear(rows: IntensityRow[]): IntensityYear[] {
-  const years = new Map<number, { all: number, rice: number, w: number, complete: boolean }>()
+// Mean over desa for the most recent months in the export.
+export function rainByMonth(rows: RainRow[], months = 12): RainMonth[] {
+  const byMonth = new Map<string, { year: number, month: number, mm: number, normal: number, n: number }>()
   for (const r of rows) {
-    if (r.ip_all === null) continue
-    const y = years.get(r.year) ?? { all: 0, rice: 0, w: 0, complete: true }
-    y.all += r.ip_all * r.paddy_ha
-    y.rice += (r.ip_rice ?? 0) * r.paddy_ha
-    y.w += r.paddy_ha
-    y.complete &&= r.complete
-    years.set(r.year, y)
+    const key = `${r.year}-${r.month}`
+    const m = byMonth.get(key) ?? { year: r.year, month: r.month, mm: 0, normal: 0, n: 0 }
+    m.mm += r.precip_mm
+    m.normal += r.normal_mm
+    m.n += 1
+    byMonth.set(key, m)
   }
-  return [...years.entries()]
-    .filter(([, y]) => y.complete && y.w > 0)
-    .sort(([a], [b]) => a - b)
-    .map(([year, y]) => ({ year, all: y.all / y.w, rice: y.rice / y.w }))
+  return [...byMonth.values()]
+    .sort((a, b) => a.year - b.year || a.month - b.month)
+    .slice(-months)
+    .map(m => ({ year: m.year, month: m.month, mm: m.mm / m.n, normal: m.normal / m.n }))
 }
 
 export function stageTotals(rows: CurrentRow[]) {
