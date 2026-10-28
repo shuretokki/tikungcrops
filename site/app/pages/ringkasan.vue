@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
-import { AREAS, STAGES, formatDate, formatHa, useAreaFile, type Cell, type CurrentRow, type Meta, type OutlookRow, type Stage } from '~/composables/useArea'
+import { AREAS, STAGES, formatDate, formatHa, useAreaClientFile, useAreaFile, type Cell, type CurrentRow, type Meta, type OutlookRow, type Stage } from '~/composables/useArea'
 
 const t = COPY.ringkasan
 const area = AREAS.tikung
 const { data: meta } = await useAreaFile<Meta>(area, 'meta.json')
 const { data: current } = await useAreaFile<CurrentRow[]>(area, 'current.json')
 const { data: outlook } = await useAreaFile<OutlookRow[]>(area, 'outlook.json')
-const { data: cells } = await useAreaFile<Cell[]>(area, 'cells.json')
 const { data: desa } = await useAreaFile<FeatureCollection>(area, 'boundaries.geojson')
-const { data: kecamatan } = await useAreaFile<FeatureCollection>(AREAS.lamongan, 'boundaries.geojson')
+const { data: cells } = useAreaClientFile<Cell[]>(area, 'cells.json')
+const { data: kecamatan } = useAreaClientFile<FeatureCollection>(AREAS.lamongan, 'boundaries.geojson')
+const labels = computed(() => (meta.value?.units ?? []).map(u => ({ name: u.unit, lon: u.lon, lat: u.lat })))
 
 function haBy(unit: string | null, stage: Stage) {
   return (current.value ?? []).filter(r => (unit === null || r.unit === unit) && r.stage === stage).reduce((s, r) => s + r.paddy_ha, 0)
@@ -58,7 +59,7 @@ useSeoMeta({ title: t.seoTitle })
   <UPage>
     <UPageHeader
       :title="t.title"
-      :description="t.description(formatDate(meta?.as_of))"
+      :description="t.description(meta?.units.length ?? 0, formatDate(meta?.as_of))"
     />
     <UPageBody>
       <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -102,6 +103,7 @@ useSeoMeta({ title: t.seoTitle })
             :outer="kecamatan"
             :inner="desa"
             :cells="cells"
+            :labels="labels"
             :selected="selected"
             @select="open"
           />

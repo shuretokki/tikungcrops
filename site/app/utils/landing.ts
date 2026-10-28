@@ -3,6 +3,7 @@
 
 // Kecamatan-level facts for the landing page, derived from the per-desa JSON.
 
+import type { FeatureCollection, Position } from 'geojson'
 import type { CurrentRow, RainRow, SeasonRow, Stage } from '~/composables/useArea'
 
 export interface ValidationUnit { unit: string, year: number, measure: string, reference_ha: number, satellite_ha: number }
@@ -64,6 +65,31 @@ export function seasonBands(rows: SeasonRow[]): SeasonBand[] {
 }
 
 export interface RainMonth { year: number, month: number, mm: number, normal: number }
+
+export interface DesaOutlines { viewBox: string, paths: { unit: string, d: string }[] }
+
+// SVG outlines of every desa in one shared frame, so a tile can highlight its own desa.
+// An equirectangular projection scaled by cos(latitude) is exact enough at kecamatan size.
+export function desaOutlines(fc: FeatureCollection | null | undefined, width = 100): DesaOutlines | null {
+  if (!fc?.features.length) return null
+  const rings: { unit: string, rings: Position[][] }[] = fc.features.map((f) => {
+    const g = f.geometry
+    const polys = g.type === 'MultiPolygon' ? g.coordinates : g.type === 'Polygon' ? [g.coordinates] : []
+    return { unit: String(f.properties?.unit ?? ''), rings: polys.flat() }
+  })
+  const all = rings.flatMap(r => r.rings.flat())
+  const lons = all.map(p => p[0]!)
+  const lats = all.map(p => p[1]!)
+  const [minX, maxX, minY, maxY] = [Math.min(...lons), Math.max(...lons), Math.min(...lats), Math.max(...lats)]
+  const k = Math.cos(((minY + maxY) / 2) * Math.PI / 180)
+  const scale = width / ((maxX - minX) * k)
+  const height = (maxY - minY) * scale
+  const pt = (p: Position) => `${((p[0]! - minX) * k * scale).toFixed(1)},${((maxY - p[1]!) * scale).toFixed(1)}`
+  return {
+    viewBox: `0 0 ${width} ${height.toFixed(1)}`,
+    paths: rings.map(r => ({ unit: r.unit, d: r.rings.map(ring => `M${ring.map(pt).join('L')}Z`).join('') }))
+  }
+}
 
 // BPS Jawa Timur, "Produksi Padi dan Beras Menurut Kabupaten/Kota di Provinsi Jawa Timur, 2024", tons of GKG.
 export const JATIM_RICE_2024 = {

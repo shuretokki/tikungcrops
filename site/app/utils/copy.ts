@@ -22,7 +22,7 @@ export const COPY = {
     seoTitle: 'Tanam Padi Lamongan',
     eyebrow: 'Kecamatan Tikung, Lamongan',
     headline: 'Kapan Sawah di Desamu Mulai Tanam?',
-    description: 'Lihat kondisi sawah di 13 desa Tikung, kalender tanam tiap musim, dan hujan beberapa bulan terakhir.',
+    description: (units: number) => `Lihat kondisi sawah di ${units} desa Tikung, kalender tanam tiap musim, dan hujan beberapa bulan terakhir.`,
     primaryCta: 'Cari Desamu',
     secondaryCta: 'Lihat Ringkasan',
     stats: {
@@ -36,7 +36,7 @@ export const COPY = {
 
     pride: {
       title: 'Lamongan, Lumbung Padi Jawa Timur',
-      body: 'Pada 2024, Lamongan jadi penghasil padi terbesar di Jawa Timur. Sawah di 13 desa Tikung ikut menyumbang panen itu.',
+      body: (units: number) => `Pada 2024, Lamongan jadi penghasil padi terbesar di Jawa Timur. Sawah di ${units} desa Tikung ikut menyumbang panen itu.`,
       chartTitle: 'Produksi padi 2024, lima kabupaten teratas',
       unit: 'ribu ton gabah kering giling',
       rank: '#1',
@@ -49,9 +49,9 @@ export const COPY = {
     },
 
     now: {
-      title: (resting: boolean) => (resting ? 'Sawah Lagi Istirahat' : 'Musim Tanam Sedang Berjalan'),
+      title: (resting: boolean) => (resting ? 'Sawah Menunggu Musim Tanam' : 'Musim Tanam Sedang Berjalan'),
       body: (resting: boolean, pct: string, date: string) => resting
-        ? `Per ${date}, ${pct} sawah sedang bera. Biasanya sawah kembali ditanami setelah hujan mulai turun.`
+        ? `Per ${date}, ${pct} sawah sedang bera. Biasanya sawah mulai ditanami lagi setelah hujan turun.`
         : `Per ${date}, ${pct} sawah sedang bera. Sisanya sedang ditanami atau menjelang panen.`,
       columns: { stage: 'Tahap', ha: 'Luas', share: 'Bagian' }
     },
@@ -111,7 +111,7 @@ export const COPY = {
     },
     validation: {
       title: 'Seberapa Tepat Datanya',
-      body: (r: string, ratio: string) => `Luas dari satelit dibandingkan dengan luas panen BPS 2020 untuk 13 desa, dengan korelasi ${r}. Satelit mencatat luas sekitar ${ratio} kali luas BPS, karena peta lahan pertanian juga mencakup jagung dan lahan kering.`,
+      body: (r: string, ratio: string, units: number) => `Luas dari satelit dibandingkan dengan luas panen BPS 2020 untuk ${units} desa, dengan korelasi ${r}. Satelit mencatat luas sekitar ${ratio} kali luas BPS, karena peta lahan pertanian juga mencakup jagung dan lahan kering.`,
       x: 'Luas panen BPS 2020 (ha)',
       y: 'Luas dari satelit (ha)',
       equal: 'Sama dengan BPS',
@@ -132,7 +132,7 @@ export const COPY = {
   ringkasan: {
     seoTitle: 'Ringkasan - Tanam Padi Lamongan',
     title: 'Kondisi tanam padi saat ini',
-    description: (asOf: string) => `Kecamatan Tikung terdiri atas tiga belas desa. Data citra satelit tersedia hingga ${asOf}. Pilih desa pada peta atau tabel untuk melihat rinciannya.`,
+    description: (units: number, asOf: string) => `Kecamatan Tikung terdiri atas ${units} desa. Data citra satelit tersedia hingga ${asOf}. Pilih desa pada peta atau tabel untuk melihat rinciannya.`,
     paddy: 'Luas sawah yang dipantau',
     outlook: 'Perkiraan panen musim ini',
     mapLoading: 'Memuat peta...',

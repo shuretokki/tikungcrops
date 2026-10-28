@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LngLatBounds, Map as MapLibreMap, NavigationControl, setWorkerUrl } from 'maplibre-gl'
+import { LngLatBounds, Map as MapLibreMap, NavigationControl, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
 // MapLibre 6 finds its worker with new URL(..., import.meta.url) at runtime, which Vite does not see,
 // so the ?url import makes Vite emit the file and setWorkerUrl points MapLibre at it
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
@@ -10,6 +10,7 @@ const props = defineProps<{
   outer?: FeatureCollection | null
   inner?: FeatureCollection | null
   cells?: Cell[] | null
+  labels?: { name: string, lon: number, lat: number }[] | null
   selected?: string | null
 }>()
 const emit = defineEmits<{ select: [unit: string] }>()
@@ -27,7 +28,10 @@ function token(name: string) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 }
 
-function cellsGeojson(cells: Cell[]): FeatureCollection {
+const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+function cellsGeojson(cells: Cell[] | null | undefined): FeatureCollection {
+  if (!cells) return EMPTY
   return {
     type: 'FeatureCollection',
     features: cells.map(c => ({
@@ -38,27 +42,32 @@ function cellsGeojson(cells: Cell[]): FeatureCollection {
   }
 }
 
+function labelsGeojson(labels: typeof props.labels): FeatureCollection {
+  if (!labels) return EMPTY
+  return {
+    type: 'FeatureCollection',
+    features: labels.map(l => ({ type: 'Feature', properties: { name: l.name }, geometry: { type: 'Point', coordinates: [l.lon, l.lat] } }))
+  }
+}
+
+// Sources start empty when their file is still loading, and the watchers below fill them in.
 function addLayers() {
   if (!map) return
   const outline = token('--viz-outline')
-  if (props.outer) {
-    map.addSource('outer', { type: 'geojson', data: props.outer })
-    map.addLayer({ id: 'outer-line', type: 'line', source: 'outer', paint: { 'line-color': outline, 'line-width': 1, 'line-opacity': 0.6 } })
-  }
-  if (props.cells) {
-    map.addSource('cells', { type: 'geojson', data: cellsGeojson(props.cells) })
-    map.addLayer({
-      id: 'cells',
-      type: 'circle',
-      source: 'cells',
-      filter: ['!=', ['get', 'stage'], 'unknown'],
-      paint: {
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 1.5, 14, 5],
-        'circle-color': ['match', ['get', 'stage'], 'planted', token('--viz-3'), 'peaked', token('--viz-2'), token('--viz-neutral')],
-        'circle-opacity': 0.9
-      }
-    })
-  }
+  map.addSource('outer', { type: 'geojson', data: props.outer ?? EMPTY })
+  map.addLayer({ id: 'outer-line', type: 'line', source: 'outer', paint: { 'line-color': outline, 'line-width': 1, 'line-opacity': 0.6 } })
+  map.addSource('cells', { type: 'geojson', data: cellsGeojson(props.cells) })
+  map.addLayer({
+    id: 'cells',
+    type: 'circle',
+    source: 'cells',
+    filter: ['!=', ['get', 'stage'], 'unknown'],
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 1.5, 14, 5],
+      'circle-color': ['match', ['get', 'stage'], 'planted', token('--viz-3'), 'peaked', token('--viz-2'), token('--viz-neutral')],
+      'circle-opacity': 0.9
+    }
+  })
   if (props.inner) {
     map.addSource('inner', { type: 'geojson', data: props.inner, promoteId: 'unit' })
     map.addLayer({ id: 'inner-fill', type: 'fill', source: 'inner', paint: { 'fill-color': outline, 'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.12, 0] } })
@@ -86,6 +95,24 @@ function addLayers() {
       if (unit) emit('select', unit)
     })
   }
+  // Desa names use the basemap's own font, so no extra glyph source is needed.
+  map.addSource('labels', { type: 'geojson', data: labelsGeojson(props.labels) })
+  map.addLayer({
+    id: 'labels',
+    type: 'symbol',
+    source: 'labels',
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Bold'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 14, 14],
+      'text-padding': 2
+    },
+    paint: {
+      'text-color': token('--ui-text-highlighted') || outline,
+      'text-halo-color': token('--ui-bg') || '#fff',
+      'text-halo-width': 1.5
+    }
+  })
 }
 
 function fit() {
@@ -115,6 +142,9 @@ onMounted(async () => {
 })
 
 watch(() => colorMode.value, () => map?.setStyle(basemap()))
+watch(() => props.cells, cells => (map?.getSource('cells') as GeoJSONSource | undefined)?.setData(cellsGeojson(cells)))
+watch(() => props.outer, outer => (map?.getSource('outer') as GeoJSONSource | undefined)?.setData(outer ?? EMPTY))
+watch(() => props.labels, labels => (map?.getSource('labels') as GeoJSONSource | undefined)?.setData(labelsGeojson(labels)))
 watch(() => props.selected, (unit) => {
   if (map?.getLayer('inner-line')) map.setPaintProperty('inner-line', 'line-width', ['case', ['==', ['get', 'unit'], unit ?? ''], 2.5, 1])
 })

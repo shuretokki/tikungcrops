@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
-import { AREAS, STAGES, formatDate, formatHa, useAreaFile, type Cell, type CurrentRow, type Meta, type RainRow, type SeasonRow, type Stage } from '~/composables/useArea'
+import { AREAS, STAGES, formatDate, formatHa, useAreaClientFile, useAreaFile, type Cell, type CurrentRow, type Meta, type RainRow, type SeasonRow, type Stage } from '~/composables/useArea'
 
 const t = COPY.landing
 const area = AREAS.tikung
@@ -8,9 +8,9 @@ const { data: meta } = await useAreaFile<Meta>(area, 'meta.json')
 const { data: current } = await useAreaFile<CurrentRow[]>(area, 'current.json')
 const { data: seasons } = await useAreaFile<SeasonRow[]>(area, 'seasons.json')
 const { data: rain } = await useAreaFile<RainRow[]>(area, 'rain.json')
-const { data: cells } = await useAreaFile<Cell[]>(area, 'cells.json')
 const { data: desa } = await useAreaFile<FeatureCollection>(area, 'boundaries.geojson')
-const { data: kecamatan } = await useAreaFile<FeatureCollection>(AREAS.lamongan, 'boundaries.geojson')
+const { data: cells } = useAreaClientFile<Cell[]>(area, 'cells.json')
+const { data: kecamatan } = useAreaClientFile<FeatureCollection>(AREAS.lamongan, 'boundaries.geojson')
 
 const pct = (v: number) => v.toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: 0 })
 const mm = (v: number) => Math.round(v).toLocaleString('id-ID')
@@ -37,18 +37,27 @@ const months = computed(() => rainByMonth(rain.value ?? []))
 const lastMonth = computed(() => months.value.at(-1))
 const monthLabel = (m: RainMonth) => new Date(Date.UTC(m.year, m.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
 
-// Each desa card shows the stage that covers most of its sawah today.
+// Each desa tile shows its stage mix today and its place in the kecamatan.
 const desaCards = computed(() => units.value.map((u) => {
-  const own = (current.value ?? []).filter(r => r.unit === u.unit && r.stage !== null && r.stage !== 'unknown')
-  const top = own.reduce<CurrentRow | null>((best, r) => (!best || r.paddy_ha > best.paddy_ha ? r : best), null)
-  return { unit: u.unit, paddy: u.paddy_ha, stage: (top?.stage ?? 'unknown') as Stage }
+  const own = stageTotals((current.value ?? []).filter(r => r.unit === u.unit))
+  const sum = STAGE_ORDER.reduce((s, k) => s + own[k], 0) || 1
+  const known = STAGE_ORDER.filter(k => k !== 'unknown')
+  const top = known.reduce((best, k) => (own[k] > own[best] ? k : best), known[0]!)
+  return { unit: u.unit, paddy: u.paddy_ha, stage: top, mix: STAGE_ORDER.map(k => ({ key: k, share: own[k] / sum })) }
 }))
-const maxPaddy = computed(() => Math.max(1, ...desaCards.value.map(d => d.paddy)))
+const outlines = computed(() => desaOutlines(desa.value))
+const labels = computed(() => units.value.map(u => ({ name: u.unit, lon: u.lon, lat: u.lat })))
 const query = ref('')
 const shownDesa = computed(() => {
   const q = query.value.trim().toLowerCase()
   return q ? desaCards.value.filter(d => d.unit.toLowerCase().includes(q)) : desaCards.value
 })
+const STAGE_FILL: Record<Stage, string> = {
+  planted: 'var(--viz-3)',
+  peaked: 'var(--viz-2)',
+  fallow: 'var(--viz-neutral)',
+  unknown: 'repeating-linear-gradient(45deg, var(--viz-neutral) 0 2px, transparent 2px 5px)'
+}
 
 const thousand = (v: number) => Math.round(v / 1000).toLocaleString('id-ID')
 const prideTop = JATIM_RICE_2024.top[0]!.tons
@@ -65,7 +74,7 @@ const stats = computed(() => [
   { label: t.stats.asOf, value: formatDate(meta.value?.as_of) }
 ])
 
-useSeoMeta({ title: t.seoTitle, description: t.description })
+useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.length) })
 </script>
 
 <template>
@@ -79,7 +88,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
           {{ t.headline }}
         </h1>
         <p class="text-lg text-muted">
-          {{ t.description }}
+          {{ t.description(units.length) }}
         </p>
         <div class="flex flex-wrap gap-3">
           <UButton
@@ -117,6 +126,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
             :outer="kecamatan"
             :inner="desa"
             :cells="cells"
+            :labels="labels"
             :selected="null"
             @select="(u: string) => navigateTo(`/desa/${encodeURIComponent(u)}`)"
           />
@@ -140,14 +150,14 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
               {{ t.pride.title }}
             </h2>
             <p class="opacity-90">
-              {{ t.pride.body }}
+              {{ t.pride.body(units.length) }}
             </p>
           </div>
-          <dl class="grid grid-cols-3 gap-4 border-t border-current/30 pt-5">
+          <dl class="grid grid-cols-3 items-start gap-4 border-t border-current/30 pt-5">
             <div
               v-for="s in prideStats"
               :key="s.label"
-              class="flex flex-col-reverse gap-1"
+              class="flex flex-col-reverse justify-end gap-1"
             >
               <dt class="text-xs opacity-80">
                 {{ s.label }}
@@ -276,7 +286,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
       </header>
       <ul
         v-if="shownDesa.length"
-        class="flex flex-col divide-y divide-(--ui-border) rounded-md ring ring-default"
+        class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
       >
         <li
           v-for="d in shownDesa"
@@ -284,28 +294,50 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
         >
           <NuxtLink
             :to="`/desa/${encodeURIComponent(d.unit)}`"
-            class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1.5 px-4 py-3 transition hover:bg-muted focus-visible:outline-2 sm:grid-cols-[12rem_1fr_9rem_auto]"
+            class="group flex h-full flex-col overflow-hidden rounded-md bg-muted ring ring-default transition hover:ring-2 hover:ring-(--ui-primary) focus-visible:outline-2"
           >
-            <span class="font-semibold">{{ d.unit }}</span>
-            <UIcon
-              name="i-lucide-chevron-right"
-              class="size-4 text-muted sm:order-last"
-            />
-            <span class="col-span-2 flex items-center gap-3 sm:col-span-1">
-              <span class="h-2 flex-1 rounded-full bg-muted">
-                <span
-                  class="block h-full rounded-full bg-(--viz-outline)"
-                  :style="{ width: `${(d.paddy / maxPaddy) * 100}%` }"
+            <svg
+              v-if="outlines"
+              :viewBox="outlines.viewBox"
+              class="h-28 w-full bg-(--ui-bg) p-3"
+              aria-hidden="true"
+            >
+              <path
+                v-for="p in outlines.paths"
+                :key="p.unit"
+                :d="p.d"
+                :fill="p.unit === d.unit ? 'var(--ui-primary)' : 'var(--ui-bg-accented)'"
+                stroke="var(--ui-bg)"
+                stroke-width="0.6"
+              />
+            </svg>
+            <span class="flex flex-1 flex-col gap-2 p-3">
+              <span class="flex items-center justify-between gap-2 font-semibold">
+                {{ d.unit }}
+                <UIcon
+                  name="i-lucide-arrow-right"
+                  class="size-4 text-muted transition group-hover:translate-x-0.5 group-hover:text-(--ui-primary)"
                 />
               </span>
-              <span class="w-24 text-right text-sm text-muted tabular-nums">{{ t.desa.paddy(formatHa(d.paddy)) }}</span>
-            </span>
-            <span class="col-span-2 flex items-center gap-1.5 text-sm sm:col-span-1">
+              <span class="text-sm text-muted tabular-nums">{{ t.desa.paddy(formatHa(d.paddy)) }}</span>
               <span
-                class="size-2.5 rounded-full"
-                :style="{ background: STAGES[d.stage].color === 'transparent' ? 'var(--viz-neutral)' : STAGES[d.stage].color }"
-              />
-              {{ STAGES[d.stage].label }}
+                class="flex h-1.5 w-full gap-px overflow-hidden rounded-full"
+                aria-hidden="true"
+              >
+                <span
+                  v-for="m in d.mix.filter(m => m.share > 0)"
+                  :key="m.key"
+                  class="h-full"
+                  :style="{ flexGrow: m.share, background: STAGE_FILL[m.key] }"
+                />
+              </span>
+              <span class="flex items-center gap-1.5 text-xs">
+                <span
+                  class="size-2 rounded-full"
+                  :style="{ background: STAGE_FILL[d.stage] }"
+                />
+                {{ STAGES[d.stage].label }}
+              </span>
             </span>
           </NuxtLink>
         </li>

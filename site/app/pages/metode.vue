@@ -52,7 +52,7 @@ useSeoMeta({ title: t.seoTitle })
         <h2 class="text-xl font-semibold">
           {{ t.validation.title }}
         </h2>
-        <p>{{ t.validation.body(num(allCrops.r), num(allCrops.ratio)) }}</p>
+        <p>{{ t.validation.body(num(allCrops.r), num(allCrops.ratio), points.length) }}</p>
         <ValidationScatter :points="points" />
         <ChartTable
           :caption="t.validation.title"

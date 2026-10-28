@@ -58,6 +58,15 @@ export function useAreaFile<T>(area: Area, file: string) {
   )
 }
 
+// Large map-only files load in the browser from the static copy in public/json.
+// They stay out of the page payload, and every page shares one cached download.
+export function useAreaClientFile<T>(area: Area, file: string) {
+  return useAsyncData(`client:${area.slug}/${file}`, () =>
+    $fetch<T>(`/json/${area.slug}/${file}`).catch(() => null),
+  { server: false, lazy: true }
+  )
+}
+
 export function formatDate(iso: string | null | undefined, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }) {
   return iso ? new Date(iso).toLocaleDateString('id-ID', opts) : '-'
 }
