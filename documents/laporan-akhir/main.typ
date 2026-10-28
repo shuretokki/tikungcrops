@@ -75,7 +75,7 @@
 ]
 
 #frontmatter(title: [Catatan Kerangka])[
-  Dokumen ini adalah kerangka, bukan naskah final. Setiap subbab berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
+  Dokumen ini masih kerangka, kecuali Bab I dan Bab II yang sudah berupa naskah. Rujukan bertanda merah pada Bab I belum memiliki entri pustaka karena sumbernya tidak memiliki DOI. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
 
   Daftar isi templat dan isi templat tidak sama. Daftar isi memuat Rumusan Masalah, Urgensi, dan Temuan yang Ditargetkan pada Bab I, serta Waktu dan Tempat pada Bab III. Isi templat tidak memuatnya. Kerangka ini memakai susunan yang lebih lengkap supaya isi laporan sejalan dengan proposal.
 
@@ -84,116 +84,9 @@
   Gaya bahasa: bahasa baku tingkat B2 dengan skill `indonesian-advanced-writing`. Kalimat 12 sampai 25 kata, paling panjang 30 kata. Jalankan `check.py` dengan batas 30 pada setiap bab sebelum diserahkan.
 ]
 
-= Pendahuluan
+#include "bab1.typ"
 
-== Latar Belakang
-
-#wajib[Gambaran umum topik, pentingnya topik bagi bidang terkait, masalah atau kekurangan yang mendorong studi, satu atau dua rujukan, dan peran mitra kolaborator.]
-#rubrik[Analisis Permasalahan dan Kondisi Masyarakat, 15%. Nilai tertinggi: analisis kritis, berbasis data, dan sesuai kebutuhan masyarakat.]
-#fakta[
-  - Lamongan adalah penghasil padi terbesar di Jawa Timur pada 2024: 776.290,66 ton GKG dari 9.270.435,29 ton provinsi, atau 8,4% (S18, tabel BPS Jatim).
-  - Luas panen padi Lamongan 2024 sekitar 130,67 ribu ha, produksi beras 448,25 ribu ton (S16).
-  - Kecamatan Tikung punya 13 desa dan sekitar 4.420 ha sawah yang dipantau (meta.json, data per 29 September 2026).
-  - Proposal menargetkan sistem pencatatan Kampung Pandu Sakti. Data operasional program itu tidak pernah tersedia dari mitra (§1).
-  - Statistik pertanian resmi terbit tahunan per kecamatan atau kabupaten, sehingga petani dan perangkat desa tidak punya jadwal tanam dan panen per desa yang terbaru.
-]
-#panduan[
-  Susun dalam empat paragraf dengan urutan dari umum ke khusus: peran Lamongan, kebutuhan informasi musim tanam per desa, kesenjangan data, lalu solusi. Pola ini mengikuti model CARS yang biasa dipakai pada pendahuluan artikel ilmiah. Sebut pergeseran dari rencana proposal secara singkat di sini, lalu jelaskan lengkap pada 4.2.
-]
-#perlu[Satu kalimat tentang peran Dicoding Indonesia sebagai mitra kolaborator, misalnya materi Big Data dan Machine Learning yang dipakai dalam proyek.]
-
-== Rumusan Masalah
-
-#wajib[Daftar isi templat mencantumkan subbab ini. Rumusan harus dijawab satu per satu pada 7.1.]
-#fakta[
-  Usulan tiga rumusan yang sesuai dengan luaran nyata:
-  + Bagaimana membangun alur data otomatis yang mengubah citra Sentinel-1 dan Sentinel-2 menjadi tahap tanam per desa?
-  + Seberapa tepat luas tanam dan waktu tanam hasil satelit bila dibandingkan dengan data resmi BPS dan KSA?
-  + Bagaimana menyajikan jadwal tanam dan perkiraan panen dalam situs yang mudah dipahami warga desa?
-]
-
-== Tujuan Studi Independen
-
-#wajib[Tujuan utama, metode untuk mencapainya, dan hasil yang diharapkan. Tujuan harus spesifik, terukur, dan bisa dicapai dalam waktu program.]
-#rubrik[Penilaian Mini Proyek, Kejelasan tujuan, 0 sampai 15 poin: jelas, terukur, relevan.]
-#fakta[
-  Tiap tujuan memasangkan satu rumusan masalah dengan satu ukuran keberhasilan:
-  + Alur data bronze, silver, dan gold berjalan untuk 13 desa Tikung sejak Oktober 2017. Ukuran: 60 uji otomatis lulus.
-  + Validasi terhadap BPS 2020 dan KSA 2020 sampai 2023. Ukuran: korelasi luas per desa dan kecocokan pembagian panen per musim.
-  + Situs publik dengan ringkasan, jadwal per desa, dan perkiraan panen. Ukuran: halaman berjalan tanpa galat di ponsel dan desktop.
-]
-
-== Manfaat Studi Independen
-
-#wajib[Manfaat bagi pengetahuan akademis, bagi praktisi atau masyarakat, dan bagi keterampilan mahasiswa.]
-#fakta[
-  - Akademis: contoh pemantauan tanam tingkat desa tanpa survei lapangan, dengan evaluasi jujur per tahun (leave-one-year-out) dan daftar generalisasi G1 sampai G20 (temuan-teknis, Riset lanjutan).
-  - Masyarakat: warga, buruh tani, dan perangkat desa melihat kapan desanya biasanya mulai tanam dan panen.
-  - Mahasiswa: rekayasa data, pembelajaran mesin, pengujian, dan pengembangan web dalam satu proyek nyata.
-]
-
-== Urgensi Studi Independen
-
-#wajib[Daftar isi templat mencantumkan subbab ini. Jelaskan mengapa proyek perlu dilakukan sekarang.]
-#fakta[
-  - Satelit radar Sentinel-1 lebih jarang melintas sejak 2022. Tanpa alur data yang menandai celah ini, data padi tahun 2022 dan 2023 mudah disalahartikan (F08).
-  - Musim tanam utama 2026/2027 dimulai November, sehingga jadwal tanam per desa paling berguna bila tersedia sebelum itu.
-]
-
-== Temuan yang Ditargetkan
-
-#wajib[Daftar isi templat mencantumkan subbab ini. Bandingkan target proposal dengan target yang direvisi.]
-#fakta[
-  #table(
-    columns: (1fr, 1fr),
-    stroke: 0.5pt,
-    inset: 5pt,
-    [*Target proposal*], [*Target revisi*],
-    [Dashboard pencatatan panen, ternak, distribusi], [Situs pemantauan tanam 13 desa dan alur data bulanan],
-    [Model prediksi hasil panen, MAPE di bawah 20%], [Prakiraan tanggal panen, galat lebih kecil dari baseline median],
-    [Panduan operasional], [Halaman Metode dan dokumentasi kode],
-    [Kanal WhatsApp (opsional)], [Tidak dikerjakan],
-  )
-]
-
-= Tinjauan Pustaka
-
-== Tinjauan Teoritis
-
-#wajib[Teori atau konsep utama, serta model atau kerangka yang dipakai.]
-#fakta[
-  Empat konsep inti, masing-masing dengan rujukan:
-  - Fenologi padi dan indeks vegetasi NDVI dari Sentinel-2 @Ramadhani_2020.
-  - Penggenangan sawah pada radar Sentinel-1 (VH turun saat tanam pindah) @Manago_2020 @Rudiyanto_2019.
-  - Intensitas tanam sebagai jumlah musim per tahun @Ginting_2024 @Zhao_2026.
-  - Kriteria awal musim tanam di Indonesia @Surmaini_2016 dan umur panen padi antarprovinsi @Ardiansyah_2022.
-  - Arsitektur data medallion (bronze, silver, gold) dan pemrosesan bertahap: belum ada rujukan ber-DOI.
-]
-#perlu[Rujukan untuk arsitektur medallion atau ETL. Rujukan proposal @yudhistira2023ilkom membahas ETL data pertanian dan bisa dipakai ulang.]
-
-== Penelitian Sebelumnya
-
-#wajib[Studi sebelumnya, kritik atas kekurangannya, tren terkini, serta definisi operasional dan hubungan antarvariabel.]
-#fakta[
-  - Tanggal tanam dari Sentinel-1 di DI Cihea, Jawa Barat, dengan galat sekitar 5 sampai 6 hari terhadap wawancara petani @Manago_2020.
-  - Pemetaan tahap tumbuh padi di Jawa Barat dengan deep learning @Thorp_2021 dan dengan fusi Sentinel-2, MODIS, dan Sentinel-1 @Ramadhani_2020.
-  - Fenologi padi dari deret Sentinel-1 @Yang_2021.
-  - Intensitas tanam di Indramayu dari Sentinel-1 @Gandharum_2025.
-  - Kritik: studi tersebut memakai data lapangan untuk melatih model, sedangkan proyek ini tidak punya data lapangan. Karena itu label proyek ini berasal dari satelit sendiri dan diuji per tahun (§12, L19).
-  - Variabel: tanggal penggenangan (VH minimum), puncak NDVI, tanggal panen, luas sawah per desa, curah hujan CHIRPS.
-]
-#panduan[Akhiri subbab dengan satu paragraf celah penelitian: belum ada pemantauan tingkat desa yang terbuka untuk warga dan diperbarui tiap bulan tanpa data lapangan.]
-
-== Luaran Berdampak yang Diusulkan
-
-#wajib[Luaran, dampak, dan mitra, dengan format seperti contoh templat.]
-#rubrik[Luaran Program yang Berdampak, 20%. Nilai tertinggi: aplikatif, inovatif, dan berkelanjutan.]
-#fakta[
-  - Luaran 1: situs Tanam Padi Lamongan (beranda, ringkasan, jadwal per desa, metode).
-  - Luaran 2: alur data terbuka berlisensi Apache-2.0 (kode) dan CC-BY-4.0 (data), patuh REUSE 3.3.
-  - Luaran 3: data per desa dalam berkas JSON dan MongoDB.
-  - Dampak: warga melihat jadwal tanam dan panen desanya. Mitra: Dicoding Indonesia, dengan objek studi Kecamatan Tikung.
-]
+#include "bab2.typ"
 
 = Metode
 
