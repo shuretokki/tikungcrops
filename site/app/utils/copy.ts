@@ -37,12 +37,15 @@ export const COPY = {
     pride: {
       title: 'Lamongan, Lumbung Padi Jawa Timur',
       body: 'Pada 2024, Lamongan jadi penghasil padi terbesar di Jawa Timur. Sawah di 13 desa Tikung ikut menyumbang panen itu.',
-      stats: [
-        { value: '#1', label: 'Penghasil padi di Jawa Timur' },
-        { value: '776 ribu ton', label: 'Gabah kering giling setahun' },
-        { value: '130 ribu ha', label: 'Sawah yang dipanen setahun' }
-      ],
-      source: 'Sumber: BPS Kabupaten Lamongan dan BPS Jawa Timur, 2024.'
+      chartTitle: 'Produksi padi 2024, lima kabupaten teratas',
+      unit: 'ribu ton gabah kering giling',
+      rank: '#1',
+      stats: {
+        share: 'dari seluruh padi Jawa Timur',
+        rice: 'beras dari Lamongan',
+        harvest: 'sawah yang dipanen'
+      },
+      source: 'Sumber: BPS Provinsi Jawa Timur dan BPS Kabupaten Lamongan, 2024.'
     },
 
     now: {
@@ -75,7 +78,9 @@ export const COPY = {
 
     desa: {
       title: 'Cari Desamu',
-      body: 'Pilih desa untuk melihat kalender tanam dan perkiraan panennya.',
+      body: 'Ketik nama desamu, lalu pilih untuk melihat kalender tanam dan perkiraan panennya.',
+      search: 'Ketik nama desa',
+      empty: 'Desa tidak ditemukan. Coba ejaan lain.',
       paddy: (ha: string) => `${ha} sawah`
     }
   },

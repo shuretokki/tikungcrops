@@ -43,6 +43,20 @@ const desaCards = computed(() => units.value.map((u) => {
   const top = own.reduce<CurrentRow | null>((best, r) => (!best || r.paddy_ha > best.paddy_ha ? r : best), null)
   return { unit: u.unit, paddy: u.paddy_ha, stage: (top?.stage ?? 'unknown') as Stage }
 }))
+const maxPaddy = computed(() => Math.max(1, ...desaCards.value.map(d => d.paddy)))
+const query = ref('')
+const shownDesa = computed(() => {
+  const q = query.value.trim().toLowerCase()
+  return q ? desaCards.value.filter(d => d.unit.toLowerCase().includes(q)) : desaCards.value
+})
+
+const thousand = (v: number) => Math.round(v / 1000).toLocaleString('id-ID')
+const prideTop = JATIM_RICE_2024.top[0]!.tons
+const prideStats = [
+  { value: (JATIM_RICE_2024.top[0]!.tons / JATIM_RICE_2024.province).toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: 1 }), label: t.pride.stats.share },
+  { value: `${thousand(JATIM_RICE_2024.lamonganRiceTons)} ribu ton`, label: t.pride.stats.rice },
+  { value: `${thousand(JATIM_RICE_2024.lamonganHarvestHa)} ribu ha`, label: t.pride.stats.harvest }
+]
 
 const stats = computed(() => [
   { label: t.stats.paddy, value: formatHa(paddy.value) },
@@ -115,33 +129,64 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
       </div>
     </section>
 
-    <section class="grid gap-8 rounded-lg bg-muted p-6 ring ring-default sm:p-10 lg:grid-cols-[2fr_3fr]">
-      <header class="flex flex-col gap-3">
-        <h2 class="text-2xl font-semibold text-balance">
-          {{ t.pride.title }}
-        </h2>
-        <p class="text-muted">
-          {{ t.pride.body }}
-        </p>
-      </header>
-      <div class="flex flex-col gap-4">
-        <dl class="grid gap-6 sm:grid-cols-3">
-          <div
-            v-for="s in t.pride.stats"
-            :key="s.label"
-            class="flex flex-col-reverse gap-1"
-          >
-            <dt class="text-sm text-muted">
-              {{ s.label }}
-            </dt>
-            <dd class="text-3xl font-semibold text-(--ui-primary) tabular-nums">
-              {{ s.value }}
-            </dd>
+    <section class="overflow-hidden rounded-lg ring ring-default">
+      <div class="grid lg:grid-cols-[2fr_3fr]">
+        <div class="flex flex-col justify-between gap-6 bg-(--ui-primary) p-6 text-inverted sm:p-10">
+          <div class="flex flex-col gap-3">
+            <p class="text-6xl font-semibold sm:text-7xl">
+              {{ t.pride.rank }}
+            </p>
+            <h2 class="text-2xl font-semibold text-balance">
+              {{ t.pride.title }}
+            </h2>
+            <p class="opacity-90">
+              {{ t.pride.body }}
+            </p>
           </div>
-        </dl>
-        <p class="text-xs text-muted">
-          {{ t.pride.source }}
-        </p>
+          <dl class="grid grid-cols-3 gap-4 border-t border-current/30 pt-5">
+            <div
+              v-for="s in prideStats"
+              :key="s.label"
+              class="flex flex-col-reverse gap-1"
+            >
+              <dt class="text-xs opacity-80">
+                {{ s.label }}
+              </dt>
+              <dd class="text-lg font-semibold tabular-nums sm:text-xl">
+                {{ s.value }}
+              </dd>
+            </div>
+          </dl>
+        </div>
+        <figure class="flex flex-col gap-4 bg-muted p-6 sm:p-10">
+          <figcaption class="flex flex-col gap-1">
+            <span class="font-semibold">{{ t.pride.chartTitle }}</span>
+            <span class="text-xs text-muted">{{ t.pride.unit }}</span>
+          </figcaption>
+          <ol class="flex flex-col gap-3">
+            <li
+              v-for="(k, i) in JATIM_RICE_2024.top"
+              :key="k.name"
+              class="grid grid-cols-[6.5rem_1fr_3rem] items-center gap-3 text-sm"
+            >
+              <span :class="i === 0 ? 'font-semibold' : 'text-muted'">{{ i + 1 }}. {{ k.name }}</span>
+              <span class="h-6 rounded-sm bg-(--ui-bg)">
+                <span
+                  class="block h-full rounded-sm"
+                  :class="i === 0 ? 'bg-(--ui-primary)' : 'bg-(--viz-neutral)'"
+                  :style="{ width: `${(k.tons / prideTop) * 100}%` }"
+                />
+              </span>
+              <span
+                class="text-right tabular-nums"
+                :class="i === 0 ? 'font-semibold' : 'text-muted'"
+              >{{ thousand(k.tons) }}</span>
+            </li>
+          </ol>
+          <p class="mt-auto text-xs text-muted">
+            {{ t.pride.source }}
+          </p>
+        </figure>
       </div>
     </section>
 
@@ -211,32 +256,51 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
       id="desa"
       class="flex scroll-mt-20 flex-col gap-6"
     >
-      <header class="flex flex-col gap-2">
-        <h2 class="text-2xl font-semibold">
-          {{ t.desa.title }}
-        </h2>
-        <p class="text-muted">
-          {{ t.desa.body }}
-        </p>
+      <header class="flex flex-wrap items-end justify-between gap-4">
+        <div class="flex flex-col gap-2">
+          <h2 class="text-2xl font-semibold">
+            {{ t.desa.title }}
+          </h2>
+          <p class="text-muted">
+            {{ t.desa.body }}
+          </p>
+        </div>
+        <UInput
+          v-model="query"
+          icon="i-lucide-search"
+          :placeholder="t.desa.search"
+          :aria-label="t.desa.search"
+          size="lg"
+          class="w-full sm:w-72"
+        />
       </header>
-      <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <ul
+        v-if="shownDesa.length"
+        class="flex flex-col divide-y divide-(--ui-border) rounded-md ring ring-default"
+      >
         <li
-          v-for="d in desaCards"
+          v-for="d in shownDesa"
           :key="d.unit"
         >
           <NuxtLink
             :to="`/desa/${encodeURIComponent(d.unit)}`"
-            class="flex h-full flex-col gap-2 rounded-md bg-muted p-4 ring ring-default transition hover:ring-(--ui-primary) focus-visible:outline-2"
+            class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1.5 px-4 py-3 transition hover:bg-muted focus-visible:outline-2 sm:grid-cols-[12rem_1fr_9rem_auto]"
           >
-            <span class="flex items-center justify-between gap-2 font-semibold">
-              {{ d.unit }}
-              <UIcon
-                name="i-lucide-arrow-right"
-                class="size-4 text-muted"
-              />
+            <span class="font-semibold">{{ d.unit }}</span>
+            <UIcon
+              name="i-lucide-chevron-right"
+              class="size-4 text-muted sm:order-last"
+            />
+            <span class="col-span-2 flex items-center gap-3 sm:col-span-1">
+              <span class="h-2 flex-1 rounded-full bg-muted">
+                <span
+                  class="block h-full rounded-full bg-(--viz-outline)"
+                  :style="{ width: `${(d.paddy / maxPaddy) * 100}%` }"
+                />
+              </span>
+              <span class="w-24 text-right text-sm text-muted tabular-nums">{{ t.desa.paddy(formatHa(d.paddy)) }}</span>
             </span>
-            <span class="text-sm text-muted tabular-nums">{{ t.desa.paddy(formatHa(d.paddy)) }}</span>
-            <span class="flex items-center gap-1.5 text-sm">
+            <span class="col-span-2 flex items-center gap-1.5 text-sm sm:col-span-1">
               <span
                 class="size-2.5 rounded-full"
                 :style="{ background: STAGES[d.stage].color === 'transparent' ? 'var(--viz-neutral)' : STAGES[d.stage].color }"
@@ -246,6 +310,12 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
           </NuxtLink>
         </li>
       </ul>
+      <p
+        v-else
+        class="rounded-md bg-muted p-4 text-sm text-muted"
+      >
+        {{ t.desa.empty }}
+      </p>
     </section>
   </div>
 </template>

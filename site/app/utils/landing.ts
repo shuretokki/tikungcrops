@@ -65,6 +65,20 @@ export function seasonBands(rows: SeasonRow[]): SeasonBand[] {
 
 export interface RainMonth { year: number, month: number, mm: number, normal: number }
 
+// BPS Jawa Timur, "Produksi Padi dan Beras Menurut Kabupaten/Kota di Provinsi Jawa Timur, 2024", tons of GKG.
+export const JATIM_RICE_2024 = {
+  top: [
+    { name: 'Lamongan', tons: 776_290.66 },
+    { name: 'Ngawi', tons: 765_703.53 },
+    { name: 'Bojonegoro', tons: 710_527.18 },
+    { name: 'Jember', tons: 623_264.88 },
+    { name: 'Tuban', tons: 523_067.49 }
+  ],
+  province: 9_270_435.29,
+  lamonganRiceTons: 448_245.88,
+  lamonganHarvestHa: 130_670
+}
+
 // Mean over desa for the most recent months in the export.
 export function rainByMonth(rows: RainRow[], months = 12): RainMonth[] {
   const byMonth = new Map<string, { year: number, month: number, mm: number, normal: number, n: number }>()
