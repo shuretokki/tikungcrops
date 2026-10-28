@@ -86,7 +86,7 @@
 ]
 
 #frontmatter(title: [Catatan Kerangka])[
-  Dokumen ini masih kerangka, kecuali Bab I, Bab II, dan subbab 3.1 yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
+  Dokumen ini masih kerangka, kecuali Bab I, Bab II, serta subbab 3.1 dan 3.2 yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
 
   Daftar isi templat dan isi templat tidak sama. Daftar isi memuat Rumusan Masalah, Urgensi, dan Temuan yang Ditargetkan pada Bab I, serta Waktu dan Tempat pada Bab III. Isi templat tidak memuatnya. Kerangka ini memakai susunan yang lebih lengkap supaya isi laporan sejalan dengan proposal.
 
@@ -135,8 +135,52 @@ Data yang diolah untuk Kecamatan Tikung mencakup citra Oktober 2017 sampai Septe
 
 == Posisi atau Kedudukan Kegiatan
 
-#wajib[Kedudukan tugas mahasiswa dalam proyek keseluruhan, untuk menunjukkan pemahaman kaitan antara pekerjaan dan hasil.]
-#fakta[Pengembang tunggal untuk seluruh siklus: pengambilan data, pemodelan, pengujian, dan situs web, di bawah bimbingan DPL dan materi Dicoding.]
+Studi ini dikerjakan oleh satu mahasiswa, sehingga mahasiswa memegang seluruh tahap pekerjaan, mulai dari pengambilan data sampai penyajian hasil. Topik proyek diusulkan oleh mahasiswa melalui proposal dalam skema Program Mahasiswa Berdampak. Dicoding Indonesia sebagai mitra kolaborator menyediakan materi Big Data dan Machine Learning yang menjadi dasar keterampilan teknis dalam proyek ini. @gambar-kedudukan menunjukkan kedudukan pekerjaan mahasiswa dalam alur studi.
+
+#figure(
+  {
+    import "@preview/fletcher:0.5.8": diagram, edge, node
+    set text(size: 9pt)
+    diagram(
+      node-stroke: 0.6pt,
+      spacing: (1.2em, 1.6em),
+      node((0, 0), align(center)[Data terbuka \ Sentinel-1, Sentinel-2, \ CHIRPS, Lahan Baku Sawah]),
+      edge("-|>"),
+      node((1, 0), align(center)[Alur data \ bronze, silver, gold], fill: luma(225)),
+      edge("-|>"),
+      node((2, 0), align(center)[Model prakiraan \ waktu panen], fill: luma(225)),
+      edge("-|>"),
+      node((3, 0), align(center)[Situs web dan \ data per desa], fill: luma(225)),
+      edge("-|>"),
+      node((4, 0), align(center)[Warga dan \ pemerintah desa]),
+      node((1, 1), align(center)[Validasi dengan \ data BPS], fill: luma(225)),
+      edge((1, 0), (1, 1), "-|>"),
+    )
+  },
+  caption: [Kedudukan pekerjaan mahasiswa dalam alur studi. Kotak abu-abu adalah bagian yang dikerjakan mahasiswa.],
+) <gambar-kedudukan>
+
+Dalam rantai informasi pertanian, proyek ini berada di bawah statistik resmi. Badan Pusat Statistik mengukur luas panen padi setiap bulan melalui Survei Kerangka Sampel Area dan menyajikannya per kabupaten @bpslamongan2025padi. Proyek ini mengisi lapisan yang lebih rinci, yaitu tahap tanam per desa yang diperbarui setiap bulan dari citra satelit. Hasil proyek dibandingkan dengan data BPS, sehingga proyek ini melengkapi statistik resmi dan tidak menggantikannya.
+
+Kedudukan ini berbeda dari rencana proposal. Proposal menempatkan mahasiswa sebagai pengembang sistem bagi Satgas Pandu, dengan koordinasi melalui Kecamatan Tikung. Koordinasi tersebut tidak terlaksana selama masa studi, sehingga pengguna sasaran bergeser ke warga dan pemerintah desa di seluruh Kecamatan Tikung. Desa Jotosanur tetap termasuk dalam wilayah yang dipantau. @tabel-peran merinci pekerjaan mahasiswa pada setiap tahap beserta buktinya di repositori kode.
+
+#figure(
+  table(
+    columns: (auto, 1fr, auto),
+    stroke: 0.5pt,
+    inset: 5pt,
+    align: left,
+    table.header([*Tahap*], [*Pekerjaan mahasiswa*], [*Bukti di repositori*]),
+    [Pengambilan data], [Mengunduh citra Sentinel-1 dan Sentinel-2, curah hujan CHIRPS, peta Lahan Baku Sawah, dan batas desa], [`load_sentinel`, `load_chirps`, `load_paddy`, `load_boundaries`],
+    [Pengolahan], [Menyusun deret waktu lima harian per sel dan mendeteksi musim tanam], [`silver_sentinel`, `gold_sentinel`],
+    [Validasi], [Membandingkan luas dan waktu panen dengan data BPS dan KSA], [`validate_reference`],
+    [Pemodelan], [Melatih dan membandingkan model prakiraan waktu panen], [`forecast_harvest`, `compare_models`, `harvest_outlook`],
+    [Penyajian], [Mengekspor data per desa dan membangun situs web], [`export_web`, `load_mongo`, folder `site`],
+    [Pengujian], [Menulis 60 uji otomatis untuk alur data dan model], [folder `tests`],
+    [Otomatisasi], [Menyiapkan jadwal pengambilan data bulanan], [`.github/workflows/monthly.yml`],
+  ),
+  caption: [Pekerjaan mahasiswa pada setiap tahap],
+) <tabel-peran>
 
 == Metodologi Penyelesaian Tugas
 
