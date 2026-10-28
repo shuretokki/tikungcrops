@@ -120,18 +120,22 @@ export function desaOutlines(fc: FeatureCollection | null | undefined, width = 1
   }
 }
 
-// BPS Jawa Timur, "Produksi Padi dan Beras Menurut Kabupaten/Kota di Provinsi Jawa Timur, 2024", tons of GKG.
-export const JATIM_RICE_2024 = {
+// BPS Provinsi Jawa Timur, "Luas Panen dan Produksi Padi di Provinsi Jawa Timur 2025" (released 3 Sep 2026), Lampiran 3, 6 and 8.
+// Production is tons of GKG.
+// Harvested area is the 2024 value plus the published 2025 change, because the 2025 column is unreadable in the PDF text.
+// Update once a year when BPS releases the next edition.
+export const JATIM_RICE = {
+  year: 2025,
   top: [
-    { name: 'Lamongan', tons: 776_290.66 },
-    { name: 'Ngawi', tons: 765_703.53 },
-    { name: 'Bojonegoro', tons: 710_527.18 },
-    { name: 'Jember', tons: 623_264.88 },
-    { name: 'Tuban', tons: 523_067.49 }
+    { name: 'Lamongan', tons: 879_993.80 },
+    { name: 'Bojonegoro', tons: 879_685.13 },
+    { name: 'Ngawi', tons: 772_570.76 },
+    { name: 'Jember', tons: 679_513.67 },
+    { name: 'Tuban', tons: 577_963.77 }
   ],
-  province: 9_270_435.29,
-  lamonganRiceTons: 448_245.88,
-  lamonganHarvestHa: 130_670
+  province: 10_438_360.58,
+  lamonganRiceTons: 508_126.15,
+  lamonganHarvestHa: 152_564
 }
 
 // Mean over desa for the most recent months in the export.

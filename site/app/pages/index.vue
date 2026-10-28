@@ -60,11 +60,13 @@ const STAGE_FILL: Record<Stage, string> = {
 }
 
 const thousand = (v: number) => Math.round(v / 1000).toLocaleString('id-ID')
-const prideTop = JATIM_RICE_2024.top[0]!.tons
+// The top two kabupaten differ by about 0,3 ribu ton, so whole thousands would show a false tie.
+const thousandOne = (v: number) => (v / 1000).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const prideTop = JATIM_RICE.top[0]!.tons
 const prideStats = [
-  { value: (JATIM_RICE_2024.top[0]!.tons / JATIM_RICE_2024.province).toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: 1 }), label: t.pride.stats.share },
-  { value: `${thousand(JATIM_RICE_2024.lamonganRiceTons)} ribu ton`, label: t.pride.stats.rice },
-  { value: `${thousand(JATIM_RICE_2024.lamonganHarvestHa)} ribu ha`, label: t.pride.stats.harvest }
+  { value: (JATIM_RICE.top[0]!.tons / JATIM_RICE.province).toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: 1 }), label: t.pride.stats.share },
+  { value: `${thousand(JATIM_RICE.lamonganRiceTons)} ribu ton`, label: t.pride.stats.rice },
+  { value: `${thousand(JATIM_RICE.lamonganHarvestHa)} ribu ha`, label: t.pride.stats.harvest }
 ]
 
 const stats = computed(() => [
@@ -150,7 +152,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
               {{ t.pride.title }}
             </h2>
             <p class="opacity-90">
-              {{ t.pride.body(units.length) }}
+              {{ t.pride.body(units.length, JATIM_RICE.year) }}
             </p>
           </div>
           <dl class="grid grid-cols-3 items-start gap-4 border-t border-current/30 pt-5">
@@ -170,12 +172,12 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
         </div>
         <figure class="flex flex-col gap-4 bg-muted p-6 sm:p-10">
           <figcaption class="flex flex-col gap-1">
-            <span class="font-semibold">{{ t.pride.chartTitle }}</span>
+            <span class="font-semibold">{{ t.pride.chartTitle(JATIM_RICE.year) }}</span>
             <span class="text-xs text-muted">{{ t.pride.unit }}</span>
           </figcaption>
           <ol class="flex flex-col gap-3">
             <li
-              v-for="(k, i) in JATIM_RICE_2024.top"
+              v-for="(k, i) in JATIM_RICE.top"
               :key="k.name"
               class="grid grid-cols-[6.5rem_1fr_3rem] items-center gap-3 text-sm"
             >
@@ -190,11 +192,11 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
               <span
                 class="text-right tabular-nums"
                 :class="i === 0 ? 'font-semibold' : 'text-muted'"
-              >{{ thousand(k.tons) }}</span>
+              >{{ thousandOne(k.tons) }}</span>
             </li>
           </ol>
           <p class="mt-auto text-xs text-muted">
-            {{ t.pride.source }}
+            {{ t.pride.source(JATIM_RICE.year) }}
           </p>
         </figure>
       </div>

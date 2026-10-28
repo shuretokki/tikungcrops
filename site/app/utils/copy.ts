@@ -36,8 +36,8 @@ export const COPY = {
 
     pride: {
       title: 'Lamongan, Lumbung Padi Jawa Timur',
-      body: (units: number) => `Pada 2024, Lamongan jadi penghasil padi terbesar di Jawa Timur. Sawah di ${units} desa Tikung ikut menyumbang panen itu.`,
-      chartTitle: 'Produksi padi 2024, lima kabupaten teratas',
+      body: (units: number, year: number) => `Pada ${year}, Lamongan jadi penghasil padi terbesar di Jawa Timur, tipis di atas Bojonegoro. Sawah di ${units} desa Tikung ikut menyumbang panen itu.`,
+      chartTitle: (year: number) => `Produksi padi ${year}, lima kabupaten teratas`,
       unit: 'ribu ton gabah kering giling',
       rank: '#1',
       stats: {
@@ -45,7 +45,7 @@ export const COPY = {
         rice: 'beras dari Lamongan',
         harvest: 'sawah yang dipanen'
       },
-      source: 'Sumber: BPS Provinsi Jawa Timur dan BPS Kabupaten Lamongan, 2024.'
+      source: (year: number) => `Sumber: BPS Provinsi Jawa Timur, Luas Panen dan Produksi Padi di Provinsi Jawa Timur ${year}.`
     },
 
     now: {
