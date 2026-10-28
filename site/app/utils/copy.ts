@@ -131,18 +131,38 @@ export const COPY = {
 
   ringkasan: {
     seoTitle: 'Ringkasan - Tanam Padi Lamongan',
-    title: 'Kondisi tanam padi saat ini',
-    description: (units: number, asOf: string) => `Kecamatan Tikung terdiri atas ${units} desa. Data citra satelit tersedia hingga ${asOf}. Pilih desa pada peta atau tabel untuk melihat rinciannya.`,
-    paddy: 'Luas sawah yang dipantau',
-    outlook: 'Perkiraan panen musim ini',
+    title: 'Ringkasan Sawah Tikung',
+    description: (units: number, asOf: string) => `Kondisi sawah dan perkiraan panen di ${units} desa. Data per ${asOf}.`,
+    stats: {
+      paddy: 'Luas sawah',
+      outlook: 'Perkiraan panen ke depan'
+    },
     mapLoading: 'Memuat peta...',
-    alertTitle: 'Perkiraan musim hujan belum akurat',
-    alert: 'Tanggal tanam dan panen berasal dari deteksi satelit dan belum dicocokkan dengan catatan panen petani. Pada musim hujan, awan menutupi citra pada awal musim sehingga perkiraan dapat meleset tiga hingga lima minggu. Pada musim kemarau, selisihnya sekitar satu hingga dua minggu.',
+    layouts: {
+      label: 'Pilih tampilan',
+      table: 'Tabel',
+      map: 'Peta',
+      calendar: 'Kalender Panen'
+    },
     columns: {
       unit: 'Desa',
       paddy: 'Luas sawah',
       outlook: 'Perkiraan panen',
-      topWeek: 'Minggu panen terbanyak'
+      topWeek: 'Panen terbanyak'
+    },
+    list: {
+      topWeek: (week: string) => `Panen terbanyak minggu ${week}`,
+      noHarvest: 'Belum ada perkiraan panen'
+    },
+    calendar: {
+      title: 'Kapan Panen di Desamu?',
+      body: 'Makin gelap kotaknya, makin luas sawah yang diperkirakan panen minggu itu.',
+      less: 'Sedikit',
+      more: 'Banyak',
+      today: 'Minggu ini',
+      readout: (unit: string, week: string, ha: string) => `${unit}, minggu ${week}: sekitar ${ha}`,
+      hint: 'Arahkan kursor ke kotak untuk melihat luasnya.',
+      empty: 'Belum ada perkiraan panen untuk beberapa minggu ke depan.'
     }
   }
 }
