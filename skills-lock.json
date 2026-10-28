@@ -72,6 +72,12 @@
       "sourceType": "github",
       "skillPath": "skills/typst/SKILL.md",
       "computedHash": "74eb5b0481a869a49acad49a71f73d76f32ed80c1f2ca993607ac5348c6ae689"
+    },
+    "ux-writing": {
+      "source": "content-designer/ux-writing-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "7a9be24c109c69070451aaa30f75417825cb6b85435c775ad58185c52449cbfc"
     }
   }
 }
