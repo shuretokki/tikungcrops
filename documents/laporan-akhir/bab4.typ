@@ -189,4 +189,4 @@ Studi ini juga memiliki empat keterbatasan. Pertama, tanggal tanam dan panen ber
 
 === Dampak dan Keberlanjutan
 
-Sampai laporan ini disusun, situs belum dipublikasikan dan belum diuji bersama warga atau pemerintah desa. Oleh karena itu, dampak nyata bagi masyarakat belum dapat diukur. Meskipun demikian, studi ini sudah menyiapkan syarat keberlanjutan. Alur pengambilan data bulanan sudah disiapkan, kode dan data disiapkan untuk dirilis dengan lisensi terbuka, dan validasi dua tahun memberi dasar kepercayaan bagi pengguna. Langkah untuk menghadirkan dampak tersebut dijelaskan pada Bab VI.
+Sampai akhir Oktober 2026, situs belum dipublikasikan dan belum diuji bersama warga atau pemerintah desa. Oleh karena itu, dampak nyata bagi masyarakat belum dapat diukur. Meskipun demikian, studi ini sudah menyiapkan syarat keberlanjutan. Alur pengambilan data bulanan sudah disiapkan, kode dan data disiapkan untuk dirilis dengan lisensi terbuka, dan validasi dua tahun memberi dasar kepercayaan bagi pengguna. Langkah untuk menghadirkan dampak tersebut dijelaskan pada Bab VI.

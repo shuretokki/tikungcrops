@@ -93,7 +93,7 @@
 
 == Waktu dan Tempat Pelaksanaan
 
-Studi independen ini berlangsung dari Agustus sampai Desember 2026 sesuai jadwal Program Mahasiswa Berdampak. Laporan ini disusun pada akhir Oktober 2026, sehingga hasil yang dilaporkan mencakup pekerjaan sampai saat itu. Pekerjaan sesudah tanggal tersebut dicatat sebagai rencana tindak lanjut pada Bab VI.
+Studi independen ini berlangsung dari Agustus sampai Desember 2026 sesuai jadwal Program Mahasiswa Berdampak. Karena laporan disusun pada akhir Oktober 2026, hasil yang dilaporkan hanya mencakup pekerjaan sampai akhir bulan tersebut. Pekerjaan sesudahnya dicatat sebagai rencana tindak lanjut pada Bab VI.
 
 Seluruh kegiatan dilaksanakan secara daring. Data citra satelit, curah hujan, dan peta sawah diambil dari katalog data terbuka, sehingga studi ini tidak memerlukan pengukuran lapangan. Pengolahan data, pemodelan, dan pengembangan situs dikerjakan secara mandiri tanpa server berbayar.
 
@@ -126,7 +126,7 @@ Data yang diolah untuk Kecamatan Tikung mencakup citra Oktober 2017 sampai Septe
 
 == Posisi atau Kedudukan Kegiatan
 
-Studi ini dikerjakan oleh satu mahasiswa, sehingga mahasiswa memegang seluruh tahap pekerjaan, mulai dari pengambilan data sampai penyajian hasil. Topik proyek diusulkan oleh mahasiswa melalui proposal dalam skema Program Mahasiswa Berdampak. Dicoding Indonesia sebagai mitra kolaborator menyediakan materi Big Data dan Machine Learning yang menjadi dasar keterampilan teknis dalam proyek ini. @gambar-kedudukan menunjukkan kedudukan pekerjaan mahasiswa dalam alur studi.
+Seluruh tahap studi ini, mulai dari pengambilan data sampai penyajian hasil, dikerjakan oleh satu mahasiswa. Topik proyek juga diusulkan sendiri melalui proposal dalam skema Program Mahasiswa Berdampak. Dicoding Indonesia sebagai mitra kolaborator menyediakan materi Big Data dan Machine Learning yang menjadi dasar keterampilan teknis proyek. @gambar-kedudukan menunjukkan kedudukan pekerjaan mahasiswa dalam alur studi.
 
 #figure(
   {
@@ -151,7 +151,7 @@ Studi ini dikerjakan oleh satu mahasiswa, sehingga mahasiswa memegang seluruh ta
   caption: [Kedudukan pekerjaan mahasiswa dalam alur studi. Kotak abu-abu adalah bagian yang dikerjakan mahasiswa.],
 ) <gambar-kedudukan>
 
-Dalam rantai informasi pertanian, proyek ini berada di bawah statistik resmi. Badan Pusat Statistik mengukur luas panen padi setiap bulan melalui Survei Kerangka Sampel Area dan menyajikannya per kabupaten @bpslamongan2025padi. Proyek ini mengisi lapisan setelahnya, yaitu tahap tanam per desa yang diperbarui setiap bulan dari citra satelit. Hasil proyek dibandingkan dengan data BPS, sehingga proyek ini melengkapi statistik resmi dan tidak menggantikannya.
+Dalam rantai informasi pertanian, proyek ini berada di bawah statistik resmi. Badan Pusat Statistik mengukur luas panen padi setiap bulan melalui Survei Kerangka Sampel Area, lalu menyajikan hasil survei per kabupaten @bpslamongan2025padi. Lapisan berikutnya diisi oleh proyek, yaitu tahap tanam per desa dari citra satelit yang dirancang untuk diperbarui setiap bulan. Karena hasilnya dibandingkan dengan data BPS, proyek berperan sebagai pelengkap statistik resmi.
 
 Kedudukan ini berbeda dari rencana proposal. Proposal menempatkan mahasiswa sebagai pengembang sistem bagi Satgas Pandu, dengan koordinasi melalui Kecamatan Tikung. Koordinasi tersebut tidak terlaksana selama masa studi, sehingga pengguna sasaran bergeser ke warga dan pemerintah desa di seluruh Kecamatan Tikung. Desa Jotosanur tetap termasuk dalam wilayah yang dipantau. @tabel-peran merinci pekerjaan mahasiswa pada setiap tahap.
 
@@ -182,7 +182,7 @@ Masalah studi ini diuraikan menjadi enam tahap, yaitu pengambilan data, pengolah
 
 === Pengambilan Data
 
-Unit analisis studi ini adalah sel persegi berukuran 100 meter, yaitu gabungan 10 × 10 piksel Sentinel-2. Sel hanya dipakai bila paling sedikit setengah luasnya berupa lahan pertanian menurut peta ESA WorldCover 2021 @Zanaga_2022. Dengan aturan ini, Kecamatan Tikung terbagi menjadi 4.954 sel. Setiap sel dimasukkan ke desa yang menutupi bagian terbesarnya. @tabel-sumber-data merangkum data yang diambil untuk setiap sel.
+Unit analisis studi ini adalah sel persegi berukuran 100 meter, yaitu gabungan 10 × 10 piksel Sentinel-2. Sel hanya dipakai bila paling sedikit setengah luas sel berupa lahan pertanian menurut peta ESA WorldCover 2021 @Zanaga_2022. Dengan aturan tersebut, Kecamatan Tikung terbagi menjadi 4.954 sel. Setiap sel dimasukkan ke desa yang menutupi bagian terbesarnya. @tabel-sumber-data merangkum data yang diambil untuk setiap sel.
 
 #figure(
   table(
@@ -232,7 +232,7 @@ Model utama adalah gradient boosting untuk nilai tengah, ditambah dua model kuan
 
 Model dinilai dengan validasi silang yang menahan satu tahun panen penuh sebagai data uji. Sebagai pembanding, dipakai perkiraan sederhana berupa lama musim median dari tahun pelatihan. Rancangan pembandingan mengikuti CY-Bench @Kallenberg_2026, yaitu perkiraan sederhana dibandingkan dengan Ridge, random forest, dan gradient boosting. Hiperparameter setiap model dicari dengan Optuna @Akiba_2019 sebanyak 10 percobaan, dengan tiga fold yang dibagi per tahun dan hanya di dalam tahun pelatihan.
 
-Untuk musim yang masih berjalan, luas sawah setiap sel dibagi merata pada rentang 80% tanggal panennya. Hasilnya dijumlahkan per desa dan per minggu sebagai perkiraan luas panen mingguan. Prakiraan tersebut juga diuji ulang pada tanggal-tanggal di masa lalu. Pada uji ulang tersebut, model hanya dilatih dengan musim yang sudah panen sebelum tanggal itu.
+Untuk musim yang masih berjalan, luas sawah setiap sel dibagi merata pada rentang 80% tanggal panen sel tersebut. Hasilnya dijumlahkan per desa dan per minggu sebagai perkiraan luas panen mingguan. Prakiraan ini juga diuji ulang pada tanggal-tanggal di masa lalu, dengan model yang hanya dilatih memakai musim yang sudah panen sebelum tanggal uji.
 
 === Penyajian dan Otomatisasi
 
@@ -244,19 +244,19 @@ Kebenaran alur data dan model diperiksa dengan 64 uji otomatis. Sebagian uji mem
 
 == Pembelajaran Hal Baru
 
-Pembelajaran selama studi ini disusun dengan model refleksi 4R, yaitu melaporkan kejadian, mengaitkannya dengan konsep, menjelaskan sebabnya, lalu menyusun ulang cara kerja @Ryan_2013. Empat pembelajaran utama dijelaskan pada sub-sub-bab di bawah ini.
+Pembelajaran selama studi disusun dengan model refleksi 4R, yaitu melaporkan kejadian, mengaitkan kejadian dengan konsep, menjelaskan sebab, lalu menyusun ulang cara kerja @Ryan_2013. Empat pembelajaran utama dijelaskan pada sub-sub-bab berikut.
 
 === Model Tidak Dapat Menggantikan Data Lokal
 
 Pada awal studi, model prediksi hasil panen dicoba dengan data buatan karena data mitra belum tersedia. Model random forest pada data buatan tersebut hanya memberi nilai R² -0,10 pada data uji. Model ternyata hanya meniru rumus yang dipakai untuk membuat data. Model lain yang dilatih pada survei 44.299 lahan padi di Asia Selatan juga gagal, karena nilai R²-nya negatif di keenam wilayah uji.
 
-Dalam materi pembelajaran mesin, kemampuan model untuk berlaku di data baru biasanya diuji dengan data dari sumber yang sama. Pengalaman tersebut menunjukkan bahwa model yang baik di satu wilayah belum tentu berlaku di wilayah lain. Sebabnya, sifat tanah Jotosanur berada di luar rentang data survei tersebut. Sebaliknya, rata-rata produktivitas desa dari data BPS sudah memberi galat hanya 3,6%. Karena itu, ketersediaan dan kecocokan data lokal kini diperiksa sebelum model dipilih.
+Dalam materi pembelajaran mesin, kemampuan model untuk berlaku di data baru biasanya diuji dengan data dari sumber yang sama. Pengalaman tersebut menunjukkan bahwa model yang baik di satu wilayah belum tentu berlaku di wilayah lain. Sebabnya, sifat tanah Jotosanur berada di luar rentang data survei di Asia Selatan. Sebaliknya, rata-rata produktivitas desa dari data BPS sudah memberi galat hanya 3,6%. Karena itu, ketersediaan dan kecocokan data lokal kini diperiksa sebelum model dipilih.
 
 === Evaluasi Harus Mengikuti Urutan Waktu
 
 Model prakiraan waktu panen semula dinilai dengan menahan satu tahun penuh sebagai data uji dan memberi galat 11,8 hari. Ketika prakiraan diuji ulang seperti dipakai pada tanggal sebenarnya, hasilnya lebih buruk. Prakiraan tanam yang dikeluarkan pada Januari meleset 21 sampai 41 hari, sedangkan yang dikeluarkan pada Juni meleset 11 sampai 20 hari.
 
-Perbedaan ini muncul karena penilaian awal hanya memakai musim yang belakangan terbukti andal. Padahal, pada saat prakiraan dikeluarkan, informasi itu belum tersedia. Hal tersebut sejalan dengan rancangan CY-Bench yang menahan tahun penuh dan mencari hiperparameter hanya di dalam tahun pelatihan @Kallenberg_2026. Sejak itu, perkiraan panen mingguan juga diuji ulang dengan data yang dipotong pada tanggal prakiraan.
+Perbedaan ini muncul karena penilaian awal hanya memakai musim yang belakangan terbukti andal. Padahal, keandalan musim belum diketahui pada saat prakiraan dikeluarkan. Hal tersebut sejalan dengan rancangan CY-Bench yang menahan tahun penuh dan mencari hiperparameter hanya di dalam tahun pelatihan @Kallenberg_2026. Sejak itu, perkiraan panen mingguan juga diuji ulang dengan data yang dipotong pada tanggal prakiraan.
 
 === Citra Satelit Memiliki Celah
 
@@ -270,7 +270,7 @@ Akibatnya, awal musim hujan sering tidak terlihat, dan status padi pada tahun 20
 
 == Kegiatan Studi Independen yang Dikembangkan
 
-Studi independen ini difokuskan pada pengembangan sistem pemantauan musim tanam padi berbasis citra satelit. Kegiatan dijalankan bersama mitra kolaborator Dicoding Indonesia, dengan wilayah sasaran Kecamatan Tikung, termasuk Desa Jotosanur. Masalah nyata yang dijawab adalah belum tersedianya informasi waktu tanam dan waktu panen per desa yang diperbarui secara berkala. Sistem ini dikembangkan untuk membantu petani, buruh tani, penebas, dan pemerintah desa merencanakan kegiatan pada setiap musim tanam.
+Studi independen ini difokuskan pada pengembangan sistem pemantauan musim tanam padi berbasis citra satelit. Kegiatan dijalankan bersama mitra kolaborator Dicoding Indonesia, dengan wilayah sasaran Kecamatan Tikung, termasuk Desa Jotosanur. Masalah nyata yang dijawab adalah belum tersedianya informasi waktu tanam dan waktu panen per desa yang diperbarui secara berkala. Sistem tersebut dikembangkan untuk membantu petani, buruh tani, penebas, dan pemerintah desa merencanakan kegiatan pada setiap musim tanam.
 
 Tujuan pengembangan studi ini adalah sebagai berikut.
 - Menerapkan materi Big Data dan Machine Learning dari Dicoding pada data nyata berskala besar.
@@ -280,7 +280,7 @@ Tujuan pengembangan studi ini adalah sebagai berikut.
 
 Pengembangan dijalankan dalam lima langkah. Pertama, kebutuhan diidentifikasi dari rencana awal untuk program Kampung Pandu Sakti. Karena data program tidak tersedia, sasaran dialihkan ke jadwal tanam seluruh desa di Kecamatan Tikung. Kedua, solusi dirancang sebagai alur data bertahap, model prakiraan, dan situs web statis. Ketiga, hasil divalidasi dengan data BPS per desa dan data Survei Kerangka Sampel Area. Keempat, situs dibangun sebagai situs statis dan disiapkan untuk publikasi. Kelima, hasil dievaluasi dan didokumentasikan dalam laporan ini.
 
-Bagi mitra dan masyarakat, kegiatan ini menghasilkan data musim tanam tiga belas desa sejak 2017 yang sebelumnya tidak tersedia. Dampak tersebut belum sampai ke warga karena situs belum dipublikasikan. Bagi mahasiswa, kegiatan ini memberi pengalaman membangun sistem data dari pengambilan citra sampai penyajian, termasuk menguji hasilnya dengan data resmi.
+Bagi mitra dan masyarakat, kegiatan ini menghasilkan data musim tanam tiga belas desa sejak 2017 yang sebelumnya tidak tersedia. Dampak tersebut belum sampai ke warga karena situs belum dipublikasikan. Bagi mahasiswa, pengalaman yang diperoleh mencakup pembangunan sistem data dari pengambilan citra sampai penyajian, termasuk pengujian hasil dengan data resmi.
 
 == Relevansi dengan Mata Kuliah Konversi
 

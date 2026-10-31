@@ -5,7 +5,7 @@
 
 == Tinjauan Teoritis
 
-Studi ini bertumpu pada lima konsep, yaitu fenologi padi, citra optik, citra radar, intensitas pertanaman, dan pengolahan data bertahap. Bagian ini juga menjelaskan dasar pembelajaran mesin yang dipakai untuk prakiraan waktu panen.
+Studi ini bertumpu pada lima konsep, yaitu fenologi padi, citra optik, citra radar, intensitas pertanaman, dan pengolahan data bertahap. Selain itu, dasar pembelajaran mesin untuk prakiraan waktu panen juga dijelaskan.
 
 === Fenologi Padi
 
@@ -29,11 +29,11 @@ Intensitas pertanaman adalah jumlah musim tanam pada satu petak sawah dalam satu
 
 === Pengolahan Data Bertahap
 
-Data satelit perlu diolah melalui beberapa tahap sebelum siap dianalisis. Pola ekstraksi, transformasi, dan pemuatan (ETL) memisahkan pengambilan data mentah, pembersihan, dan penyajian @yudhistira2023ilkom. Pemisahan ini penting pada data pertanian yang volumenya terus bertambah setiap musim @kustanti2021jpi. Dalam studi ini, data disimpan dalam tiga lapis, yaitu data mentah (bronze), data bersih (silver), dan data siap pakai (gold).
+Data satelit perlu diolah melalui beberapa tahap sebelum siap dianalisis. Pola ekstraksi, transformasi, dan pemuatan (ETL) memisahkan pengambilan data mentah, pembersihan, dan penyajian @yudhistira2023ilkom. Pemisahan tersebut penting pada data pertanian yang volumenya terus bertambah setiap musim @kustanti2021jpi. Dalam studi ini, data disimpan dalam tiga lapis, yaitu data mentah (bronze), data bersih (silver), dan data siap pakai (gold).
 
 === Pembelajaran Mesin untuk Prakiraan Waktu
 
-Pembelajaran mesin telah dipakai untuk memprediksi produksi padi dari data historis @wijaya2025inti. Dalam studi ini, model memperkirakan tanggal panen dari tanggal tanam, puncak kehijauan, dan curah hujan. Model berbasis pohon keputusan, seperti random forest dan gradient boosting, dipilih karena mampu menangkap hubungan tidak linear antara fitur dan lama musim. Penilaian model dilakukan dengan menahan satu tahun penuh sebagai data uji. Cara ini mencegah model belajar dari musim yang sama dengan musim yang diuji.
+Pembelajaran mesin telah dipakai untuk memprediksi produksi padi dari data historis @wijaya2025inti. Dalam studi ini, model memperkirakan tanggal panen dari tanggal tanam, puncak kehijauan, dan curah hujan. Model berbasis pohon keputusan, seperti random forest dan gradient boosting, dipilih karena mampu menangkap hubungan tidak linear antara fitur dan lama musim. Penilaian model dilakukan dengan menahan satu tahun penuh sebagai data uji. Cara tersebut mencegah model belajar dari musim yang sama dengan musim yang diuji.
 
 == Penelitian Sebelumnya
 
@@ -62,7 +62,7 @@ Penelitian pemantauan padi dengan citra satelit di Indonesia telah berkembang pe
 
 Penelitian tersebut membuktikan bahwa tanggal tanam, tahap tumbuh, dan intensitas pertanaman dapat dibaca dari citra satelit. Meskipun demikian, ada tiga celah yang relevan dengan studi ini. Pertama, sebagian besar penelitian melatih model dengan data lapangan, sedangkan Kecamatan Tikung tidak memiliki data lapangan per petak. Kedua, peta yang dihasilkan umumnya mencakup wilayah luas dan ditujukan bagi peneliti atau pemerintah pusat, bukan bagi warga desa. Ketiga, penelitian prakiraan hasil panen pada kelompok tani masih berfokus pada satu komoditas dan satu kelompok @lasut2024jteksis.
 
-Tren terkini mengarah pada penggabungan citra optik dan radar untuk mengatasi awan, serta pemanfaatan arsip citra terbuka yang dapat diakses tanpa biaya. Penelitian di Karawang, misalnya, memadukan Sentinel-1, Sentinel-2, dan data iklim untuk memprediksi produktivitas padi pada 30 kecamatan @Fino_2026. Penelitian tersebut juga menilai model dengan menahan satu tahun penuh sebagai data uji, cara yang sama dengan yang dipakai dalam studi ini. Perbedaannya, studi ini memperkirakan waktu panen, bukan produktivitas, karena produktivitas padi antardesa di Tikung sangat seragam. Studi ini memakai Sentinel-1 dan Sentinel-2 dari katalog terbuka. Kontribusinya terletak pada penyajian jadwal tanam per desa yang diperbarui setiap bulan dan dapat dibaca langsung oleh warga.
+Tren terkini mengarah pada penggabungan citra optik dan radar untuk mengatasi awan, serta pemanfaatan arsip citra terbuka yang dapat diakses tanpa biaya. Penelitian di Karawang, misalnya, memadukan Sentinel-1, Sentinel-2, dan data iklim untuk memprediksi produktivitas padi pada 30 kecamatan @Fino_2026. Penelitian tersebut juga menilai model dengan menahan satu tahun penuh sebagai data uji, sama seperti cara yang dipakai di sini. Berbeda dari Karawang, studi ini memperkirakan waktu panen karena produktivitas padi antardesa di Tikung sangat seragam. Data Sentinel-1 dan Sentinel-2 yang dipakai juga berasal dari katalog terbuka. Sumbangan utamanya terletak pada jadwal tanam per desa yang dirancang untuk diperbarui setiap bulan dan dapat dibaca langsung oleh warga.
 
 === Variabel yang Diteliti
 
