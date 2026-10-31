@@ -8,6 +8,7 @@
 # The recipe adds --retina (2x pixels) and figures-light.json, which sets light mode.
 
 # The dev server floats its devtools bar over the page, so it is removed first.
+# The sticky site header would land in the middle of tall shots, so sticky elements become normal ones.
 - &shot
   url: http://localhost:3017/
   selector: '[data-figure="lumbung-padi"]'
@@ -16,6 +17,7 @@
   wait: 1500
   javascript: |
     document.querySelectorAll('#nuxt-devtools-container, #vue-tracer-overlay').forEach(e => e.remove())
+    document.querySelectorAll('body *').forEach(e => { if (getComputedStyle(e).position === 'sticky') e.style.position = 'relative' })
 
 # MapLibre draws tiles after the canvas appears, so the map gets a longer wait.
 - <<: *shot
@@ -42,6 +44,6 @@
   output: documents/laporan-akhir/gambar/jadwal-per-desa.png
 
 - <<: *shot
-  url: http://localhost:3017/metode
+  url: http://localhost:3017/tentang
   selector: '[data-figure="validasi-bps"]'
   output: documents/laporan-akhir/gambar/validasi-bps.png
