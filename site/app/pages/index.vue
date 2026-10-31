@@ -122,7 +122,10 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
           </div>
         </dl>
       </div>
-      <div class="h-[26rem] lg:h-[32rem]">
+      <div
+        class="h-[26rem] lg:h-[32rem]"
+        data-figure="peta-beranda"
+      >
         <ClientOnly>
           <AreaMap
             :outer="kecamatan"
@@ -141,7 +144,10 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
       </div>
     </section>
 
-    <section class="overflow-hidden rounded-lg ring ring-default">
+    <section
+      class="overflow-hidden rounded-lg ring ring-default"
+      data-figure="lumbung-padi"
+    >
       <div class="grid lg:grid-cols-[2fr_3fr]">
         <div class="flex flex-col justify-between gap-6 bg-(--ui-primary) p-6 text-inverted sm:p-10">
           <div class="flex flex-col gap-3">
@@ -223,6 +229,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
 
     <section
       v-if="main"
+      data-figure="kalender-tanam"
       class="flex flex-col gap-6"
     >
       <header class="flex max-w-2xl flex-col gap-3">
@@ -246,6 +253,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
 
     <section
       v-if="lastMonth"
+      data-figure="hujan-bulanan"
       class="flex flex-col gap-6"
     >
       <header class="flex max-w-2xl flex-col gap-3">
@@ -266,6 +274,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
 
     <section
       id="desa"
+      data-figure="cari-desamu"
       class="flex scroll-mt-20 flex-col gap-6"
     >
       <header class="flex flex-wrap items-end justify-between gap-4">

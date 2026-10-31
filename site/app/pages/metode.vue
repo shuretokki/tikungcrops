@@ -51,6 +51,7 @@ useSeoMeta({ title: t.seoTitle })
 
       <section
         v-if="summary.length && latestYear"
+        data-figure="validasi-bps"
         class="flex flex-col gap-4"
       >
         <h2 class="text-xl font-semibold">

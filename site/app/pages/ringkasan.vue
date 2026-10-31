@@ -98,6 +98,7 @@ useSeoMeta({ title: t.seoTitle })
 
       <section
         v-if="schedule.length"
+        data-figure="jadwal-per-desa"
         class="flex flex-col gap-4"
       >
         <header class="flex max-w-2xl flex-col gap-2">
