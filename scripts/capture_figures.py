@@ -25,6 +25,8 @@ PADDING = 24
 VIEWPORT = {"width": 1280, "height": 900}
 # MapLibre draws tiles after the canvas appears, so give it time to settle
 MAP_SETTLE_MS = 3000
+# `nuxt dev` floats its devtools bar over the page
+DEV_OVERLAYS = "#nuxt-devtools-container, #vue-tracer-overlay"
 
 
 def load_everything(page: Page) -> None:
@@ -83,6 +85,7 @@ def main() -> None:
         page = context.new_page()
         for path in PAGES:
             page.goto(args.base_url + path, wait_until="networkidle")
+            page.add_style_tag(content=f"{DEV_OVERLAYS} {{ display: none !important; }}")
             load_everything(page)
             for name in capture(page, args.out):
                 print(f"{path:12} -> {args.out / name}.png")
