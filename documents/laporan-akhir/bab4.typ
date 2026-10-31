@@ -161,30 +161,6 @@ Rentang 80% dari model mencakup tanggal panen sebenarnya pada 72 sampai 73% musi
   caption: [Galat prakiraan pada uji ulang dengan data yang dipotong pada tanggal prakiraan],
 ) <tabel-ujiulang>
 
-=== Capaian Dibandingkan dengan Rencana
-
-@tabel-capaian membandingkan target proposal dengan hasil yang dicapai sampai akhir Oktober 2026.
-
-#figure(
-  table(
-    columns: (1fr, 1fr, auto),
-    stroke: none,
-    inset: 6pt,
-    align: horizon + center,
-    table.hline(stroke: 1.2pt),
-    table.header([*Target proposal*], [*Realisasi*], [*Status*]),
-    table.hline(stroke: 0.6pt),
-    [Dashboard pencatatan panen, ternak, dan distribusi], [Situs pemantauan tanam dengan tiga halaman berfungsi], [Diganti],
-    [Prediksi hasil panen dengan MAPE di bawah 20%], [Prakiraan waktu panen dengan galat 11,9 hari, lebih kecil dari 15,2 hari], [Diganti, tercapai],
-    [Panduan operasional sistem], [Halaman Metode di situs], [Sebagian],
-    [Kanal pelaporan WhatsApp], [Tidak dikerjakan], [Tidak tercapai],
-    [Tidak direncanakan], [Validasi dua tahun dengan BPS dan 64 uji otomatis], [Tambahan],
-    [Tidak direncanakan], [Perluasan ke 27 kecamatan Kabupaten Lamongan], [Berjalan],
-    table.hline(stroke: 0.6pt),
-  ),
-  caption: [Capaian dibandingkan dengan rencana proposal],
-) <tabel-capaian>
-
 == Pembahasan
 
 === Jawaban atas Rumusan Masalah

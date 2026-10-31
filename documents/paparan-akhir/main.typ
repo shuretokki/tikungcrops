@@ -370,24 +370,3 @@ Kecamatan Tikung: 13 desa, sekitar 4.420 hektare sawah.
 - Penyebab: awan musim hujan menutupi citra optik di akhir musim tanam 1
 
 #cite-box(("bpslamongan2023ksa", "bpslamongan2024ksa"), display-label: "BPS Lamongan 2023; 2024", position: "bottom-right")
-
-== Cadangan: capaian dibandingkan dengan proposal
-
-#text(size: size-small)[
-  #table(
-    columns: (1fr, 1fr, auto),
-    stroke: none,
-    inset: 6pt,
-    align: (left, left, center),
-    table.hline(stroke: 1.2pt),
-    table.header([*Target proposal*], [*Realisasi*], [*Status*]),
-    table.hline(stroke: 0.6pt),
-    [Dashboard panen, ternak, distribusi], [Situs pemantauan tanam, tiga halaman], [Diganti],
-    [Prediksi hasil panen, MAPE < 20%], [Prakiraan waktu panen, 11,9 hari], [Diganti],
-    [Panduan operasional], [Halaman Metode di situs], [Sebagian],
-    [Kanal pelaporan WhatsApp], [Tidak dikerjakan], [Tidak tercapai],
-    [Tidak direncanakan], [Validasi dua tahun dengan BPS, 64 uji], [Tambahan],
-    [Tidak direncanakan], [Perluasan ke 27 kecamatan], [Berjalan],
-    table.hline(stroke: 0.6pt),
-  )
-]
