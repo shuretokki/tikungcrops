@@ -81,12 +81,12 @@ const paletteSizes = {
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: 'jade',
+      primary: 'action',
       info: 'blue',
       success: 'green',
       warning: 'yellow',
       error: 'red',
-      neutral: 'forest'
+      neutral: 'ink'
     },
 
     button: {
