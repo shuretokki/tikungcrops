@@ -58,7 +58,7 @@ export const COPY = {
 
     calendar: {
       title: (month: string) => `Musim Tanam Utama Biasanya Mulai ${month}`,
-      body: 'Tiap pita menunjukkan masa tanam sampai panen. Garis hijau menunjukkan posisi hari ini.',
+      body: 'Tiap pita menunjukkan masa tanam sampai panen. Garis tegak menandai hari ini.',
       today: 'Hari ini',
       plant: 'Puncak tanam',
       harvest: 'Puncak panen',
