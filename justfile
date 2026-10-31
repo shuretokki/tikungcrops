@@ -180,7 +180,7 @@ alias t := test
 @annotate *args:
     uv run python scripts/annotate_from_reuse.py --exclude "**/*.vue" --exclude "**/*.md" --exclude "**/*.json" --exclude "**/*.csv" --exclude "documents/**" --exclude "**/*.lock" --exclude "**/*.yaml" {{ args }}
 
-# Compile a typst document as PDF
+# Compile a typst document as PDF, e.g. `just pdf laporan-akhir/main` or `just pdf paparan-akhir/main`
 [group("docs")]
 pdf target="proposal":
-    {{ require("typst") }} compile documents/{{ target }}.typ
+    {{ require("typst") }} compile --root documents documents/{{ target }}.typ
