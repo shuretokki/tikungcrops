@@ -99,6 +99,32 @@ Waktu panen satelit juga dibandingkan dengan luas panen bulanan Kabupaten Lamong
   caption: [Galat rata-rata prakiraan tanggal panen pada sembilan tahun uji],
 ) <tabel-model>
 
+Pengujian kedua membandingkan sembilan model dengan pengaturan bawaan pada sembilan tahun uji yang sama (@tabel-model-bawaan). Untuk prakiraan dari tanam, gradient boosting tetap memberi galat terkecil, yaitu 11,7 hari. Enam model lain, termasuk tiga pustaka boosting serta model gabungan voting dan stacking, berada pada 12,0 sampai 12,2 hari. Regresi linear memberi galat 13,8 hari, sedangkan gradient boosting tanpa interaksi antarfitur memberi galat 12,8 hari. Untuk prakiraan dari puncak, semua model berada pada 9,2 sampai 10,3 hari, dekat dengan perkiraan median sebesar 10,1 hari. Oleh karena itu, model gradient boosting yang sudah dipakai di situs dipertahankan.
+
+#figure(
+  table(
+    columns: (auto, auto, auto),
+    stroke: none,
+    inset: 6pt,
+    align: (left, center, center),
+    table.hline(stroke: 1.2pt),
+    table.header([*Model*], [*Dari tanam*], [*Dari puncak*]),
+    table.hline(stroke: 0.6pt),
+    [Gradient boosting], [11,7 hari], [9,4 hari],
+    [XGBoost], [12,0 hari], [10,0 hari],
+    [Voting], [12,0 hari], [9,3 hari],
+    [LightGBM], [12,1 hari], [9,4 hari],
+    [Spline], [12,1 hari], [9,2 hari],
+    [CatBoost], [12,2 hari], [9,3 hari],
+    [Stacking], [12,2 hari], [9,3 hari],
+    [Gradient boosting tanpa interaksi], [12,8 hari], [10,3 hari],
+    [Regresi linear], [13,8 hari], [9,7 hari],
+    [Perkiraan median], [15,2 hari], [10,1 hari],
+    table.hline(stroke: 0.6pt),
+  ),
+  caption: [Galat rata-rata sembilan model dengan pengaturan bawaan pada sembilan tahun uji],
+) <tabel-model-bawaan>
+
 Rentang 80% dari model mencakup tanggal panen sebenarnya pada 72 sampai 73% musim. Hasil uji ulang pada tanggal-tanggal di masa lalu dirangkum pada @tabel-ujiulang. Prakiraan yang dikeluarkan pada Juni jauh lebih tepat daripada prakiraan yang dikeluarkan pada Januari.
 
 #figure(
