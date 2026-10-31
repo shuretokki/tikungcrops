@@ -169,7 +169,7 @@ Kedudukan ini berbeda dari rencana proposal. Proposal menempatkan mahasiswa seba
     [Validasi], [Membandingkan luas dan waktu panen dengan data BPS dan KSA],
     [Pemodelan], [Melatih dan membandingkan model prakiraan waktu panen],
     [Penyajian], [Mengekspor data per desa dan membangun situs web],
-    [Pengujian], [Menulis 60 uji otomatis untuk alur data dan model],
+    [Pengujian], [Menulis 64 uji otomatis untuk alur data dan model],
     [Otomatisasi], [Menyiapkan jadwal pengambilan data bulanan],
     table.hline(stroke: 0.6pt),
   ),
@@ -240,7 +240,7 @@ Hasil pengolahan diekspor menjadi berkas data per desa dan disimpan dalam basis 
 
 === Pengujian
 
-Kebenaran alur data dan model diperiksa dengan 60 uji otomatis. Sebagian uji memakai deret waktu buatan yang tanggal tanam dan panennya sudah diketahui, sehingga hasil deteksi dapat dibandingkan dengan jawaban yang benar. Uji lain memastikan bahwa data dari tahun uji tidak pernah masuk ke data pelatihan.
+Kebenaran alur data dan model diperiksa dengan 64 uji otomatis. Sebagian uji memakai deret waktu buatan yang tanggal tanam dan panennya sudah diketahui, sehingga hasil deteksi dapat dibandingkan dengan jawaban yang benar. Uji lain memastikan bahwa data dari tahun uji tidak pernah masuk ke data pelatihan.
 
 == Pembelajaran Hal Baru
 
@@ -324,7 +324,7 @@ Bagi mitra dan masyarakat, kegiatan ini menghasilkan data musim tanam tiga belas
     [Perencanaan Program], [2], [Penyusunan proposal, rencana delapan minggu, dan papan rencana kerja yang diperbarui selama studi],
     [Big Data], [3], [Alur pengolahan bertahap untuk 4.954 sel Tikung dan 109.504 sel di 27 kecamatan Lamongan, pemrosesan per kelompok sel agar sekitar 49 juta baris data muat dalam memori, penyimpanan dalam basis data NoSQL MongoDB, serta visualisasi di situs web],
     [Machine Learning], [3], [Model prakiraan waktu panen, dua tahap perbandingan model dengan dan tanpa penyetelan memakai validasi per tahun, serta rentang prakiraan 80%],
-    [Evaluasi Program], [2], [Validasi dengan data BPS per desa, data DKPP per kecamatan, dan Survei Kerangka Sampel Area, uji ulang prakiraan, serta 60 uji otomatis],
+    [Evaluasi Program], [2], [Validasi dengan data BPS per desa, data DKPP per kecamatan, dan Survei Kerangka Sampel Area, uji ulang prakiraan, serta 64 uji otomatis],
     table.hline(stroke: 0.6pt),
   ),
   caption: [Relevansi kegiatan dengan mata kuliah konversi],

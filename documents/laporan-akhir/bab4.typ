@@ -79,7 +79,7 @@ Sawah di Kecamatan Tikung tercatat ditanami 2,02 sampai 2,85 kali per tahun pada
 
 Waktu panen satelit juga dibandingkan dengan luas panen bulanan Kabupaten Lamongan dari Survei Kerangka Sampel Area. Porsi panen pada Januari sampai Mei hanya berselisih 0,01 sampai 0,08 dari data resmi pada 2020 sampai 2023. Meskipun demikian, korelasi porsi bulanan turun dari 0,61 pada 2020 menjadi 0,05 pada 2023. Data resmi mencatat 20 sampai 29% panen tahunan pada Maret, sedangkan satelit hanya mencatat 1 sampai 11% pada Maret 2021 sampai 2023.
 
-Alur yang sama juga dijalankan untuk seluruh 27 kecamatan di Kabupaten Lamongan, dengan citra September 2020 sampai September 2026. Hasil tahun 2021 dibandingkan dengan luas panen padi per kecamatan dari Dinas Ketahanan Pangan dan Pertanian Kabupaten Lamongan #text(fill: red)[(rujukan Satu Data Lamongan menunggu persetujuan)]. @tabel-lamongan menunjukkan bahwa luas semua musim tanam dari satelit hampir sama dengan luas panen padi resmi. Sebaliknya, luas musim yang tergolong padi hanya 57% dari luas resmi. Rasio padi per kecamatan berkisar dari 0,18 di Kecamatan Mantup sampai 0,90 di Kecamatan Sarirejo.
+Alur yang sama juga dijalankan untuk seluruh 27 kecamatan di Kabupaten Lamongan, dengan citra September 2020 sampai September 2026. Hasil tahun 2021 dibandingkan dengan luas panen padi per kecamatan dari Dinas Ketahanan Pangan dan Pertanian Kabupaten Lamongan @dkpplamongan2021panen. @tabel-lamongan menunjukkan bahwa luas semua musim tanam dari satelit hampir sama dengan luas panen padi resmi. Sebaliknya, luas musim yang tergolong padi hanya 57% dari luas resmi. Rasio padi per kecamatan berkisar dari 0,18 di Kecamatan Mantup sampai 0,90 di Kecamatan Sarirejo.
 
 #figure(
   table(
@@ -99,7 +99,7 @@ Alur yang sama juga dijalankan untuk seluruh 27 kecamatan di Kabupaten Lamongan,
 
 === Kinerja Prakiraan Waktu Panen
 
-@tabel-model membandingkan galat rata-rata empat model pada sembilan tahun uji. Gradient boosting memberi galat terkecil untuk kedua prakiraan. Di antara empat model tersebut, gradient boosting menjadi yang terbaik pada enam dari sembilan tahun untuk prakiraan tanam dan pada empat dari sembilan tahun untuk prakiraan puncak.
+@tabel-model membandingkan galat rata-rata empat model pada sembilan tahun uji. Gradient boosting memberi galat terkecil untuk kedua prakiraan. Di antara empat model tersebut, gradient boosting menjadi yang terbaik pada enam dari sembilan tahun untuk prakiraan tanam. Untuk prakiraan puncak, model ini terbaik pada empat dari sembilan tahun.
 
 #figure(
   table(
@@ -178,7 +178,7 @@ Rentang 80% dari model mencakup tanggal panen sebenarnya pada 72 sampai 73% musi
     [Prediksi hasil panen dengan MAPE di bawah 20%], [Prakiraan waktu panen dengan galat 11,9 hari, lebih kecil dari 15,2 hari], [Diganti, tercapai],
     [Panduan operasional sistem], [Halaman Metode di situs], [Sebagian],
     [Kanal pelaporan WhatsApp], [Tidak dikerjakan], [Tidak tercapai],
-    [Tidak direncanakan], [Validasi dua tahun dengan BPS dan 60 uji otomatis], [Tambahan],
+    [Tidak direncanakan], [Validasi dua tahun dengan BPS dan 64 uji otomatis], [Tambahan],
     [Tidak direncanakan], [Perluasan ke 27 kecamatan Kabupaten Lamongan], [Berjalan],
     table.hline(stroke: 0.6pt),
   ),

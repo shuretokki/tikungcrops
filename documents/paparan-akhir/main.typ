@@ -136,7 +136,7 @@ Kecamatan Tikung: 13 desa, sekitar 4.420 hektare sawah.
   )
 ]
 #v(1fr)
-#muted[Pengambilan data bulanan setiap tanggal 25 sudah disiapkan, belum aktif. Benar tidaknya alur diperiksa dengan 60 uji otomatis.]
+#muted[Pengambilan data bulanan setiap tanggal 25 sudah disiapkan, belum aktif. Benar tidaknya alur diperiksa dengan 64 uji otomatis.]
 
 == Musim tanam terbaca dari naik turunnya kehijauan sawah
 
@@ -386,7 +386,7 @@ Kecamatan Tikung: 13 desa, sekitar 4.420 hektare sawah.
     [Prediksi hasil panen, MAPE < 20%], [Prakiraan waktu panen, 11,9 hari], [Diganti],
     [Panduan operasional], [Halaman Metode di situs], [Sebagian],
     [Kanal pelaporan WhatsApp], [Tidak dikerjakan], [Tidak tercapai],
-    [Tidak direncanakan], [Validasi dua tahun dengan BPS, 60 uji], [Tambahan],
+    [Tidak direncanakan], [Validasi dua tahun dengan BPS, 64 uji], [Tambahan],
     [Tidak direncanakan], [Perluasan ke 27 kecamatan], [Berjalan],
     table.hline(stroke: 0.6pt),
   )
