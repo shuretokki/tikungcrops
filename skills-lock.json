@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "academic-pptx": {
+      "source": "gabberflast/academic-pptx-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "1c779c705825f767a118b9b5e4082c8ba2953481b36f3727c45433a92ad0b1fb"
+    },
     "analyzing-data": {
       "source": "legout/data-platform-agent-skills",
       "sourceType": "github",
@@ -78,6 +84,18 @@
       "sourceType": "github",
       "skillPath": "skills/typst/SKILL.md",
       "computedHash": "74eb5b0481a869a49acad49a71f73d76f32ed80c1f2ca993607ac5348c6ae689"
+    },
+    "typst-slide": {
+      "source": "noi1r/typst-slide",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "d3d74b9da591cac5acc4c77ef1d9da1945479d319b3ccf4d6b3b2ac7f43db0a7"
+    },
+    "typst-touying": {
+      "source": "statzhero/typst-touying-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "3d6de5e8d31f060c557df86e98eeec96ee39f4149d2447eddb46c68eb9447103"
     },
     "ux-writing": {
       "source": "content-designer/ux-writing-skill",
