@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // All user-facing text of the site lives here, so a rewrite touches one file.
-// The landing page talks to local residents in a casual "kamu" register, with headings in Title Case.
-// Sources, method and limits stay on the Metode page.
+// The site talks to local residents in a casual "kamu" register.
+// Headings, buttons and chart titles use Title Case, while labels, body text and placeholders use sentence case.
+// Text never names a colour, because colours come from the theme and can change.
 
 export const COPY = {
   site: {
@@ -13,22 +14,27 @@ export const COPY = {
 
   nav: {
     ringkasan: 'Ringkasan',
-    perbandingan: 'Perbandingan',
-    metode: 'Metode',
-    data: 'Data'
+    tentang: 'Tentang Data'
+  },
+
+  stages: {
+    planted: 'Sedang ditanam',
+    peaked: 'Menjelang panen',
+    fallow: 'Bera',
+    unknown: 'Tidak terbaca (awan)'
   },
 
   landing: {
     seoTitle: 'Tanam Padi Lamongan',
     eyebrow: 'Kecamatan Tikung, Lamongan',
-    headline: 'Kapan Sawah di Desamu Mulai Tanam?',
+    headline: 'Kapan Sawah di Desamu Mulai Ditanami?',
     description: (units: number) => `Lihat kondisi sawah di ${units} desa Tikung, kalender tanam tiap musim, dan hujan beberapa bulan terakhir.`,
     primaryCta: 'Cari Desamu',
     secondaryCta: 'Lihat Ringkasan',
     stats: {
       paddy: 'Luas sawah',
       units: 'Desa',
-      season: 'Musim tanam 1 mulai',
+      season: 'Awal musim tanam 1',
       asOf: 'Data terakhir'
     },
     tableToggle: 'Lihat Tabel',
@@ -37,9 +43,9 @@ export const COPY = {
     pride: {
       title: 'Lamongan, Lumbung Padi Jawa Timur',
       body: (units: number, year: number) => `Pada ${year}, Lamongan jadi penghasil padi terbesar di Jawa Timur, tipis di atas Bojonegoro. Sawah di ${units} desa Tikung ikut menyumbang panen itu.`,
-      chartTitle: (year: number) => `Produksi padi ${year}, lima kabupaten teratas`,
+      chartTitle: (year: number) => `Produksi Padi ${year}, Lima Kabupaten Teratas`,
       unit: 'ribu ton gabah kering giling',
-      rank: '#1',
+      rank: 'Peringkat 1',
       stats: {
         share: 'dari seluruh padi Jawa Timur',
         rice: 'beras dari Lamongan',
@@ -51,9 +57,9 @@ export const COPY = {
     now: {
       title: (resting: boolean) => (resting ? 'Sawah Menunggu Musim Tanam' : 'Musim Tanam Sedang Berjalan'),
       body: (resting: boolean, pct: string, date: string) => resting
-        ? `Per ${date}, ${pct} sawah sedang bera. Biasanya sawah mulai ditanami lagi setelah hujan turun.`
-        : `Per ${date}, ${pct} sawah sedang bera. Sisanya sedang ditanami atau menjelang panen.`,
-      columns: { stage: 'Tahap', ha: 'Luas', share: 'Bagian' }
+        ? `Pada ${date}, ${pct} sawah sedang bera. Biasanya sawah mulai ditanami lagi setelah hujan turun.`
+        : `Pada ${date}, ${pct} sawah sedang bera, sementara sisanya sedang ditanami atau menjelang panen.`,
+      columns: { stage: 'Tahap', ha: 'Luas', share: 'Persen' }
     },
 
     calendar: {
@@ -78,56 +84,75 @@ export const COPY = {
 
     desa: {
       title: 'Cari Desamu',
-      body: 'Ketik nama desamu, lalu pilih untuk melihat kalender tanam dan perkiraan panennya.',
+      body: 'Ketik nama desamu, lalu pilih desa untuk melihat jadwal tanam dan perkiraan panen.',
       search: 'Ketik nama desa',
       empty: 'Desa tidak ditemukan. Coba ejaan lain.',
       paddy: (ha: string) => `${ha} sawah`
     }
   },
 
-  metode: {
-    seoTitle: 'Metode - Tanam Padi Lamongan',
-    title: 'Metode',
-    description: 'Dari mana data di situs ini berasal, dan seberapa tepat hasilnya.',
+  tentang: {
+    seoTitle: 'Tentang Data - Tanam Padi Lamongan',
+    title: 'Tentang Data',
+    description: 'Dari mana angka di situs ini berasal, seberapa tepat, dan apa saja batasnya.',
+    facts: {
+      units: 'desa dipantau',
+      since: 'awal data citra',
+      sinceValue: 'Okt 2017',
+      match: 'selisih luas padi dengan BPS'
+    },
     steps: {
-      title: 'Dari Citra Satelit ke Kalender Tanam',
+      title: 'Cara Kerja',
       items: [
         {
           icon: 'i-lucide-satellite',
           title: 'Citra Radar dan Optik',
-          description: 'Sentinel-1 merekam permukaan sawah walaupun langit berawan, sedangkan Sentinel-2 merekam kehijauan tanaman.'
+          description: 'Sentinel-2 merekam kehijauan tanaman. Sentinel-1 memakai radar, sehingga tetap bisa merekam sawah saat langit berawan.'
         },
         {
           icon: 'i-lucide-waves',
           title: 'Genangan dan Pertumbuhan',
-          description: 'Genangan air menandai awal tanam, lalu puncak kehijauan menandai fase menjelang panen.'
+          description: 'Sawah yang baru digenangi menandai awal tanam. Saat tanaman paling hijau, panen biasanya tinggal beberapa minggu lagi.'
         },
         {
           icon: 'i-lucide-calendar-check',
-          title: 'Kalender per Desa',
-          description: 'Hasilnya dirangkum per desa menjadi musim tanam dan perkiraan panen.'
+          title: 'Jadwal per Desa',
+          description: 'Hasil dari tiap petak dijumlahkan per desa menjadi jadwal tanam dan perkiraan panen.'
         }
       ]
     },
-    validation: {
-      title: 'Seberapa Tepat Datanya',
-      body: (years: string, units: number) => `Luas dari satelit dibandingkan dengan luas panen BPS per desa untuk ${units} desa pada tahun ${years}. Satelit mencatat luas semua tanaman lebih besar dari BPS, karena peta lahan pertanian juga mencakup jagung dan lahan kering.`,
-      scatterNote: (year: number) => `Grafik menunjukkan padi pada ${year}, tahun yang tidak dipakai untuk menyetel ambang deteksi padi.`,
+    accuracy: {
+      title: 'Seberapa Tepat?',
+      body: (years: string, units: number) => `Luas sawah dari satelit dibandingkan dengan luas panen BPS di ${units} desa pada ${years}. Untuk padi, kedua angka hampir sama.`,
+      crops: 'Luas semua tanaman dari satelit lebih besar, karena peta lahan pertanian juga memuat jagung dan tegalan.',
+      rNote: 'Kecocokan antardesa bernilai 0 sampai 1. Makin dekat ke 1, makin mirip urutan desa dari satelit dengan urutan desa dari BPS.',
+      scatterNote: (year: number) => `Titik di bawah adalah padi tahun ${year}. Data tahun tersebut tidak dipakai saat aturan deteksi padi dibuat.`,
       x: 'Luas panen padi BPS (ha)',
       y: 'Luas padi dari satelit (ha)',
       equal: 'Sama dengan BPS',
       readout: (unit: string, ref: string, sat: string) => `${unit}: BPS ${ref}, satelit ${sat}`,
-      hint: 'Arahkan kursor ke titik untuk melihat nama desa.',
-      crops: { rice: 'Padi', all_crops: 'Semua tanaman' } as Record<string, string>,
-      summaryColumns: { year: 'Tahun', crop: 'Tanaman', r: 'Korelasi', ratio: 'Satelit / BPS' },
+      hint: 'Ketuk atau arahkan kursor ke titik untuk melihat nama desa.',
+      cropNames: { rice: 'Padi', all_crops: 'Semua tanaman' } as Record<string, string>,
+      summaryColumns: { year: 'Tahun', crop: 'Tanaman', r: 'Kecocokan antardesa', ratio: 'Luas satelit dibanding BPS' },
       columns: { unit: 'Desa', reference: 'BPS', satellite: 'Satelit' }
+    },
+    sources: {
+      title: 'Sumber Data',
+      items: [
+        { name: 'Sentinel-2 (ESA)', role: 'Kehijauan tanaman' },
+        { name: 'Sentinel-1 (ESA)', role: 'Genangan air, tembus awan' },
+        { name: 'CHIRPS', role: 'Curah hujan bulanan' },
+        { name: 'ESA WorldCover', role: 'Batas lahan pertanian' },
+        { name: 'Lahan Baku Sawah (BIG)', role: 'Peta sawah resmi' },
+        { name: 'BPS Kabupaten Lamongan', role: 'Luas panen pembanding' }
+      ]
     },
     limits: {
       title: 'Batas Data Ini',
       items: [
-        'Tanggal tanam dan panen belum dicocokkan dengan catatan panen petani.',
-        'Saat musim hujan, awan menutupi citra di awal musim, jadi perkiraan bisa meleset tiga sampai lima minggu. Saat kemarau, selisihnya sekitar satu sampai dua minggu.',
-        'Sejak 2022 satelit radar lebih jarang melintas, jadi sebagian musim padi tidak terdeteksi.'
+        'Tanggal tanam dan panen belum dicocokkan dengan catatan petani.',
+        'Saat musim hujan, awan sering menutupi awal musim, sehingga perkiraan bisa meleset tiga sampai lima minggu. Pada kemarau, selisihnya sekitar satu sampai dua minggu.',
+        'Sejak 2022, satelit radar lebih jarang melintas. Akibatnya, sebagian musim padi tidak terdeteksi.'
       ]
     }
   },
@@ -135,7 +160,7 @@ export const COPY = {
   ringkasan: {
     seoTitle: 'Ringkasan - Tanam Padi Lamongan',
     title: 'Ringkasan Sawah Tikung',
-    description: (units: number, asOf: string) => `Kondisi sawah, jadwal tanam, dan perkiraan panen di ${units} desa. Data per ${asOf}.`,
+    description: (units: number, asOf: string) => `Kondisi sawah, jadwal tanam, dan perkiraan panen di ${units} desa. Data terakhir: ${asOf}.`,
     mapLoading: 'Memuat peta...',
     now: {
       title: 'Kondisi Sekarang'
@@ -147,7 +172,7 @@ export const COPY = {
       harvest: 'Puncak panen',
       today: 'Hari ini',
       readout: (unit: string, plant: string, harvest: string) => `${unit}: puncak tanam ${plant}, puncak panen ${harvest}`,
-      hint: 'Arahkan kursor ke baris untuk melihat tanggalnya.'
+      hint: 'Ketuk atau arahkan kursor ke baris untuk melihat tanggal.'
     },
     harvest: {
       title: 'Panen 8 Minggu ke Depan',
@@ -167,6 +192,32 @@ export const COPY = {
         plant: 'Puncak tanam',
         harvest: 'Puncak panen'
       }
+    }
+  },
+
+  desa: {
+    seoTitle: (unit: string) => `Desa ${unit} - Tanam Padi Lamongan`,
+    title: (unit: string) => `Desa ${unit}`,
+    description: (ha: string, asOf: string) => `Luas sawah sekitar ${ha}. Data terakhir: ${asOf}.`,
+    back: 'Semua Desa',
+    notFound: 'Desa tidak ditemukan.',
+    now: {
+      title: 'Kondisi Sekarang'
+    },
+    schedule: {
+      title: 'Jadwal Musim Tanam 1',
+      body: 'Tanggal biasa berdasarkan pola sejak 2017.',
+      plant: 'Puncak tanam',
+      harvest: 'Puncak panen',
+      none: 'Data musim lalu di desa ini belum cukup untuk membuat jadwal.'
+    },
+    harvest: {
+      title: 'Panen 8 Minggu ke Depan',
+      row: (week: string, ha: string) => `Minggu ${week}: sekitar ${ha}`,
+      empty: 'Belum ada perkiraan panen dalam 8 minggu ke depan.'
+    },
+    map: {
+      title: 'Letak Sawah'
     }
   }
 }

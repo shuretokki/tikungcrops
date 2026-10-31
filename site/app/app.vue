@@ -1,9 +1,7 @@
 <script setup lang="ts">
 const links = [
   { label: COPY.nav.ringkasan, to: '/ringkasan', icon: 'i-lucide-map' },
-  { label: COPY.nav.perbandingan, to: '/perbandingan', icon: 'i-lucide-chart-column' },
-  { label: COPY.nav.metode, to: '/metode', icon: 'i-lucide-microscope' },
-  { label: COPY.nav.data, to: '/data', icon: 'i-lucide-download' }
+  { label: COPY.nav.tentang, to: '/tentang', icon: 'i-lucide-info' }
 ]
 </script>
 

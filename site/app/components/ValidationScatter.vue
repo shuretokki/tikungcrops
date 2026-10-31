@@ -2,7 +2,7 @@
 import { formatHa } from '~/composables/useArea'
 
 const props = defineProps<{ points: ValidationUnit[] }>()
-const t = COPY.metode.validation
+const t = COPY.tentang.accuracy
 
 const W = 420
 const H = 320

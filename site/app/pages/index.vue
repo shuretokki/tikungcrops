@@ -151,7 +151,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
       <div class="grid lg:grid-cols-[2fr_3fr]">
         <div class="flex flex-col justify-between gap-6 bg-(--ui-primary) p-6 text-inverted sm:p-10">
           <div class="flex flex-col gap-3">
-            <p class="text-6xl font-semibold sm:text-7xl">
+            <p class="text-5xl font-semibold sm:text-6xl">
               {{ t.pride.rank }}
             </p>
             <h2 class="text-2xl font-semibold text-balance">
