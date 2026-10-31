@@ -185,7 +185,8 @@ alias t := test
 pdf target="proposal":
     {{ require("typst") }} compile --root documents documents/{{ target }}.typ
 
-# Capture the website figures for the laporan into documents/laporan-akhir/gambar (start `just site-dev` first)
+# Capture the laporan's website figures listed in scripts/figures.yml (start `just site-dev` first)
 [group("docs")]
 figures *args:
-    uv run --with playwright==1.49.1 python scripts/capture_figures.py --chromium "$(nix build --no-link --print-out-paths nixpkgs#chromium)/bin/chromium" {{ args }}
+    uvx --from shot-scraper==1.12 shot-scraper install
+    uvx --from shot-scraper==1.12 shot-scraper multi scripts/figures.yml --retina --auth scripts/figures-light.json {{ args }}

@@ -1,0 +1,9 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:3017",
+      "localStorage": [{ "name": "nuxt-color-mode", "value": "light" }]
+    }
+  ]
+}

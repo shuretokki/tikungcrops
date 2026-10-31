@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
+# Website figures for the laporan, captured with shot-scraper (https://shot-scraper.datasette.io).
+# Run `just site-dev` first, then `just figures`.
+# Each entry captures one element marked data-figure="<name>" on the page.
+# To add a figure, mark the element in the site and copy an entry below.
+# The recipe adds --retina (2x pixels) and figures-light.json, which sets light mode.
+
+# The dev server floats its devtools bar over the page, so it is removed first.
+- &shot
+  url: http://localhost:3017/
+  selector: '[data-figure="lumbung-padi"]'
+  output: documents/laporan-akhir/gambar/lumbung-padi.png
+  padding: 24
+  wait: 1500
+  javascript: |
+    document.querySelectorAll('#nuxt-devtools-container, #vue-tracer-overlay').forEach(e => e.remove())
+
+# MapLibre draws tiles after the canvas appears, so the map gets a longer wait.
+- <<: *shot
+  selector: '[data-figure="peta-beranda"]'
+  output: documents/laporan-akhir/gambar/peta-beranda.png
+  wait_for: document.querySelector('.maplibregl-canvas')
+  wait: 4000
+
+- <<: *shot
+  selector: '[data-figure="kalender-tanam"]'
+  output: documents/laporan-akhir/gambar/kalender-tanam.png
+
+- <<: *shot
+  selector: '[data-figure="hujan-bulanan"]'
+  output: documents/laporan-akhir/gambar/hujan-bulanan.png
+
+- <<: *shot
+  selector: '[data-figure="cari-desamu"]'
+  output: documents/laporan-akhir/gambar/cari-desamu.png
+
+- <<: *shot
+  url: http://localhost:3017/ringkasan
+  selector: '[data-figure="jadwal-per-desa"]'
+  output: documents/laporan-akhir/gambar/jadwal-per-desa.png
+
+- <<: *shot
+  url: http://localhost:3017/metode
+  selector: '[data-figure="validasi-bps"]'
+  output: documents/laporan-akhir/gambar/validasi-bps.png
