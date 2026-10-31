@@ -236,7 +236,7 @@ Untuk musim yang masih berjalan, luas sawah setiap sel dibagi merata pada rentan
 
 === Penyajian dan Otomatisasi
 
-Hasil pengolahan diekspor menjadi berkas data per desa dan disimpan dalam basis data MongoDB. Berkas tersebut dibaca oleh situs web statis yang menampilkan kondisi sawah, kalender tanam, jadwal tanam per desa, dan perkiraan panen. Pengambilan citra dan curah hujan bulan sebelumnya dijadwalkan berjalan otomatis setiap tanggal 25.
+Hasil pengolahan diekspor menjadi berkas data per desa dan disimpan dalam basis data MongoDB. Berkas tersebut dibaca oleh situs web statis yang menampilkan kondisi sawah, kalender tanam, jadwal tanam per desa, dan perkiraan panen. Alur pengambilan citra dan curah hujan bulan sebelumnya setiap tanggal 25 sudah disiapkan, tetapi belum diaktifkan.
 
 === Pengujian
 
@@ -280,7 +280,37 @@ Tujuan pengembangan studi ini adalah sebagai berikut.
 
 Pengembangan dijalankan dalam lima langkah. Pertama, kebutuhan diidentifikasi dari rencana awal untuk program Kampung Pandu Sakti. Karena data program tidak tersedia, sasaran dialihkan ke jadwal tanam seluruh desa di Kecamatan Tikung. Kedua, solusi dirancang sebagai alur data bertahap, model prakiraan, dan situs web statis. Ketiga, hasil divalidasi dengan data BPS per desa dan data Survei Kerangka Sampel Area. Keempat, situs dijalankan di komputer mahasiswa dan disiapkan untuk publikasi. Kelima, hasil dievaluasi dan didokumentasikan dalam laporan ini.
 
-#perlu[Tabel kegiatan mingguan (posisi, topik, durasi jam, target, metode). Logbook MELISA baru tersusun sampai 30 September 2026, sehingga jam per minggu untuk Oktober belum tersedia.]
+@tabel-mingguan merangkum kegiatan per minggu menurut logbook MELISA. Durasi dihitung dari estimasi resmi kelas Dicoding, jadwal sesi wajib, dan catatan sesi kerja proyek.
+
+#figure(
+  text(size: 10pt)[
+    #table(
+      columns: (auto, auto, 1fr, auto, 1fr, auto),
+      stroke: none,
+      inset: 5pt,
+      align: (left, left, left, center, left, left),
+      table.hline(stroke: 1.2pt),
+      table.header([*Minggu*], [*Posisi*], [*Topik*], [*Jam*], [*Target*], [*Metode*]),
+      table.hline(stroke: 0.6pt),
+      [3--9 Agu], [Peserta kelas], [Pengenalan kecerdasan buatan], [1,5], [Memahami posisi AI, ML, dan DL], [Kelas daring],
+      [10--16 Agu], [Peserta kelas], [Data untuk kecerdasan buatan], [1,4], [Memahami peran data dalam AI], [Kelas daring],
+      [17--23 Agu], [Peserta kelas], [Dasar dan logika pemrograman], [15,0], [Menyelesaikan dua kelas matrikulasi], [Kelas daring],
+      [24--30 Agu], [Peserta kelas], [Orientasi Asah, Git, Kiro, prompt engineering, cloud AWS, pengantar ML dan DL], [62,1], [Menyelesaikan kelas wajib awal], [Kelas daring, sesi wajib],
+      [31 Agu--6 Sep], [Peserta kelas], [Deep learning, ujian Dasar AI, dasar Python], [33,1], [Lulus Belajar Dasar AI], [Kelas daring, ILT],
+      [7--13 Sep], [Peserta kelas, pengembang proyek], [Python lanjutan, ML pemula, kebutuhan desa mitra], [38,6], [Lulus kelas Python, memetakan kebutuhan mitra], [Kelas daring, ILT, kerja proyek],
+      [14--20 Sep], [Peserta kelas, pengembang proyek], [ML pemula, riset data resmi, proposal], [20,9], [Proposal final], [Kelas daring, ILT, kerja proyek],
+      [21--27 Sep], [Peserta kelas, pengembang proyek], [Pembersihan data, alur deteksi musim tanam, validasi dan prakiraan panen], [28,6], [Alur data dan model pertama berjalan], [Kelas daring, ILT, kerja proyek],
+      table.hline(stroke: 0.6pt),
+    )
+  ],
+  caption: [Kegiatan mingguan menurut logbook MELISA, Agustus sampai September 2026],
+) <tabel-mingguan>
+
+#perlu[
+  - Minggu 28 September sampai akhir Oktober 2026 belum tercatat di logbook.
+  - Logbook masih memuat tanda [CEK] dan [ISI]. Jumlah per minggu di tabel ini 12.074 menit, sedangkan rekap logbook 11.873 menit.
+  - Minggu 24 sampai 30 Agustus memuat hari di atas delapan jam (24, 26, dan 27 Agustus). Angka ini perlu dicocokkan dengan logbook.
+]
 
 Bagi mitra dan masyarakat, kegiatan ini menghasilkan data musim tanam tiga belas desa sejak 2017 yang sebelumnya tidak tersedia. Dampak tersebut belum sampai ke warga karena situs belum dipublikasikan. Bagi mahasiswa, kegiatan ini memberi pengalaman membangun sistem data dari pengambilan citra sampai penyajian, termasuk menguji hasilnya dengan data resmi.
 

@@ -136,7 +136,7 @@ Kecamatan Tikung: 13 desa, sekitar 4.420 hektare sawah.
   )
 ]
 #v(1fr)
-#muted[Pengambilan data bulan lalu dijadwalkan otomatis setiap tanggal 25. Benar tidaknya alur diperiksa dengan 60 uji otomatis.]
+#muted[Pengambilan data bulanan setiap tanggal 25 sudah disiapkan, belum aktif. Benar tidaknya alur diperiksa dengan 60 uji otomatis.]
 
 == Musim tanam terbaca dari naik turunnya kehijauan sawah
 
