@@ -15,8 +15,8 @@ geometries. Silver puts every cell on one 5-day calendar:
     5. Add the VH-VV difference (dB, the VH/VV ratio) and a water flag (LSWI > NDVI,
        standing water such as flooded paddy at transplanting).
 
-Silver is rebuilt from all bronze months each run. It is small, and rebuilding keeps
-it consistent when a month is reprocessed.
+Silver is rebuilt from all bronze months each run, which keeps it consistent when a
+month is reprocessed. Cells are processed in batches, so a kabupaten fits in memory.
 
 Output: data/silver/sentinel/<aoi-slug>.parquet, one row per cell per 5-day step.
 """
@@ -24,13 +24,13 @@ Output: data/silver/sentinel/<aoi-slug>.parquet, one row per cell per 5-day step
 from __future__ import annotations
 
 import sys
+import tempfile
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
 import polars as pl
 
-from jotosanur_agri.pipeline import save
 from jotosanur_agri.pipeline.aoi import resolve
 from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
 
@@ -40,6 +40,8 @@ MIN_CLEAR = 0.6
 # NDVI drop below both neighbours that marks an isolated haze dip
 SPIKE_NDVI = 0.15
 SMOOTH_STEPS = 3
+# cells per batch, so a whole kabupaten fits in memory (Tikung is a single batch)
+BATCH_CELLS = 5_000
 
 S2_VARS = ["ndvi", "lswi"]
 S1_VARS = ["vh_db", "vv_db"]
@@ -116,12 +118,17 @@ def interpolate(grid: pl.DataFrame, obs: pl.DataFrame, variables: list[str], fla
     )
 
 
-def build_silver(bronze: pl.DataFrame) -> pl.DataFrame:
-    """Clean, align, gap-fill and smooth bronze into the 5-day silver table."""
+def build_silver(bronze: pl.DataFrame, start: Any = None, end: Any = None) -> pl.DataFrame:
+    """Clean, align, gap-fill and smooth bronze into the 5-day silver table.
+
+    `start` and `end` fix the 5-day calendar, so that cell batches share one grid.
+    By default they come from `bronze` itself.
+    """
     s2, s1 = clean_s2(bronze), clean_s1(bronze)
-    start, end = bronze.select(
-        pl.col("date").min().dt.month_start().alias("start"), pl.col("date").max().alias("end")
-    ).row(0)
+    if start is None or end is None:
+        start, end = bronze.select(
+            pl.col("date").min().dt.month_start().alias("start"), pl.col("date").max().alias("end")
+        ).row(0)
     grid = time_grid(bronze["cell_id"], start, end)
 
     silver = interpolate(grid, s2, S2_VARS, "s2_interpolated").join(
@@ -144,8 +151,14 @@ def build_silver(bronze: pl.DataFrame) -> pl.DataFrame:
     )
 
 
+def cell_batches(cell_ids: pl.Series, size: int) -> list[tuple[Any, Any]]:
+    """Inclusive (first, last) cell_id ranges of at most `size` cells, in cell order."""
+    ids = cell_ids.unique().sort()
+    return [(ids[i], ids[min(i + size, len(ids)) - 1]) for i in range(0, len(ids), size)]
+
+
 def run_silver_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dict[str, Any]:
-    """Rebuild the silver table for an AOI from all its bronze months.
+    """Rebuild the silver table for an AOI from all its bronze months, `BATCH_CELLS` cells at a time.
 
     Returns:
         Row and cell counts, the covered range, null shares and the output path.
@@ -158,17 +171,49 @@ def run_silver_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "dat
     months = sorted((Path(data_dir) / "bronze" / "sentinel" / slug).glob("[0-9]*.parquet"))
     if not months:
         raise ValueError(f"{slug}: no bronze months, run load_sentinel first")
-    bronze = pl.read_parquet(months)
-    if bronze.filter(pl.col("ndvi").is_not_null()).is_empty():
+    bronze = pl.scan_parquet(months)
+    start, end, has_ndvi = (
+        bronze.select(
+            pl.col("date").min().dt.month_start().alias("start"),
+            pl.col("date").max().alias("end"),
+            pl.col("ndvi").is_not_null().any().alias("has_ndvi"),
+        )
+        .collect()
+        .row(0)
+    )
+    if not has_ndvi:
         raise ValueError(f"{slug}: bronze has no Sentinel-2 NDVI, seasons cannot be detected from radar alone")
-    silver = build_silver(bronze)
+    out = Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    cell_ids = bronze.select(pl.col("cell_id").unique()).collect()["cell_id"]
+    with tempfile.TemporaryDirectory(dir=out.parent) as tmp:
+        parts = []
+        for i, (lo, hi) in enumerate(cell_batches(cell_ids, BATCH_CELLS)):
+            batch = bronze.filter(pl.col("cell_id").is_between(lo, hi)).collect()
+            parts.append(Path(tmp) / f"{i:04d}.parquet")
+            build_silver(batch, start, end).write_parquet(parts[-1])
+        # batches are disjoint cell ranges in order, so the joined file stays sorted by cell and date
+        pl.scan_parquet(parts).sink_parquet(out)
+    stats = (
+        pl.scan_parquet(out)
+        .select(
+            pl.len().alias("rows"),
+            pl.col("cell_id").n_unique().alias("cells"),
+            pl.col("date").min().alias("first"),
+            pl.col("date").max().alias("last"),
+            pl.col("ndvi").null_count().alias("ndvi_null"),
+            pl.col("vh_db").null_count().alias("vh_null"),
+        )
+        .collect()
+        .row(0, named=True)
+    )
     return {
-        "rows": silver.height,
-        "cells": silver["cell_id"].n_unique(),
-        "range": f"{silver['date'].min()}..{silver['date'].max()}",
-        "ndvi_null_share": round(silver["ndvi"].null_count() / silver.height, 3),
-        "vh_null_share": round(silver["vh_db"].null_count() / silver.height, 3),
-        "path": save(silver, Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet"),
+        "rows": stats["rows"],
+        "cells": stats["cells"],
+        "range": f"{stats['first']}..{stats['last']}",
+        "ndvi_null_share": round(stats["ndvi_null"] / stats["rows"], 3),
+        "vh_null_share": round(stats["vh_null"] / stats["rows"], 3),
+        "path": str(out),
     }
 
 

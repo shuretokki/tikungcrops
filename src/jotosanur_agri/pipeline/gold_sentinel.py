@@ -78,6 +78,7 @@ import polars as pl
 from jotosanur_agri.pipeline import save
 from jotosanur_agri.pipeline.aoi import resolve
 from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
+from jotosanur_agri.pipeline.silver_sentinel import BATCH_CELLS, cell_batches
 
 PEAK_MIN = 0.6
 MIN_SEASON_GAP_DAYS = 60
@@ -421,11 +422,13 @@ def intensity_units(gold: pl.DataFrame, cells: pl.DataFrame, first: date, last: 
 def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data") -> dict[str, Any]:
     """Detect seasons for an AOI from its silver table, then summarise them per unit.
 
+    Silver is read `BATCH_CELLS` cells at a time, because seasons are found per cell.
+
     Returns:
         Season, cell and unit-summary counts, completeness of each date and the output paths.
     """
     slug = resolve(aoi_spec).slug
-    silver = pl.read_parquet(Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet")
+    silver = pl.scan_parquet(Path(data_dir) / "silver" / "sentinel" / f"{slug}.parquet")
     cells_dir = Path(data_dir) / "bronze" / "sentinel" / slug
     cells = pl.read_parquet(cells_dir / "cells.parquet").select("cell_id", "unit")
     # paddy share from the LBS map, when `load_paddy` has been run for this AOI
@@ -438,11 +441,17 @@ def run_gold_sentinel(aoi_spec: str = DEFAULT_AOI, data_dir: str | Path = "data"
         .collect()["date"]
         .to_list()
     )
-    gold, current = build_gold(silver, s1_dates)
+    cell_ids = silver.select(pl.col("cell_id").unique()).collect()["cell_id"]
+    batches = [
+        build_gold(silver.filter(pl.col("cell_id").is_between(lo, hi)).collect(), s1_dates)
+        for lo, hi in cell_batches(cell_ids, BATCH_CELLS)
+    ]
+    gold = pl.concat([seasons for seasons, _ in batches])
+    current = pl.concat([state for _, state in batches])
     gold = gold.join(cells, on="cell_id", how="left")
     current = current.join(cells, on="cell_id", how="left")
     units = summarize_units(gold)
-    span = silver.select(first=pl.col("date").min(), last=pl.col("date").max()).row(0, named=True)
+    span = silver.select(first=pl.col("date").min(), last=pl.col("date").max()).collect().row(0, named=True)
     intensity = intensity_units(gold, cells, span["first"], span["last"])
     gold_dir = Path(data_dir) / "gold" / "sentinel"
     return {
