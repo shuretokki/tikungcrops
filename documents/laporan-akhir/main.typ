@@ -354,7 +354,7 @@ Pertama, alur pengolahan data otomatis berhasil mengubah citra Sentinel-1 dan Se
 
 Kedua, luas padi dari satelit sesuai dengan luas panen BPS per desa. Rasio luasnya 1,01 pada 2020 dan 2021, dengan korelasi 0,88 pada tahun 2021 yang tidak dipakai untuk penyetelan. Waktu panen juga sesuai dengan data bulanan Survei Kerangka Sampel Area, kecuali panen Maret yang sering terlambat terdeteksi.
 
-Ketiga, waktu panen dapat diprakirakan dengan galat rata-rata 11,9 hari dari tanggal tanam, lebih kecil dari 15,2 hari pada perkiraan sederhana. Hasil ini disajikan dalam situs web dengan tiga halaman yang sudah berfungsi. Akan tetapi, situs tersebut belum dipublikasikan dan belum diuji bersama warga.
+Ketiga, waktu panen dapat diprakirakan dengan galat rata-rata 11,9 hari dari tanggal tanam, lebih kecil dari 15,2 hari pada perkiraan sederhana. Prakiraan tersebut disajikan dalam situs web yang sudah berfungsi, lengkap dengan halaman untuk tiap desa. Akan tetapi, situs belum dipublikasikan dan belum diuji bersama warga.
 
 == Refleksi Akhir
 
