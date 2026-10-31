@@ -25,6 +25,7 @@
             mongosh
             sqlite
           ];
+          TYPST_FONT_PATHS = "${pkgs.source-sans}/share/fonts";
         };
       };
   };
