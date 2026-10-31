@@ -64,3 +64,20 @@ def test_defaults_score_every_year_and_model(peak_table):
 def test_defaults_reject_unknown_model(peak_table):
     with pytest.raises(ValueError, match="unknown model"):
         compare_defaults(peak_table, "peak", models=("svm",), min_test_seasons=10)
+
+
+def test_fair_ensembles_record_members_and_weights(peak_table):
+    out = compare_defaults(
+        peak_table, "peak", models=("voting_picked", "voting_mixed", "stacking"), inner_folds=2, min_test_seasons=10
+    )
+    params = {(m, y): json.loads(p) for m, y, p in out.select("model", "year", "params").iter_rows()}
+    picked = [v for (m, _), v in params.items() if m == "voting_picked"]
+    assert len(picked) == 4
+    # two members, chosen from the candidates by the lowest inner-fold error
+    for p in picked:
+        assert len(p["members"]) == 2
+        ranked = sorted(p["inner_mae"], key=lambda k: p["inner_mae"][k])
+        assert p["members"] == ranked[:2]
+    assert all(v == {"members": ["spline", "hgb"]} for (m, _), v in params.items() if m == "voting_mixed")
+    assert all(set(v["weights"]) == {"hgb", "catboost", "lightgbm"} for (m, _), v in params.items() if m == "stacking")
+    assert out["mae_days"].is_finite().all()

@@ -118,7 +118,7 @@ setup aoi=aoi: (paddy aoi) (soilgrids aoi) (chirps aoi) (silver aoi) (gold aoi) 
 forecast aoi=aoi:
     {{ py }}.pipeline.forecast_harvest "{{ aoi }}"
 
-# Compare nine untuned models (linear, spline, HGB, CatBoost, XGBoost, LightGBM, voting, stacking) with the same year-out loop
+# Compare untuned models (linear, spline, HGB, CatBoost, XGBoost, LightGBM, voting, stacking) and two fair ensembles with the same year-out loop
 [group("model")]
 compare-defaults aoi=aoi:
     {{ py }}.pipeline.compare_models "{{ aoi }}" --defaults

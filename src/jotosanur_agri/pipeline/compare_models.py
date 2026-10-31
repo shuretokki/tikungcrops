@@ -26,8 +26,11 @@ with mean absolute error in days and the chosen hyperparameters.
 model with and without spline features, gradient boosting with and without feature
 interactions, CatBoost, XGBoost, LightGBM, a CatBoost-LightGBM vote and a stack of the
 boosting models. Every model keeps its default settings, so the table shows whether the
-model family matters before any time goes into tuning. It writes
-<aoi>_model_comparison_defaults.csv.
+model family matters before any time goes into tuning. Two fairer ensembles test why the
+first vote and stack add nothing: `voting_picked` chooses its two members inside the
+training years by year-grouped error, and `voting_mixed` averages two different families
+(spline and gradient boosting). The `params` column records the chosen members and the
+stack's learned weights. It writes <aoi>_model_comparison_defaults.csv.
 Usage: `python -m jotosanur_agri.pipeline.compare_models [AOI] [--defaults]` (default Lamongan/Tikung).
 """
 
@@ -53,7 +56,7 @@ from sklearn.ensemble import (
 )
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import Ridge, RidgeCV
-from sklearn.model_selection import GroupKFold
+from sklearn.model_selection import GroupKFold, cross_val_predict
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import SplineTransformer, StandardScaler
 from xgboost import XGBRegressor
@@ -73,7 +76,13 @@ DEFAULT_MODELS = (
     "lightgbm",
     "voting",
     "stacking",
+    "voting_picked",
+    "voting_mixed",
 )
+# candidates for `voting_picked`, one per family or library
+PICK_FROM = ("linear", "spline", "hgb", "catboost", "xgboost", "lightgbm")
+# two families that make different kinds of errors
+MIXED = ("spline", "hgb")
 N_TRIALS = 10
 INNER_FOLDS = 3
 BASELINE_KEYS = {"planting": ["flood_month", "rice"], "peak": ["rice"]}
@@ -180,6 +189,39 @@ def _default_pipeline(model: str, year_splits: list[tuple[np.ndarray, np.ndarray
     return Pipeline(steps)
 
 
+def _average(
+    members: tuple[str, ...] | list[str], x_train: Any, y_train: np.ndarray, x_test: Any, splits: Any
+) -> np.ndarray:
+    """Equal-weight mean of the members' predictions, each fitted on all training years."""
+    preds = [
+        np.asarray(_default_pipeline(m, splits).fit(x_train, y_train).predict(x_test), dtype=float) for m in members
+    ]
+    return np.mean(preds, axis=0)
+
+
+def _pick_members(x_train: Any, y_train: np.ndarray, splits: Any, n: int = 2) -> tuple[list[str], dict[str, float]]:
+    """The `n` candidates with the lowest year-grouped error inside the training years, and every score.
+
+    The held-out year is not in `x_train`, so the choice cannot see the year it is scored on.
+    """
+    scores: dict[str, float] = {}
+    for m in PICK_FROM:
+        oof = cross_val_predict(_default_pipeline(m, splits), x_train, y_train, cv=splits)
+        scores[m] = round(float(np.mean(np.abs(np.asarray(oof, dtype=float) - y_train))), 3)
+    return sorted(scores, key=lambda m: scores[m])[:n], scores
+
+
+def _stack_weights(pipe: Pipeline) -> dict[str, Any]:
+    """Weights and intercept the stack's Ridge meta-model gave each base model."""
+    stack: Any = pipe.named_steps["model"][-1]
+    names = [name for name, _ in stack.estimators]
+    coef = [round(float(c), 3) for c in stack.final_estimator_.coef_]
+    return {
+        "weights": dict(zip(names, coef, strict=True)),
+        "intercept": round(float(stack.final_estimator_.intercept_), 2),
+    }
+
+
 def _held_out_years(table: pl.DataFrame, min_test_seasons: int) -> list[int]:
     return [y for y, n in table.group_by("year").len().sort("year").iter_rows() if n >= min_test_seasons]
 
@@ -197,11 +239,12 @@ def compare_defaults(
         table: Output of `forecast_harvest.training_table`.
         forecast: ``"planting"`` or ``"peak"``.
         models: Model names from `DEFAULT_MODELS`.
-        inner_folds: Year-grouped folds for the stacking model.
+        inner_folds: Year-grouped folds for the stacking model and for picking `voting_picked` members.
         min_test_seasons: Years with fewer seasons are only used for training.
 
     Returns:
-        The same columns as `compare`, with `params` always ``"{}"``.
+        The same columns as `compare`. `params` holds the members and inner-fold errors of
+        `voting_picked`, the members of `voting_mixed`, the weights of `stacking`, and ``"{}"`` otherwise.
     """
     unknown = set(models) - set(DEFAULT_MODELS)
     if unknown:
@@ -211,17 +254,38 @@ def compare_defaults(
     for year in _held_out_years(table, min_test_seasons):
         train, test = table.filter(pl.col("year") != year), table.filter(pl.col("year") == year)
         y_test = test[target].to_numpy()
-        common = {"forecast": forecast, "year": year, "seasons": test.height, "params": "{}"}
+        common = {"forecast": forecast, "year": year, "seasons": test.height}
         base = _baseline(train, test, forecast)
-        rows.append({**common, "model": "median_duration", "mae_days": float(np.mean(np.abs(base - y_test)))})
+        rows.append(
+            {**common, "model": "median_duration", "mae_days": float(np.mean(np.abs(base - y_test))), "params": "{}"}
+        )
         x_train, x_test = train.select(features).to_pandas(), test.select(features).to_pandas()
+        y_train = train[target].to_numpy()
         years = train["year"].to_numpy()
         n_splits = min(inner_folds, len(np.unique(years)))
         splits = list(GroupKFold(n_splits=n_splits).split(x_train, groups=years))
         for model in models:
-            pipe = _default_pipeline(model, splits).fit(x_train, train[target].to_numpy())
-            point = np.asarray(pipe.predict(x_test), dtype=float)
-            rows.append({**common, "model": model, "mae_days": float(np.mean(np.abs(point - y_test)))})
+            params: dict[str, Any] = {}
+            if model == "voting_picked":
+                members, scores = _pick_members(x_train, y_train, splits)
+                point = _average(members, x_train, y_train, x_test, splits)
+                params = {"members": members, "inner_mae": scores}
+            elif model == "voting_mixed":
+                point = _average(MIXED, x_train, y_train, x_test, splits)
+                params = {"members": list(MIXED)}
+            else:
+                pipe = _default_pipeline(model, splits).fit(x_train, y_train)
+                point = np.asarray(pipe.predict(x_test), dtype=float)
+                if model == "stacking":
+                    params = _stack_weights(pipe)
+            rows.append(
+                {
+                    **common,
+                    "model": model,
+                    "mae_days": float(np.mean(np.abs(point - y_test))),
+                    "params": json.dumps(params),
+                }
+            )
     return pl.DataFrame(rows)
 
 
