@@ -11,9 +11,7 @@ Bagi petani dan pemerintah desa, informasi waktu tanam dan waktu panen per desa 
 
 Studi independen ini semula dirancang untuk membangun sistem informasi manajemen bagi program Kampung Pandu Sakti di Desa Jotosanur. Program pangan terpadu ini dikelola Kodim 0812/Lamongan di bekas lahan sirkuit seluas 10,5 hektare @kabarbaik2025pandu @portallamongan2025. Rencana tersebut membutuhkan data operasional program, seperti hasil panen per siklus dan distribusi bibit. Data itu ternyata tidak tersedia selama masa studi, sehingga sistem pencatatan dan model prediksi hasil panen tidak dapat dibangun maupun diuji. Kendala serupa juga ditemukan pada program digitalisasi desa lain, yang infrastruktur datanya masih harus dibangun dari awal @riantis2025jpes.
 
-Citra satelit terbuka menawarkan jalan keluar dari keterbatasan data tersebut. Penelitian di Jawa menunjukkan bahwa tanggal tanam padi dapat diperkirakan dari citra radar Sentinel-1 @Manago_2020. Tahap pertumbuhan padi juga dapat dipetakan dari gabungan citra optik dan radar @Ramadhani_2020 @Thorp_2021. Oleh karena itu, studi ini dialihkan menjadi pemantauan musim tanam padi berbasis citra satelit untuk seluruh desa di Kecamatan Tikung, termasuk Desa Jotosanur. Hasilnya disajikan dalam situs web yang dapat dibaca warga.
-
-Studi ini dijalankan dalam skema Program Mahasiswa Berdampak dengan Dicoding Indonesia sebagai mitra kolaborator. Materi Big Data dan Machine Learning dari mitra menjadi dasar pengolahan data dan pemodelan dalam proyek ini. Dengan demikian, studi ini sekaligus menjadi wujud penerapan kedua materi tersebut pada persoalan pangan di tingkat desa.
+Citra satelit terbuka menawarkan jalan keluar dari keterbatasan data tersebut. Penelitian di Jawa menunjukkan bahwa tanggal tanam padi dapat diperkirakan dari citra radar Sentinel-1 @Manago_2020. Tahap pertumbuhan padi juga dapat dipetakan dari gabungan citra optik dan radar @Ramadhani_2020 @Thorp_2021. Oleh karena itu, studi ini dialihkan menjadi pemantauan musim tanam padi berbasis citra satelit untuk seluruh desa di Kecamatan Tikung, termasuk Desa Jotosanur. Hasil studi tersebut, disajikan dalam situs web yang dapat dibaca oleh warga.
 
 == Rumusan Masalah
 
@@ -54,18 +52,23 @@ Studi ini perlu dilakukan sekarang karena dua alasan. Pertama, musim tanam utama
 == Temuan yang Ditargetkan
 
 Perubahan arah studi membuat sebagian target proposal disesuaikan. @tabel-target membandingkan target proposal dengan target yang direvisi.
-
 #figure(
   table(
     columns: (1fr, 1fr),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: left,
-    table.header([*Target proposal*], [*Target revisi*]),
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center,
+    table.hline(stroke: 1.2pt),
+    table.header(
+      table.cell(align: center)[*Target proposal*],
+      table.cell(align: center)[*Target revisi*]
+    ),
+    table.hline(stroke: 0.6pt),
     [Dashboard pencatatan panen, ternak, dan distribusi bibit], [Situs pemantauan tanam untuk tiga belas desa dengan pembaruan bulanan],
     [Model prediksi hasil panen dengan MAPE di bawah 20%], [Model prakiraan waktu panen dengan galat lebih kecil daripada perkiraan nilai tengah],
     [Panduan operasional sistem], [Halaman metode di situs dan dokumentasi kode],
     [Kanal pelaporan WhatsApp], [Tidak dikerjakan],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Perbandingan target proposal dan target revisi],
 ) <tabel-target>

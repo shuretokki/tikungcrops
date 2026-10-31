@@ -7,7 +7,7 @@
   title: [Laporan Akhir Program Mahasiswa Berdampak],
   kind: [Studi Independen],
   cover: (kind-pos: "bottom", details: (size: 12pt), title: (size: 12pt), kind: (size: 12pt)),
-  cover-details: ((upper()[Pemantauan Musim Tanam Padi Berbasis Citra Satelit dan Machine Learning di Kecamatan Tikung, Kabupaten Lamongan],[]),([Mitra Kolaborator:], [Dicoding Indonesia]),),
+  cover-details: ((upper()[Pemantauan Musim Tanam Padi Berbasis Citra Satelit dan Machine Learning di Kecamatan Tikung, Kabupaten Lamongan],[]),([MITRA KOLABORATOR:], [DICODING INDONESIA]),),
   students: ((name: "Tri Rianto Utomo", id: "24051204104"),),
   program: "Teknik Informatika",
   faculty: "Teknik",
@@ -35,11 +35,11 @@
 
 #frontmatter(title: [Lembar Pengesahan])[
   #table(
-    columns: 2,
-    align: (left, left),
-    stroke: 0.5pt + luma(80),
+    columns: (auto, auto),
+    align: (horizon + left, horizon + left),
+    stroke: 0.2pt + luma(160),
     inset: (x: 6pt, y: 6pt),
-    [*Judul Kegiatan*], [Studi Independen],
+    [*Judul Kegiatan*], [Pemantauan Musim Tanam Padi Berbasis Citra Satelit dan Machine Learning di Kecamatan Tikung, Kabupaten Lamongan],
     [*Nama Mitra*], [Dicoding Indonesia],
     [*Alamat Instansi*], [Dicoding Space Jl. Batik Kumeli No.50, Sukaluyu, Kec. Cibeunying Kaler, Kota Bandung Jawa Barat 40123],
     [*Identitas Mahasiswa*], [
@@ -85,16 +85,6 @@
   #signatures(header: [Menyetujui,], signature(role: [Koordinator Program Studi], name: "Paramitha Nerisafitra, S.ST., M.Kom.", id: "198905292019032013"))
 ]
 
-#frontmatter(title: [Catatan Kerangka])[
-  Dokumen ini masih kerangka, kecuali Bab I sampai Bab IV yang sudah berupa naskah. Setiap subbab kerangka berisi enam jenis kotak. Kotak biru memuat isi wajib dari templat resmi. Kotak ungu memuat bobot rubrik. Kotak hijau memuat fakta proyek yang sudah diperiksa beserta sumbernya. Kotak cokelat memuat panduan menulis. Kotak merah memuat data yang masih harus dilengkapi.
-
-  Daftar isi templat dan isi templat tidak sama. Daftar isi memuat Rumusan Masalah, Urgensi, dan Temuan yang Ditargetkan pada Bab I, serta Waktu dan Tempat pada Bab III. Isi templat tidak memuatnya. Kerangka ini memakai susunan yang lebih lengkap supaya isi laporan sejalan dengan proposal.
-
-  Bobot rubrik (Pedoman PMB 2026, Lampiran 5): sistematika dan format 10%, analisis permasalahan 15%, perencanaan dan pelaksanaan 15%, hasil dan dampak 20%, luaran berdampak 20%, kesimpulan dan rencana tindak lanjut 10%, bahasa dan gaya ilmiah 10%.
-
-  Gaya bahasa: bahasa baku tingkat B2 dengan skill `indonesian-advanced-writing`. Kalimat 12 sampai 25 kata, paling panjang 30 kata. Jalankan `check.py` dengan batas 30 pada setiap bab sebelum diserahkan.
-]
-
 #include "bab1.typ"
 
 #include "bab2.typ"
@@ -107,29 +97,30 @@ Studi independen ini berlangsung dari Agustus sampai Desember 2026 sesuai jadwal
 
 Seluruh kegiatan dilaksanakan secara daring. Data citra satelit, curah hujan, dan peta sawah diambil dari katalog data terbuka, sehingga studi ini tidak memerlukan pengukuran lapangan. Pengolahan data, pemodelan, dan pengembangan situs dikerjakan di komputer mahasiswa.
 
-Wilayah kajian utama adalah Kecamatan Tikung, Kabupaten Lamongan, Jawa Timur. Wilayah ini terletak antara 112,37° dan 112,45° Bujur Timur serta antara 7,12° dan 7,25° Lintang Selatan. Kecamatan Tikung terdiri atas tiga belas desa, yaitu Bakalanpule, Balongwangi, Botoputih, Dukuhagung, Guminingrejo, Jatirejo, Jotosanur, Kelorarum, Pengumbulanadi, Soko, Takeranklating, Tambakrigadung, dan Wonokromo. Luas sawah yang dipantau di wilayah ini sekitar 4.420 hektare.
+Wilayah kajian utama adalah Kecamatan Tikung, Kabupaten Lamongan, Jawa Timur. Wilayah ini terletak antara 112,37° dan 112,45° Bujur Timur serta antara 7,12° dan 7,25° Lintang Selatan. Kecamatan Tikung terdiri atas tiga belas desa, yaitu Bakalanpule, Balongwangi, Botoputih, Dukuhagung, Guminingrejo, Jatirejo, Jotosanur, Kelorarum, Pengumbulanadi, Soko, Takeranklating, Tambakrigadung, dan Wonokromo. Luas sawah yang dipantau di wilayah tersebut berada di sekitar 4.420 hektare.
 
 Data yang diolah untuk Kecamatan Tikung mencakup citra Oktober 2017 sampai September 2026. Rentang ini memuat musim tanam yang berakhir pada tahun 2018 sampai 2026.
 
 #figure(
   table(
     columns: (auto, 1fr),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: left,
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center,
+    table.hline(stroke: 1.2pt),
     table.header([*Aspek*], [*Keterangan*]),
-    [Waktu program], [Agustus sampai Desember 2026],
+    table.hline(stroke: 0.6pt),
+    [Waktu program], [Agustus s.d. Desember 2026],
     [Bentuk kegiatan], [Daring, tanpa pengukuran lapangan],
     [Wilayah utama], [Kecamatan Tikung, 13 desa, sekitar 4.420 ha sawah],
-    [Rentang data Tikung], [Oktober 2017 sampai September 2026],
-    [Wilayah perluasan], [Kabupaten Lamongan, 27 kecamatan, citra September 2024 sampai September 2026],
+    [Rentang data Tikung], [Oktober 2017 s.d. September 2026],
+    // [Wilayah perluasan], [Kabupaten Lamongan, 27 kecamatan, citra September 2024 sampai September 2026],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Ringkasan waktu dan tempat pelaksanaan],
 ) <tabel-waktu-tempat>
 
 #perlu[
-  - Tanggal mulai dan selesai resmi dari MELISA. Ganti "Agustus sampai Desember 2026" bila tanggalnya berbeda.
-  - Cara bimbingan dengan DPL (daring, luring, atau campuran), bila ingin disebut pada subbab ini.
   - Peta lokasi Kecamatan Tikung sebagai gambar. Peta bisa diambil dari situs dengan label desa.
 ]
 
@@ -167,10 +158,12 @@ Kedudukan ini berbeda dari rencana proposal. Proposal menempatkan mahasiswa seba
 #figure(
   table(
     columns: (auto, 1fr),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: left,
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center,
+    table.hline(stroke: 1.2pt),
     table.header([*Tahap*], [*Pekerjaan mahasiswa*]),
+    table.hline(stroke: 0.6pt),
     [Pengambilan data], [Mengunduh citra Sentinel-1 dan Sentinel-2, curah hujan CHIRPS, peta Lahan Baku Sawah, dan batas desa],
     [Pengolahan], [Menyusun deret waktu lima harian per sel dan mendeteksi musim tanam],
     [Validasi], [Membandingkan luas dan waktu panen dengan data BPS dan KSA],
@@ -178,6 +171,7 @@ Kedudukan ini berbeda dari rencana proposal. Proposal menempatkan mahasiswa seba
     [Penyajian], [Mengekspor data per desa dan membangun situs web],
     [Pengujian], [Menulis 60 uji otomatis untuk alur data dan model],
     [Otomatisasi], [Menyiapkan jadwal pengambilan data bulanan],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Pekerjaan mahasiswa pada setiap tahap],
 ) <tabel-peran>
@@ -193,16 +187,19 @@ Unit analisis studi ini adalah sel persegi berukuran 100 meter, yaitu gabungan 1
 #figure(
   table(
     columns: (auto, 1fr, auto, auto),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: left,
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center,
+    table.hline(stroke: 1.2pt),
     table.header([*Data*], [*Sumber*], [*Resolusi*], [*Rentang*]),
-    [Citra optik], [Copernicus Sentinel-2 Level-2A, ESA], [10 m], [Okt 2017 sampai Sep 2026],
-    [Citra radar VV dan VH], [Copernicus Sentinel-1 RTC, ESA], [10 m], [Okt 2017 sampai Sep 2026],
+    table.hline(stroke: 0.6pt),
+    [Citra optik], [Copernicus Sentinel-2 Level-2A, ESA], [10 m], [Okt 2017 s.d. Sep 2026],
+    [Citra radar VV dan VH], [Copernicus Sentinel-1 RTC, ESA], [10 m], [Okt 2017 s.d. Sep 2026],
     [Lahan pertanian], [ESA WorldCover 2021 @Zanaga_2022], [10 m], [2021],
     [Peta sawah], [Lahan Baku Sawah, Badan Informasi Geospasial], [Poligon], [Satu edisi],
-    [Curah hujan bulanan], [CHIRPS @Funk_2015], [0,05°], [1981 sampai 2026],
+    [Curah hujan bulanan], [CHIRPS @Funk_2015], [0,05°], [1981 s.d. 2026],
     [Batas desa], [GADM versi 4.1], [Poligon], [Satu edisi],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Sumber data yang dipakai],
 ) <tabel-sumber-data>
@@ -231,11 +228,11 @@ Studi ini membuat dua prakiraan waktu panen untuk setiap sel. Prakiraan tanam di
 
 Fitur prakiraan tanam meliputi hari penggenangan dalam tahun, jarak penggenangan ke awal tumbuh, status padi, nilai VH, besar penurunan VH, NDVI dasar, jumlah lintasan radar, curah hujan, dan nama desa. Fitur prakiraan puncak meliputi hari puncak dalam tahun, nilai NDVI puncak, jarak dari penggenangan dan awal tumbuh ke puncak, status padi, curah hujan, dan nama desa. Model hanya dilatih pada musim yang awal tumbuhnya benar-benar teramati, karena celah awan pada musim lain membuat tanggalnya keliru.
 
-Model utama adalah gradient boosting untuk nilai tengah, ditambah dua model kuantil untuk persentil ke-10 dan ke-90. Kedua model kuantil membentuk rentang 80%. Rentang ini kemudian dilebarkan dengan conformalized quantile regression @Romano_2019, memakai seperempat tahun pelatihan sebagai data kalibrasi. Pelebaran ini diperlukan karena musim dalam satu tahun berbagi cuaca yang sama, sehingga rentang dari data gabungan terlalu sempit untuk tahun baru.
+Model utama adalah gradient boosting untuk nilai tengah, ditambah dua model kuantil untuk persentil ke-10 dan ke-90. Kedua model kuantil membentuk rentang 80%. Rentang ini kemudian dilebarkan dengan conformalized quantile regression @Romano_2019, memakai seperempat tahun pelatihan sebagai data kalibrasi. Pelebaran tersebut diperlukan karena musim dalam satu tahun berbagi cuaca yang sama, sehingga rentang dari data gabungan terlalu sempit untuk tahun baru.
 
-Model dinilai dengan _cross-validation_ yang menahan satu tahun panen penuh sebagai data uji. Sebagai pembanding, dipakai perkiraan sederhana berupa lama musim median dari tahun pelatihan. Rancangan pembandingan mengikuti CY-Bench @Kallenberg_2026, yaitu perkiraan sederhana dibandingkan dengan Ridge, random forest, dan gradient boosting. Hiperparameter setiap model dicari dengan Optuna @Akiba_2019 sebanyak 10 percobaan, dengan tiga fold yang dibagi per tahun dan hanya di dalam tahun pelatihan.
+Model dinilai dengan validasi silang yang menahan satu tahun panen penuh sebagai data uji. Sebagai pembanding, dipakai perkiraan sederhana berupa lama musim median dari tahun pelatihan. Rancangan pembandingan mengikuti CY-Bench @Kallenberg_2026, yaitu perkiraan sederhana dibandingkan dengan Ridge, random forest, dan gradient boosting. Hiperparameter setiap model dicari dengan Optuna @Akiba_2019 sebanyak 10 percobaan, dengan tiga fold yang dibagi per tahun dan hanya di dalam tahun pelatihan.
 
-Untuk musim yang masih berjalan, luas sawah setiap sel dibagi merata pada rentang 80% tanggal panennya. Hasilnya dijumlahkan per desa dan per minggu sebagai perkiraan luas panen mingguan. Prakiraan ini juga diuji ulang pada tanggal-tanggal di masa lalu. Pada uji ulang tersebut, model hanya dilatih dengan musim yang sudah panen sebelum tanggal itu.
+Untuk musim yang masih berjalan, luas sawah setiap sel dibagi merata pada rentang 80% tanggal panennya. Hasilnya dijumlahkan per desa dan per minggu sebagai perkiraan luas panen mingguan. Prakiraan tersebut juga diuji ulang pada tanggal-tanggal di masa lalu. Pada uji ulang tersebut, model hanya dilatih dengan musim yang sudah panen sebelum tanggal itu.
 
 === Penyajian dan Otomatisasi
 
@@ -253,7 +250,7 @@ Pembelajaran selama studi ini disusun dengan model refleksi 4R, yaitu melaporkan
 
 Pada awal studi, model prediksi hasil panen dicoba dengan data buatan karena data mitra belum tersedia. Model random forest pada data buatan tersebut hanya memberi nilai R² -0,10 pada data uji. Model ternyata hanya meniru rumus yang dipakai untuk membuat data. Model lain yang dilatih pada survei 44.299 lahan padi di Asia Selatan juga gagal, karena nilai R²-nya negatif di keenam wilayah uji.
 
-Dalam materi pembelajaran mesin, kemampuan model untuk berlaku di data baru biasanya diuji dengan data dari sumber yang sama. Pengalaman ini menunjukkan bahwa model yang baik di satu wilayah belum tentu berlaku di wilayah lain. Sebabnya, sifat tanah Jotosanur berada di luar rentang data survei tersebut. Sebaliknya, rata-rata produktivitas desa dari data BPS sudah memberi galat hanya 3,6%. Karena itu, ketersediaan dan kecocokan data lokal kini diperiksa sebelum model dipilih.
+Dalam materi pembelajaran mesin, kemampuan model untuk berlaku di data baru biasanya diuji dengan data dari sumber yang sama. Pengalaman tersebut menunjukkan bahwa model yang baik di satu wilayah belum tentu berlaku di wilayah lain. Sebabnya, sifat tanah Jotosanur berada di luar rentang data survei tersebut. Sebaliknya, rata-rata produktivitas desa dari data BPS sudah memberi galat hanya 3,6%. Karena itu, ketersediaan dan kecocokan data lokal kini diperiksa sebelum model dipilih.
 
 === Evaluasi Harus Mengikuti Urutan Waktu
 
@@ -265,7 +262,7 @@ Perbedaan ini muncul karena penilaian awal hanya memakai musim yang belakangan t
 
 Teori pada Bab II menyebut bahwa radar dapat menembus awan. Dalam praktik, ketersediaan citra tetap menjadi kendala. Pada November sampai Februari, hanya 4 sampai 9 citra Sentinel-2 per bulan yang jernih selama sembilan tahun, dibandingkan dengan sampai 67 citra pada Juli sampai September. Lintasan Sentinel-1 di atas Tikung juga turun dari 53 sampai 57 kali per tahun menjadi 24 kali pada 2023.
 
-Akibatnya, awal musim hujan sering tidak terlihat, dan status padi pada tahun 2022 dan 2023 sebagian tidak diketahui. Celah ini tidak bisa diisi dengan menebak. Oleh karena itu, musim dengan data terlalu sedikit ditandai sebagai tidak diketahui, dan tidak lagi dianggap bukan padi.
+Akibatnya, awal musim hujan sering tidak terlihat, dan status padi pada tahun 2022 dan 2023 sebagian tidak diketahui. Celah tersebut tidak bisa diisi dengan menebak. Oleh karena itu, musim dengan data terlalu sedikit ditandai sebagai tidak diketahui, dan tidak lagi dianggap bukan padi.
 
 #include "bab4.typ"
 

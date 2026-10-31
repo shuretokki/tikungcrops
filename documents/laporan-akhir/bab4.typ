@@ -15,7 +15,7 @@ Halaman Beranda menampilkan peta tahap tanam, kalender tanam, curah hujan, dan d
 
 #figure(
   image("gambar/peta-beranda.png", width: 70%),
-  caption: [Peta tahap tanam per sel di Kecamatan Tikung pada halaman Beranda. Peta dasar: OpenFreeMap, © OpenStreetMap contributors.],
+  caption: [Peta tahap tanam per sel di Kecamatan Tikung pada halaman Beranda menggunakan OpenFreeMap, © OpenStreetMap contributors.],
 ) <gambar-peta>
 
 #figure(
@@ -47,7 +47,7 @@ Sawah di Kecamatan Tikung tercatat ditanami 2,02 sampai 2,85 kali per tahun pada
 
 #figure(
   image("gambar/hujan-bulanan.png", width: 100%),
-  caption: [Curah hujan dua belas bulan terakhir dibandingkan dengan nilai normal 1991 sampai 2020],
+  caption: [Curah hujan dua belas bulan terakhir dibandingkan dengan nilai normal 1991 s.d. 2020],
 ) <gambar-hujan>
 
 === Kesesuaian dengan Data BPS
@@ -57,20 +57,23 @@ Sawah di Kecamatan Tikung tercatat ditanami 2,02 sampai 2,85 kali per tahun pada
 #figure(
   table(
     columns: (auto, auto, auto, auto, auto),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: (left, left, right, right, right),
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center, // (horizon + left, left, right, right, right),
+    table.hline(stroke: 1.2pt),
     table.header([*Tahun*], [*Tanaman*], [*Korelasi*], [*Satelit / BPS*], [*Selisih median per desa*]),
+    table.hline(stroke: 0.6pt),
     [2020], [Padi], [0,77], [1,01], [23%],
     [2020], [Semua tanaman], [0,91], [1,14], [26%],
     [2021], [Padi], [0,88], [1,01], [17%],
     [2021], [Semua tanaman], [0,89], [1,46], [33%],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Kesesuaian luas dari satelit dengan luas panen BPS per desa, 13 desa],
 ) <tabel-validasi>
 
 #figure(
-  image("gambar/validasi-bps.png", width: 75%),
+  image("gambar/validasi-bps.png", width: 100%),
   caption: [Ringkasan validasi dan sebaran luas padi per desa tahun 2021 pada halaman Metode],
 ) <gambar-validasi>
 
@@ -83,12 +86,15 @@ Waktu panen satelit juga dibandingkan dengan luas panen bulanan Kabupaten Lamong
 #figure(
   table(
     columns: (auto, auto, auto, auto, auto),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: (left, right, right, right, right),
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center, // (left, right, right, right, right),
+    table.hline(stroke: 1.2pt),
     table.header([*Prakiraan*], [*Perkiraan median*], [*Ridge*], [*Random forest*], [*Gradient boosting*]),
+    table.hline(stroke: 0.6pt),
     [Dari tanam], [15,2 hari], [13,7 hari], [12,1 hari], [11,9 hari],
     [Dari puncak], [10,1 hari], [9,8 hari], [9,7 hari], [9,3 hari],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Galat rata-rata prakiraan tanggal panen pada sembilan tahun uji],
 ) <tabel-model>
@@ -98,12 +104,15 @@ Rentang 80% dari model mencakup tanggal panen sebenarnya pada 72 sampai 73% musi
 #figure(
   table(
     columns: (auto, 1fr, 1fr, 1fr),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: left,
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center,
+    table.hline(stroke: 1.2pt),
     table.header([*Tanggal prakiraan*], [*Galat prakiraan tanam*], [*Galat prakiraan puncak*], [*Galat tanggal median per desa*]),
-    [Juni 2022, 2024, 2025], [11 sampai 20 hari], [9 sampai 13 hari], [4 sampai 14 hari],
-    [Januari 2022, 2024, 2025], [21 sampai 41 hari], [40 sampai 47 hari], [14 sampai 37 hari],
+    table.hline(stroke: 0.6pt),
+    [Juni 2022, 2024, 2025], [11 s.d. 20 hari], [9 s.d. 13 hari], [4 s.d. 14 hari],
+    [Januari 2022, 2024, 2025], [21 s.d. 41 hari], [40 s.d. 47 hari], [14 s.d. 37 hari],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Galat prakiraan pada uji ulang dengan data yang dipotong pada tanggal prakiraan],
 ) <tabel-ujiulang>
@@ -115,16 +124,19 @@ Rentang 80% dari model mencakup tanggal panen sebenarnya pada 72 sampai 73% musi
 #figure(
   table(
     columns: (1fr, 1fr, auto),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: left,
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center,
+    table.hline(stroke: 1.2pt),
     table.header([*Target proposal*], [*Realisasi*], [*Status*]),
+    table.hline(stroke: 0.6pt),
     [Dashboard pencatatan panen, ternak, dan distribusi], [Situs pemantauan tanam dengan tiga halaman berfungsi], [Diganti],
     [Prediksi hasil panen dengan MAPE di bawah 20%], [Prakiraan waktu panen dengan galat 11,9 hari, lebih kecil dari 15,2 hari], [Diganti, tercapai],
     [Panduan operasional sistem], [Halaman Metode di situs], [Sebagian],
     [Kanal pelaporan WhatsApp], [Tidak dikerjakan], [Tidak tercapai],
     [Tidak direncanakan], [Validasi dua tahun dengan BPS dan 60 uji otomatis], [Tambahan],
     [Tidak direncanakan], [Perluasan ke 27 kecamatan Kabupaten Lamongan], [Berjalan],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Capaian dibandingkan dengan rencana proposal],
 ) <tabel-capaian>

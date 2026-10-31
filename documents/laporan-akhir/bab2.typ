@@ -42,10 +42,12 @@ Penelitian pemantauan padi dengan citra satelit di Indonesia telah berkembang pe
 #figure(
   table(
     columns: (auto, 1fr, 1fr),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: left,
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center,
+    table.hline(stroke: 1.2pt),
     table.header([*Penelitian*], [*Wilayah dan data*], [*Hasil utama*]),
+    table.hline(stroke: 0.6pt),
     [@Manago_2020], [Indonesia, Sentinel-1], [Perkiraan tanggal tanam pindah untuk penilaian kerusakan padi],
     [@Rudiyanto_2019], [Asia Tenggara, Sentinel-1 pada Google Earth Engine], [Pemetaan luas, pola tanam, dan tahap tumbuh padi hampir waktu nyata],
     [@Ramadhani_2020], [Jawa, Sentinel-2, MODIS, dan Sentinel-1], [Peta tahap tumbuh padi 10 meter dengan akurasi 90,6% dari model Sentinel-2],
@@ -53,6 +55,7 @@ Penelitian pemantauan padi dengan citra satelit di Indonesia telah berkembang pe
     [@Gandharum_2025], [Indonesia, intensitas pertanaman], [Kaitan intensitas pertanaman dengan menyusutnya lahan sawah],
     [@Ginting_2024], [Asia Tenggara, Sentinel-1 dan Sentinel-2], [Peta intensitas pertanaman dan luas panen padi 10 meter],
     [@Fino_2026], [Karawang, Sentinel-1, Sentinel-2, dan data iklim], [Prediksi produktivitas padi per kecamatan dengan validasi per tahun, MAPE 7,2% dengan random forest],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Penelitian sebelumnya tentang pemantauan padi dengan citra satelit],
 ) <tabel-penelitian>
@@ -68,16 +71,21 @@ Variabel dalam studi ini diukur per sel berukuran 100 meter, lalu dirangkum per 
 #figure(
   table(
     columns: (auto, 1fr),
-    stroke: 0.5pt,
-    inset: 5pt,
-    align: left,
-    table.header([*Variabel*], [*Definisi operasional*]),
+    stroke: none,
+    inset: 6pt,
+    align: horizon + center,
+    table.hline(stroke: 1.2pt),
+    table.header(
+      [*Variabel*],
+      [*Definisi operasional*]),
+    table.hline(stroke: 0.6pt),
     [Luas sawah], [Porsi sel yang berada di dalam peta Lahan Baku Sawah, dikalikan luas sel],
     [Tanggal tanam], [Tanggal nilai VH Sentinel-1 terendah di sekitar tanggal awal tumbuh, yaitu saat NDVI mulai naik dalam satu musim],
     [Puncak kehijauan], [Tanggal NDVI tertinggi dalam satu musim],
     [Tanggal panen], [Tanggal pertama sesudah puncak saat NDVI turun melewati ambang yang dihitung dari selisih puncak dan nilai dasar musim itu],
     [Tahap tanam terkini], [Status sel pada tanggal data terakhir: ditanami, menjelang panen, bera, atau tertutup awan],
     [Curah hujan], [Curah hujan bulanan CHIRPS per desa, dibandingkan dengan normal 1991 sampai 2020],
+    table.hline(stroke: 0.6pt),
   ),
   caption: [Definisi operasional variabel],
 ) <tabel-variabel>
