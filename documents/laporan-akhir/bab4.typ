@@ -11,7 +11,7 @@ Bagian ini menyajikan hasil studi tanpa tafsiran. Tafsiran dan perbandingan deng
 
 Studi ini menghasilkan tiga luaran utama. Luaran pertama adalah situs web Tanam Padi Lamongan dengan tiga halaman yang sudah berfungsi, yaitu Beranda, Ringkasan, dan Metode. Luaran kedua adalah alur pengolahan data yang berjalan dari pengambilan citra sampai ekspor data per desa. Luaran ketiga adalah data musim tanam untuk tiga belas desa sejak Oktober 2017.
 
-Halaman Beranda menampilkan peta tahap tanam, kalender tanam, curah hujan, dan daftar desa. Halaman Ringkasan menampilkan kondisi sawah, jadwal tanam per desa, perkiraan panen delapan minggu ke depan, dan tabel semua desa. Halaman Metode menjelaskan sumber data, cara kerja, ketepatan, dan keterbatasan. Halaman Perbandingan, Data, dan rincian per desa masih berupa kerangka. Situs ini masih dijalankan di komputer mahasiswa dan belum dipublikasikan.
+Halaman Beranda menampilkan peta tahap tanam, kalender tanam, curah hujan, dan daftar desa. Halaman Ringkasan menampilkan kondisi sawah, jadwal tanam per desa, perkiraan panen delapan minggu ke depan, dan tabel semua desa. Halaman Metode menjelaskan sumber data, cara kerja, ketepatan, dan keterbatasan. Halaman Perbandingan, Data, dan rincian per desa masih berupa kerangka. Situs ini belum dipublikasikan.
 
 #figure(
   image("gambar/peta-beranda.png", width: 70%),
@@ -78,6 +78,24 @@ Sawah di Kecamatan Tikung tercatat ditanami 2,02 sampai 2,85 kali per tahun pada
 ) <gambar-validasi>
 
 Waktu panen satelit juga dibandingkan dengan luas panen bulanan Kabupaten Lamongan dari Survei Kerangka Sampel Area. Porsi panen pada Januari sampai Mei hanya berselisih 0,01 sampai 0,08 dari data resmi pada 2020 sampai 2023. Meskipun demikian, korelasi porsi bulanan turun dari 0,61 pada 2020 menjadi 0,05 pada 2023. Data resmi mencatat 20 sampai 29% panen tahunan pada Maret, sedangkan satelit hanya mencatat 1 sampai 11% pada Maret 2021 sampai 2023.
+
+Alur yang sama juga dijalankan untuk seluruh 27 kecamatan di Kabupaten Lamongan, dengan citra September 2020 sampai September 2026. Hasil tahun 2021 dibandingkan dengan luas panen padi per kecamatan dari Dinas Ketahanan Pangan dan Pertanian Kabupaten Lamongan #text(fill: red)[(rujukan Satu Data Lamongan menunggu persetujuan)]. @tabel-lamongan menunjukkan bahwa luas semua musim tanam dari satelit hampir sama dengan luas panen padi resmi. Sebaliknya, luas musim yang tergolong padi hanya 57% dari luas resmi. Rasio padi per kecamatan berkisar dari 0,18 di Kecamatan Mantup sampai 0,90 di Kecamatan Sarirejo.
+
+#figure(
+  table(
+    columns: (auto, auto, auto, auto),
+    stroke: none,
+    inset: 6pt,
+    align: (left, center, center, center),
+    table.hline(stroke: 1.2pt),
+    table.header([*Luas dari satelit*], [*Korelasi*], [*Satelit / DKPP*], [*Selisih median per kecamatan*]),
+    table.hline(stroke: 0.6pt),
+    [Semua musim tanam], [0,92], [0,99], [17%],
+    [Musim yang tergolong padi], [0,86], [0,57], [45%],
+    table.hline(stroke: 0.6pt),
+  ),
+  caption: [Kesesuaian luas dari satelit dengan luas panen padi DKPP per kecamatan tahun 2021, 27 kecamatan],
+) <tabel-lamongan>
 
 === Kinerja Prakiraan Waktu Panen
 
@@ -171,13 +189,15 @@ Rentang 80% dari model mencakup tanggal panen sebenarnya pada 72 sampai 73% musi
 
 === Jawaban atas Rumusan Masalah
 
-Hasil studi menunjukkan bahwa citra satelit terbuka cukup untuk menyusun jadwal tanam per desa tanpa survei lapangan. Luas padi dari satelit hampir sama dengan luas panen BPS, dan korelasi per desa mencapai 0,88 pada 2021. Tahun 2021 tidak dipakai untuk menyetel ambang deteksi, sehingga hasil ini menjadi bukti yang independen. Dengan demikian, rumusan masalah pertama dan kedua terjawab, sedangkan rumusan ketiga terjawab melalui situs yang sudah berfungsi di komputer mahasiswa.
+Hasil studi menunjukkan bahwa citra satelit terbuka cukup untuk menyusun jadwal tanam per desa tanpa survei lapangan. Luas padi dari satelit hampir sama dengan luas panen BPS, dan korelasi per desa mencapai 0,88 pada 2021. Tahun 2021 tidak dipakai untuk menyetel ambang deteksi, sehingga hasil ini menjadi bukti yang independen. Dengan demikian, rumusan masalah pertama dan kedua terjawab, sedangkan rumusan ketiga terjawab melalui situs yang sudah berfungsi, meskipun belum dipublikasikan.
 
 === Tafsiran Hasil
 
 Rasio luas semua tanaman lebih besar dari satu karena peta lahan pertanian juga mencakup jagung dan lahan kering. Rasio ini naik menjadi 1,46 pada 2021 karena tahun basah menambah puncak kehijauan yang terhitung sebagai musim tambahan. Hal yang sama menjelaskan intensitas tanam 2,85 kali pada 2021, yang terlalu tinggi untuk padi di Jawa. Oleh karena itu, angka intensitas lebih tepat dipakai untuk membandingkan desa pada tahun yang sama daripada sebagai angka mutlak.
 
 Pembagian panen antara paruh pertama dan kedua tahun sesuai dengan data resmi. Akan tetapi, panen Maret sering terlambat terdeteksi atau hilang. Penyebabnya adalah awan musim hujan yang menutupi citra optik pada akhir musim tanam 1. Keterbatasan ini sejalan dengan alasan penelitian lain menggabungkan citra optik dan radar untuk memetakan tahap tumbuh padi di Jawa @Ramadhani_2020.
+
+Luas padi Lamongan yang rendah terutama berasal dari musim yang digolongkan bukan padi. Musim yang statusnya tidak diketahui hanya 8%. Rasio terendah berada di kecamatan pesisir utara dan perbukitan selatan. Ambang padi ditetapkan dari sawah Tikung pada 2020, sehingga sawah tadah hujan atau sawah yang ditanam tanpa penggenangan diduga tidak terdeteksi sebagai padi. Dugaan ini perlu diuji dengan peta jenis irigasi sebelum luas padi per kecamatan dipakai.
 
 === Perbandingan dengan Penelitian Lain
 
@@ -191,4 +211,4 @@ Studi ini juga memiliki empat keterbatasan. Pertama, tanggal tanam dan panen ber
 
 === Dampak dan Keberlanjutan
 
-Sampai laporan ini disusun, situs belum dipublikasikan dan belum diuji bersama warga atau pemerintah desa. Oleh karena itu, dampak nyata bagi masyarakat belum dapat diukur. Meskipun demikian, studi ini sudah menyiapkan syarat keberlanjutan. Pengambilan data bulanan sudah dijadwalkan, kode dan data dirilis dengan lisensi terbuka, dan validasi dua tahun memberi dasar kepercayaan bagi pengguna. Langkah untuk menghadirkan dampak tersebut dijelaskan pada Bab VI.
+Sampai laporan ini disusun, situs belum dipublikasikan dan belum diuji bersama warga atau pemerintah desa. Oleh karena itu, dampak nyata bagi masyarakat belum dapat diukur. Meskipun demikian, studi ini sudah menyiapkan syarat keberlanjutan. Alur pengambilan data bulanan sudah disiapkan, kode dan data disiapkan untuk dirilis dengan lisensi terbuka, dan validasi dua tahun memberi dasar kepercayaan bagi pengguna. Langkah untuk menghadirkan dampak tersebut dijelaskan pada Bab VI.

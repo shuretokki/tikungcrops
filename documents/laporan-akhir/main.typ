@@ -95,7 +95,7 @@
 
 Studi independen ini berlangsung dari Agustus sampai Desember 2026 sesuai jadwal Program Mahasiswa Berdampak. Laporan ini disusun pada akhir Oktober 2026, sehingga hasil yang dilaporkan mencakup pekerjaan sampai saat itu. Pekerjaan sesudah tanggal tersebut dicatat sebagai rencana tindak lanjut pada Bab VI.
 
-Seluruh kegiatan dilaksanakan secara daring. Data citra satelit, curah hujan, dan peta sawah diambil dari katalog data terbuka, sehingga studi ini tidak memerlukan pengukuran lapangan. Pengolahan data, pemodelan, dan pengembangan situs dikerjakan di komputer mahasiswa.
+Seluruh kegiatan dilaksanakan secara daring. Data citra satelit, curah hujan, dan peta sawah diambil dari katalog data terbuka, sehingga studi ini tidak memerlukan pengukuran lapangan. Pengolahan data, pemodelan, dan pengembangan situs dikerjakan secara mandiri tanpa server berbayar.
 
 Wilayah kajian utama adalah Kecamatan Tikung, Kabupaten Lamongan, Jawa Timur. Wilayah ini terletak antara 112,37° dan 112,45° Bujur Timur serta antara 7,12° dan 7,25° Lintang Selatan. Kecamatan Tikung terdiri atas tiga belas desa, yaitu Bakalanpule, Balongwangi, Botoputih, Dukuhagung, Guminingrejo, Jatirejo, Jotosanur, Kelorarum, Pengumbulanadi, Soko, Takeranklating, Tambakrigadung, dan Wonokromo. Luas sawah yang dipantau di wilayah tersebut berada di sekitar 4.420 hektare.
 
@@ -278,7 +278,7 @@ Tujuan pengembangan studi ini adalah sebagai berikut.
 - Menyediakan alur data terbuka yang dapat dijalankan ulang untuk kecamatan lain.
 - Menjadi dasar konversi capaian pembelajaran empat mata kuliah.
 
-Pengembangan dijalankan dalam lima langkah. Pertama, kebutuhan diidentifikasi dari rencana awal untuk program Kampung Pandu Sakti. Karena data program tidak tersedia, sasaran dialihkan ke jadwal tanam seluruh desa di Kecamatan Tikung. Kedua, solusi dirancang sebagai alur data bertahap, model prakiraan, dan situs web statis. Ketiga, hasil divalidasi dengan data BPS per desa dan data Survei Kerangka Sampel Area. Keempat, situs dijalankan di komputer mahasiswa dan disiapkan untuk publikasi. Kelima, hasil dievaluasi dan didokumentasikan dalam laporan ini.
+Pengembangan dijalankan dalam lima langkah. Pertama, kebutuhan diidentifikasi dari rencana awal untuk program Kampung Pandu Sakti. Karena data program tidak tersedia, sasaran dialihkan ke jadwal tanam seluruh desa di Kecamatan Tikung. Kedua, solusi dirancang sebagai alur data bertahap, model prakiraan, dan situs web statis. Ketiga, hasil divalidasi dengan data BPS per desa dan data Survei Kerangka Sampel Area. Keempat, situs dibangun sebagai situs statis dan disiapkan untuk publikasi. Kelima, hasil dievaluasi dan didokumentasikan dalam laporan ini.
 
 @tabel-mingguan merangkum kegiatan per minggu menurut logbook MELISA. Durasi dihitung dari estimasi resmi kelas Dicoding, jadwal sesi wajib, dan catatan sesi kerja proyek.
 
@@ -306,12 +306,6 @@ Pengembangan dijalankan dalam lima langkah. Pertama, kebutuhan diidentifikasi da
   caption: [Kegiatan mingguan menurut logbook MELISA, Agustus sampai September 2026],
 ) <tabel-mingguan>
 
-#perlu[
-  - Minggu 28 September sampai akhir Oktober 2026 belum tercatat di logbook.
-  - Logbook masih memuat tanda [CEK] dan [ISI]. Jumlah per minggu di tabel ini 12.074 menit, sedangkan rekap logbook 11.873 menit.
-  - Minggu 24 sampai 30 Agustus memuat hari di atas delapan jam (24, 26, dan 27 Agustus). Angka ini perlu dicocokkan dengan logbook.
-]
-
 Bagi mitra dan masyarakat, kegiatan ini menghasilkan data musim tanam tiga belas desa sejak 2017 yang sebelumnya tidak tersedia. Dampak tersebut belum sampai ke warga karena situs belum dipublikasikan. Bagi mahasiswa, kegiatan ini memberi pengalaman membangun sistem data dari pengambilan citra sampai penyajian, termasuk menguji hasilnya dengan data resmi.
 
 == Relevansi dengan Mata Kuliah Konversi
@@ -328,15 +322,15 @@ Bagi mitra dan masyarakat, kegiatan ini menghasilkan data musim tanam tiga belas
     table.header([*Mata kuliah*], [*SKS*], [*Kegiatan yang relevan*]),
     table.hline(stroke: 0.6pt),
     [Perencanaan Program], [2], [Penyusunan proposal, rencana delapan minggu, dan papan rencana kerja yang diperbarui selama studi],
-    [Big Data], [3], [Alur pengolahan bertahap untuk 4.954 sel Tikung dan 109.504 sel Lamongan, penyimpanan dalam basis data NoSQL MongoDB, serta visualisasi di situs web],
+    [Big Data], [3], [Alur pengolahan bertahap untuk 4.954 sel Tikung dan 109.504 sel di 27 kecamatan Lamongan, pemrosesan per kelompok sel agar sekitar 49 juta baris data muat dalam memori, penyimpanan dalam basis data NoSQL MongoDB, serta visualisasi di situs web],
     [Machine Learning], [3], [Model prakiraan waktu panen, dua tahap perbandingan model dengan dan tanpa penyetelan memakai validasi per tahun, serta rentang prakiraan 80%],
-    [Evaluasi Program], [2], [Validasi dengan BPS dan Survei Kerangka Sampel Area, uji ulang prakiraan, serta 60 uji otomatis],
+    [Evaluasi Program], [2], [Validasi dengan data BPS per desa, data DKPP per kecamatan, dan Survei Kerangka Sampel Area, uji ulang prakiraan, serta 60 uji otomatis],
     table.hline(stroke: 0.6pt),
   ),
   caption: [Relevansi kegiatan dengan mata kuliah konversi],
 ) <tabel-konversi>
 
-Kegiatan Big Data memenuhi CPMK tentang alur pemrosesan data, basis data NoSQL, dan visualisasi hasil. CPMK tentang Hadoop dan Spark baru terpenuhi sebagian, karena pengolahan dijalankan dengan pustaka Polars di satu komputer. Kegiatan Machine Learning memenuhi ketiga CPMK, yaitu memodelkan masalah, menjelaskan metode, dan mengimplementasikannya dengan bahasa pemrograman.
+Kegiatan Big Data memenuhi CPMK tentang alur pemrosesan data, basis data NoSQL, dan visualisasi hasil. CPMK tentang Hadoop dan Spark baru terpenuhi sebagian, karena pengolahan dijalankan dengan pustaka Polars tanpa klaster Hadoop atau Spark. Kegiatan Machine Learning memenuhi ketiga CPMK, yaitu memodelkan masalah, menjelaskan metode, dan mengimplementasikannya dengan bahasa pemrograman.
 
 = Rencana Tindak Lanjut dan Rekomendasi
 

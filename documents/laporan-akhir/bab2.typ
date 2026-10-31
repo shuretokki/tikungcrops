@@ -97,7 +97,7 @@ Hubungan antarvariabel mengikuti urutan fenologi. Penggenangan menandai tanam, l
 Studi ini menghasilkan tiga luaran yang dapat langsung dimanfaatkan.
 
 + *Situs Tanam Padi Lamongan.* \ Situs ini menampilkan kondisi sawah terkini, kalender tanam, jadwal tanam per desa, dan perkiraan panen beberapa minggu ke depan. Dampaknya, warga, buruh tani, dan perangkat desa dapat mengetahui waktu tanam dan panen desanya tanpa menunggu statistik tahunan.
-+ *Alur pengolahan data terbuka.* \ Kode program dirilis dengan lisensi Apache-2.0 dan data turunannya dengan lisensi CC-BY-4.0. Dampaknya, pemerintah daerah atau peneliti lain dapat menjalankan alur yang sama untuk kecamatan lain.
++ *Alur pengolahan data terbuka.* \ Kode program akan dirilis dengan lisensi Apache-2.0 dan data turunannya dengan lisensi CC-BY-4.0. Dampaknya, pemerintah daerah atau peneliti lain dapat menjalankan alur yang sama untuk kecamatan lain.
 + *Data musim tanam per desa.* \ Data tersedia dalam berkas JSON dan basis data MongoDB, mencakup musim tanam sejak Oktober 2017. Dampaknya, data ini dapat menjadi bahan perencanaan dan evaluasi program pertanian di tingkat desa.
 
 Mitra kolaborator studi ini adalah Dicoding Indonesia, sedangkan penerima manfaat utamanya adalah warga dan pemerintah desa di Kecamatan Tikung.
