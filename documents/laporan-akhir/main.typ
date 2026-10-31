@@ -270,63 +270,101 @@ Akibatnya, awal musim hujan sering tidak terlihat, dan status padi pada tahun 20
 
 == Kegiatan Studi Independen yang Dikembangkan
 
-#wajib[Paragraf kegiatan sesuai pola templat, tujuan pengembangan, langkah pengembangan, tabel kegiatan mingguan (posisi, topik, durasi jam, target, metode), serta dampak bagi mitra dan mahasiswa.]
-#fakta[
-  - Tabel rencana proposal 8 minggu dengan total 240 jam tersedia di proposal.typ, baris 299 sampai 310.
-  - Tabel realisasi bisa disusun dari CHANGELOG.local.md dan riwayat git.
-]
-#perlu[Jam per minggu dari logbook MELISA, supaya tabel realisasi cocok dengan logbook.]
+Studi independen ini difokuskan pada pengembangan sistem pemantauan musim tanam padi berbasis citra satelit. Kegiatan dijalankan bersama mitra kolaborator Dicoding Indonesia, dengan wilayah sasaran Kecamatan Tikung, termasuk Desa Jotosanur. Masalah nyata yang dijawab adalah belum tersedianya informasi waktu tanam dan waktu panen per desa yang diperbarui secara berkala. Sistem ini dikembangkan untuk membantu petani, buruh tani, penebas, dan pemerintah desa merencanakan kegiatan pada setiap musim tanam.
+
+Tujuan pengembangan studi ini adalah sebagai berikut.
+- Menerapkan materi Big Data dan Machine Learning dari Dicoding pada data nyata berskala besar.
+- Menghasilkan jadwal tanam dan prakiraan panen per desa yang dapat dibaca warga.
+- Menyediakan alur data terbuka yang dapat dijalankan ulang untuk kecamatan lain.
+- Menjadi dasar konversi capaian pembelajaran empat mata kuliah.
+
+Pengembangan dijalankan dalam lima langkah. Pertama, kebutuhan diidentifikasi dari rencana awal untuk program Kampung Pandu Sakti. Karena data program tidak tersedia, sasaran dialihkan ke jadwal tanam seluruh desa di Kecamatan Tikung. Kedua, solusi dirancang sebagai alur data bertahap, model prakiraan, dan situs web statis. Ketiga, hasil divalidasi dengan data BPS per desa dan data Survei Kerangka Sampel Area. Keempat, situs dijalankan di komputer mahasiswa dan disiapkan untuk publikasi. Kelima, hasil dievaluasi dan didokumentasikan dalam laporan ini.
+
+#perlu[Tabel kegiatan mingguan (posisi, topik, durasi jam, target, metode). Logbook MELISA baru tersusun sampai 30 September 2026, sehingga jam per minggu untuk Oktober belum tersedia.]
+
+Bagi mitra dan masyarakat, kegiatan ini menghasilkan data musim tanam tiga belas desa sejak 2017 yang sebelumnya tidak tersedia. Dampak tersebut belum sampai ke warga karena situs belum dipublikasikan. Bagi mahasiswa, kegiatan ini memberi pengalaman membangun sistem data dari pengambilan citra sampai penyajian, termasuk menguji hasilnya dengan data resmi.
 
 == Relevansi dengan Mata Kuliah Konversi
 
-#wajib[Tabel relevansi kegiatan dengan mata kuliah konversi.]
-#fakta[
-  #table(
+@tabel-konversi menunjukkan hubungan antara kegiatan studi independen dan mata kuliah yang dikonversi. Seluruh mata kuliah tersebut berjumlah sepuluh SKS.
+
+#figure(
+  table(
     columns: (auto, auto, 1fr),
-    stroke: 0.5pt,
-    inset: 5pt,
-    [*Mata kuliah*], [*SKS*], [*Bukti kegiatan*],
-    [Perencanaan Program], [2], [Proposal, rencana 8 minggu, papan roadmap],
-    [Big Data], [3], [Alur bronze, silver, gold, MongoDB, Parquet, pemrosesan 109.504 sel Lamongan],
-    [Machine Learning], [3], [Perbandingan baseline, Ridge, random forest, gradient boosting dengan evaluasi per tahun],
-    [Evaluasi Program], [2], [Validasi BPS dan KSA, backtest, 60 uji otomatis],
-  )
-  CPMK tiap mata kuliah ada di documents/local/cpmk-konversi-mk.md.
-]
+    stroke: none,
+    inset: 6pt,
+    align: (left, center, left),
+    table.hline(stroke: 1.2pt),
+    table.header([*Mata kuliah*], [*SKS*], [*Kegiatan yang relevan*]),
+    table.hline(stroke: 0.6pt),
+    [Perencanaan Program], [2], [Penyusunan proposal, rencana delapan minggu, dan papan rencana kerja yang diperbarui selama studi],
+    [Big Data], [3], [Alur pengolahan bertahap untuk 4.954 sel Tikung dan 109.504 sel Lamongan, penyimpanan dalam basis data NoSQL MongoDB, serta visualisasi di situs web],
+    [Machine Learning], [3], [Model prakiraan waktu panen, dua tahap perbandingan model dengan dan tanpa penyetelan memakai validasi per tahun, serta rentang prakiraan 80%],
+    [Evaluasi Program], [2], [Validasi dengan BPS dan Survei Kerangka Sampel Area, uji ulang prakiraan, serta 60 uji otomatis],
+    table.hline(stroke: 0.6pt),
+  ),
+  caption: [Relevansi kegiatan dengan mata kuliah konversi],
+) <tabel-konversi>
+
+Kegiatan Big Data memenuhi CPMK tentang alur pemrosesan data, basis data NoSQL, dan visualisasi hasil. CPMK tentang Hadoop dan Spark baru terpenuhi sebagian, karena pengolahan dijalankan dengan pustaka Polars di satu komputer. Kegiatan Machine Learning memenuhi ketiga CPMK, yaitu memodelkan masalah, menjelaskan metode, dan mengimplementasikannya dengan bahasa pemrograman.
 
 = Rencana Tindak Lanjut dan Rekomendasi
 
 == Rencana Tindak Lanjut
 
-#wajib[Pengembangan produk, pelatihan dan transfer pengetahuan, monitoring berkala, serta pendanaan atau kerja sama.]
-#rubrik[Kesimpulan dan Rencana Tindak Lanjut, 10%. Nilai tertinggi: tajam, strategis, berorientasi keberlanjutan.]
-#fakta[
-  - Pembaruan bulanan otomatis: penyimpanan riwayat citra (R2, Hugging Face, atau runner sendiri), lalu build dan deploy situs (rencana di CHANGELOG.local.md).
-  - Deteksi awal musim yang lebih tahan awan sebelum musim hujan 2026/2027 (§20).
-  - Brief satu halaman dan demo daring untuk desa.
-]
-#panduan[Tulis setiap rencana dengan pelaku, waktu, dan ukuran keberhasilan supaya tidak terdengar umum.]
+Rencana tindak lanjut disusun agar hasil studi dapat dipakai warga dan terus diperbarui. Setiap rencana dilengkapi dengan pelaku, waktu, dan ukuran keberhasilan.
+
+=== Pengembangan Produk
+
+Mahasiswa akan memublikasikan situs pada November 2026 sebagai situs statis tanpa biaya hosting. Keberhasilannya diukur dari alamat situs yang dapat dibuka publik. Sebelum puncak tanam musim hujan pada Desember, deteksi awal musim akan diperbaiki agar lebih tahan terhadap awan. Ukurannya adalah galat prakiraan Januari pada uji ulang yang lebih kecil dari 21 sampai 41 hari. Selain itu, hasil untuk 27 kecamatan di Kabupaten Lamongan akan diselesaikan dan dibandingkan dengan data luas panen DKPP 2021.
+
+=== Pelatihan dan Transfer Pengetahuan
+
+Mahasiswa akan menghubungi Kecamatan Tikung untuk meminta kontak resmi Pemerintah Desa Jotosanur. Setelah itu, ringkasan satu halaman dan demo daring akan diberikan kepada perangkat desa. Keberhasilannya diukur dari daftar hadir demo dan masukan tertulis dari perangkat desa. Panduan membaca situs juga akan ditulis dalam bahasa sehari-hari.
+
+=== Monitoring dan Evaluasi Berkala
+
+Alur pengambilan citra bulanan pada setiap tanggal 25 sudah disiapkan dan akan diaktifkan bersama publikasi situs. Hasil setiap musim akan dibandingkan dengan data Survei Kerangka Sampel Area dan edisi Kecamatan Tikung Dalam Angka yang baru. Masukan warga dari demo akan dipakai untuk menilai bagian situs yang perlu diubah.
+
+=== Pendanaan atau Kerja Sama
+
+Pembaruan bulanan membutuhkan tempat penyimpanan riwayat citra, karena deret waktu dibangun dari seluruh bulan sebelumnya. Layanan penyimpanan gratis untuk data terbuka akan dipilih agar tidak menimbulkan biaya. Kerja sama dengan penyuluh pertanian juga perlu dijajaki untuk memperoleh catatan tanggal tanam dari petani.
 
 == Rekomendasi
 
-#wajib[Rekomendasi teknis, manajerial, kebijakan, dan penelitian lanjutan.]
-#fakta[
-  - Teknis: fusi radar dan optik, penghalusan deret waktu, dan sel lebih kecil untuk petak sempit (G14, G15).
-  - Kebijakan: statistik desa terbuka akan memudahkan validasi pemantauan seperti ini.
-  - Penelitian: uji generalisasi G1 sampai G20 di wilayah lain.
-]
+=== Rekomendasi Teknis
+
+Citra optik dan radar sebaiknya digabungkan lebih erat untuk mengatasi awan pada musim hujan. Ukuran sel yang lebih kecil juga perlu diuji, karena satu sel 100 meter dapat mencakup beberapa petak dengan tanggal tanam berbeda. Selain itu, tanggal tanam dari catatan petani dibutuhkan untuk menguji hasil deteksi secara langsung.
+
+=== Rekomendasi Manajerial dan Operasional
+
+Ketersediaan data mitra sebaiknya dipastikan pada minggu pertama, sebelum ruang lingkup proyek ditetapkan. Komunikasi dengan pemerintah desa juga perlu dimulai sejak awal, sejajar dengan pekerjaan teknis. Dengan cara itu, uji coba bersama pengguna dapat dilakukan sebelum masa studi berakhir.
+
+=== Rekomendasi Kebijakan atau Strategis
+
+Di antara edisi 2022 sampai 2026, tabel luas panen per desa hanya tersedia pada Kecamatan Tikung Dalam Angka 2022. Edisi 2023 sampai 2026 hanya memuat total kecamatan. Penyajian kembali tabel per desa akan memudahkan validasi pemantauan berbasis satelit seperti dalam studi ini.
+
+=== Rekomendasi Penelitian Lanjutan
+
+Penelitian lanjutan perlu menguji apakah alur ini berlaku di wilayah dengan ukuran petak, pola hujan, dan jenis tanaman yang berbeda. Prakiraan waktu panen pada musim hujan juga perlu diteliti lebih lanjut, karena galatnya masih jauh lebih besar daripada musim kemarau.
 
 = Penutup
 
 == Kesimpulan
 
-#wajib[Templat tidak memberi contoh. Jawab setiap rumusan masalah pada 1.2 secara berurutan.]
-#panduan[Satu paragraf per rumusan masalah, tanpa data baru dan tanpa rujukan baru.]
+Pertama, alur pengolahan data otomatis berhasil mengubah citra Sentinel-1 dan Sentinel-2 sejak Oktober 2017 menjadi tahap tanam untuk 4.954 sel di tiga belas desa. Dari hasil tersebut, musim tanam 1 di Kecamatan Tikung biasanya dimulai pada November dan paling banyak dipanen pada April. Puncak tanam antardesa berbeda sampai lima minggu.
+
+Kedua, luas padi dari satelit sesuai dengan luas panen BPS per desa. Rasio luasnya 1,01 pada 2020 dan 2021, dengan korelasi 0,88 pada tahun 2021 yang tidak dipakai untuk penyetelan. Waktu panen juga sesuai dengan data bulanan Survei Kerangka Sampel Area, kecuali panen Maret yang sering terlambat terdeteksi.
+
+Ketiga, waktu panen dapat diprakirakan dengan galat rata-rata 11,9 hari dari tanggal tanam, lebih kecil dari 15,2 hari pada perkiraan sederhana. Hasil ini disajikan dalam situs web dengan tiga halaman yang sudah berfungsi. Akan tetapi, situs tersebut belum dipublikasikan dan belum diuji bersama warga.
 
 == Refleksi Akhir
 
-#wajib[Templat tidak memberi contoh.]
-#panduan[Gunakan model 4R @Ryan_2013 pada satu pengalaman penting, misalnya keputusan meninggalkan model prediksi hasil panen setelah data mitra tidak tersedia.]
+Refleksi ini memakai model 4R @Ryan_2013 untuk satu pengalaman penting. Pada akhir masa studi, alur data, model, dan situs sudah berfungsi. Namun, komunikasi dengan pemerintah Desa Jotosanur baru disiapkan, sehingga situs belum pernah dicoba oleh pengguna sasarannya.
+
+Pengalaman ini menunjukkan bahwa kemajuan teknis tidak sama dengan dampak. Pedoman program menilai manfaat bagi mitra dan masyarakat, sedangkan sebagian besar waktu studi dipakai untuk memperbaiki data dan menguji ketepatan model. Validasi dengan data BPS menjawab pertanyaan apakah hasil satelit benar, tetapi tidak menjawab apakah hasil itu berguna bagi warga.
+
+Penyebabnya adalah urutan kerja yang menunda keterlibatan pengguna sampai produk dianggap siap. Pada proyek berikutnya, mahasiswa akan menghubungi mitra pada minggu pertama, memastikan ketersediaan data, dan menyepakati waktu uji coba. Versi sederhana produk akan ditunjukkan lebih awal, lalu diperbaiki berdasarkan masukan pengguna.
 
 #appendix(title: [Biodata Mahasiswa])[
   #wajib[Templat mewajibkan Lampiran 1 berisi biodata mahasiswa.]
