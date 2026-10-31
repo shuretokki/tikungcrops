@@ -9,6 +9,7 @@ dist/
 wheels/
 *.egg-info
 .venv
+.pytest_cache
 
 /data/*
 !/data/reference/
@@ -26,13 +27,10 @@ documents/local/
 
 .env
 
-# personal polars practice
-/src/jotosanur_agri/test/
 
 *.local.md
 data/reference/*/sources/*.md
 
-# web app
 /site/public/json/
 .coverage
 archives/sumber-data/*-parsed.md
