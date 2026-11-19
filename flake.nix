@@ -20,12 +20,18 @@
         devShells.default = pkgs.mkShell{
           packages = with pkgs; [
             uv
+            python313
             just
             typst
             mongosh
             sqlite
+            ruff
+            basedpyright
           ];
           TYPST_FONT_PATHS = "${pkgs.source-sans}/share/fonts";
+          shellHook = ''
+            export UV_PROJECT_ENVIRONMENT="$HOME/.cache/venvs/mini-project"
+          '';
         };
       };
   };
