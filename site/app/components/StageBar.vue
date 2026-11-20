@@ -115,5 +115,8 @@ const accessors = computed(() => ORDER.map(k => () => props.totals[k]))
         </UTooltip>
       </li>
     </ul>
+    <p class="text-sm text-muted">
+      {{ COPY.stageNote }}
+    </p>
   </figure>
 </template>

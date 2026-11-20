@@ -10,8 +10,8 @@
 
 export const COPY = {
   site: {
-    title: 'Kalender Tanam',
-    subtitle: 'Kecamatan Tikung',
+    title: 'tikungcrops',
+    subtitle: 'Kalender Tanam Kecamatan Tikung',
     detail: 'Lihat penjelasan',
     skip: 'Lewati ke Konten Utama',
     stale: (date: string) => `Data terakhir tanggal ${date}. Perkiraan bisa sudah berubah.`,
@@ -79,11 +79,11 @@ export const COPY = {
   },
 
   tentang: {
-    seoTitle: 'Tentang Situs - Kalender Tanam',
+    seoTitle: 'Tentang Situs - tikungcrops',
     eyebrow: 'Tentang',
     title: 'Untuk Apa Situs Ini?',
     purpose: [
-      'Kalender Tanam menampilkan kondisi sawah, jadwal tanam, dan perkiraan panen dari foto satelit, sampai tingkat desa. Informasi ini membantu petani, penyuluh pertanian, dan dinas merencanakan tanam, menyiapkan benih dan pupuk, serta memperkirakan kapan panen datang.',
+      'tikungcrops menampilkan kondisi sawah, jadwal tanam, dan perkiraan panen dari foto satelit, sampai tingkat desa. Informasi ini membantu petani, penyuluh pertanian, dan dinas merencanakan tanam, menyiapkan benih dan pupuk, serta memperkirakan kapan panen datang.',
       'Situs ini dibuat sebagai penelitian mahasiswa dan belum menggantikan layanan resmi dari Kementerian Pertanian.'
     ],
     helps: {
@@ -112,7 +112,7 @@ export const COPY = {
       planned: 'Disiapkan',
       rows: [
         { item: 'Padi di Kecamatan Tikung', ready: true, note: '13 desa, data foto satelit sejak Oktober 2017.' },
-        { item: 'Jagung, kedelai, tebu, dan singkong', ready: false, note: 'Belum diolah. Aturan deteksi saat ini khusus padi.' }
+        { item: 'Jagung, kedelai, tebu, dan singkong', ready: false, note: 'Belum diolah. Perhitungan saat ini khusus padi.' }
       ]
     },
     sources: {
@@ -134,8 +134,8 @@ export const COPY = {
       body: 'Jadwal merupakan perkiraan dari foto satelit dan bukan pengganti informasi dari penyuluh pertanian.',
       items: [
         'Tanggal tanam dan panen belum dicocokkan dengan catatan petani.',
-        'Pada musim hujan, awan sering menutupi awal musim sehingga perkiraan dapat meleset tiga sampai lima minggu. Pada musim kemarau, selisihnya sekitar satu sampai dua minggu.',
-        'Sejak tahun 2022, satelit yang dipakai lebih jarang melintas sehingga sebagian musim tanam padi tidak terdeteksi.'
+        'Pada musim hujan, awan sering menutupi awal musim sehingga perkiraan dapat meleset tiga sampai lima minggu. Pada musim kemarau, bedanya sekitar satu sampai dua minggu.',
+        'Sejak tahun 2022, satelit yang dipakai lebih jarang melintas sehingga sebagian musim tanam padi tidak terlihat.'
       ]
     },
     researcher: 'Untuk Peneliti',
@@ -143,24 +143,24 @@ export const COPY = {
   },
 
   faq: {
-    seoTitle: 'Tanya Jawab - Kalender Tanam',
+    seoTitle: 'Tanya Jawab - tikungcrops',
     title: 'Tanya Jawab',
-    description: 'Jawaban singkat untuk pertanyaan yang sering muncul tentang Kalender Tanam.',
+    description: 'Jawaban singkat untuk pertanyaan yang sering muncul tentang tikungcrops.',
     items: [
-      { q: 'Apa itu Kalender Tanam?', a: ['Situs yang menampilkan kondisi sawah, jadwal tanam, dan perkiraan panen dari foto satelit Sentinel-1 dan Sentinel-2, sampai tingkat desa. Saat ini tersedia untuk padi di Kecamatan Tikung.'] },
+      { q: 'Apa itu tikungcrops?', a: ['Situs yang menunjukkan kapan sawah di desa biasanya mulai ditanami dan dipanen, serta kondisi sawahnya, dari foto yang diambil satelit. Saat ini hanya untuk padi di Kecamatan Tikung.'] },
       { q: 'Untuk siapa situs ini?', a: ['Untuk petani, penyuluh pertanian, dinas pertanian, dan peneliti. Penjelasan lengkap ada pada halaman Tentang.'] },
       { q: 'Wilayah dan tanaman apa yang tersedia?', a: ['Padi di 13 desa Kecamatan Tikung. Jagung, kedelai, tebu, dan singkong sedang disiapkan dan belum dapat dipilih.'] },
-      { q: 'Dari mana datanya?', a: ['Dari foto satelit Sentinel-1 dan Sentinel-2 milik Badan Antariksa Eropa, curah hujan CHIRPS, peta Lahan Baku Sawah dari Badan Informasi Geospasial, dan data panen pembanding dari BPS serta dinas pertanian. Daftar lengkap ada pada bagian Sumber Data di halaman Tentang.'] },
-      { q: 'Seberapa sering data diperbarui?', a: ['Pengambilan foto satelit dijadwalkan setiap bulan. Tanggal foto satelit terakhir tertera pada penanda tanggal di halaman dan pada bagian bawah setiap halaman.'] },
-      { q: 'Mengapa foto satelit terakhir lebih lama dari hari ini?', a: ['Satelit melintas pada selang waktu tertentu, awan sering menutupi foto satelit biasa, dan pengolahan memerlukan waktu. Karena itu data selalu tertinggal dari hari ini.'] },
-      { q: 'Bagaimana tahap sedang ditanami, menjelang panen, dan belum ditanami ditentukan?', a: ['Satelit radar Sentinel-1 mendeteksi genangan saat penanaman, dan foto satelit biasa Sentinel-2 mengukur kehijauan tanaman. Tanaman yang paling hijau berarti panen biasanya tinggal beberapa minggu lagi. Lahan tanpa tanaman setelah panen disebut bera.'] },
-      { q: 'Mengapa sebagian sawah tidak diketahui?', a: ['Awan menutupi lahan sehingga satelit optik tidak dapat membaca kondisinya. Luas yang tertutup awan tidak dihitung dalam persentase.'] },
-      { q: 'Seberapa tepat jadwal tanam dan panen?', a: ['Jadwal merupakan perkiraan dari pola musim tanam sejak tahun 2017. Pada musim hujan, awan dapat menggeser perkiraan tiga sampai lima minggu, dan pada musim kemarau sekitar satu sampai dua minggu. Tanggal belum dicocokkan dengan catatan petani.'] },
-      { q: 'Seberapa tepat luas sawah dan padi?', a: ['Di Kecamatan Tikung, luas padi dari satelit mendekati data BPS per desa. Hasilnya dapat dilihat pada bagian Ketepatan Data di halaman Perbandingan.'] },
-      { q: 'Apa arti mulai tanam lebih lambat dari rata-rata?', a: ['Mulai tanam musim tanam utama terakhir dibandingkan dengan rata-rata lima musim sebelumnya, dengan syarat minimal tiga musim. Selisih 7 hari atau lebih diberi tanda lebih lambat. Selisih diperkirakan dari radar sehingga dapat meleset beberapa minggu.'] },
-      { q: 'Mengapa angka berapa kali tanam berbeda dengan jumlah panen padi?', a: ['Angka berapa kali tanam menghitung semua musim tanam yang tercatat pada peta sawah, tidak hanya padi. Cara ini dipilih karena penanda padi melewatkan sebagian padi di beberapa kecamatan.'] },
-      { q: 'Bolehkah data diunduh dan dipakai?', a: ['Berkas JSON dapat diunduh dari bagian bawah setiap halaman. Cantumkan sumber data saat memakainya. Lisensi setiap sumber berbeda, jadi periksa daftar pada halaman Tentang.'] },
-      { q: 'Apakah situs ini menggantikan penyuluh pertanian?', a: ['Tidak. Informasi di sini perkiraan dari foto satelit. Untuk keputusan tanam, tanyakan juga kepada penyuluh pertanian setempat.'] },
+      { q: 'Dari mana datanya?', a: ['Dari foto satelit milik Badan Antariksa Eropa, data curah hujan, peta sawah dari pemerintah, dan data panen resmi dari Badan Pusat Statistik dan dinas pertanian. Nama lengkapnya ada di bagian Sumber Data pada halaman Tentang.'] },
+      { q: 'Seberapa sering data diperbarui?', a: ['Data diperbarui jika ada foto satelit baru yang sudah diolah. Tanggal data terakhir tertera di bagian bawah setiap halaman.'] },
+      { q: 'Mengapa data lebih lama dari hari ini?', a: ['Satelit hanya lewat beberapa hari sekali, awan sering menutupi sawah, dan pengolahan memerlukan waktu. Karena itu data selalu tertinggal dari hari ini.'] },
+      { q: 'Bagaimana tahap sawah ditentukan?', a: ['Satelit melihat air yang menggenang saat sawah ditanami, lalu melihat warna hijau tanaman yang makin tua. Tanaman yang paling hijau berarti panen tinggal beberapa minggu lagi. Sawah yang kosong setelah panen disebut belum ditanami.'] },
+      { q: 'Mengapa sebagian sawah tidak diketahui?', a: ['Awan menutupi sawah sehingga satelit tidak dapat melihatnya. Sawah itu tidak dihitung dalam angka persen.'] },
+      { q: 'Seberapa tepat jadwal tanam dan panen?', a: ['Jadwal adalah perkiraan dari pola sejak tahun 2017. Pada musim hujan perkiraan bisa meleset tiga sampai lima minggu, dan pada musim kemarau satu sampai dua minggu. Tanggalnya belum dicocokkan dengan catatan petani.'] },
+      { q: 'Seberapa tepat luas sawah dan padi?', a: ['Di Kecamatan Tikung, luas padi dari satelit mendekati data BPS untuk setiap desa. Hasil pemeriksaan ada di bagian Ketepatan Data pada halaman Tentang.'] },
+      { q: 'Apa arti mulai tanam lebih lambat dari rata-rata?', a: ['Mulai tanam musim terakhir dibandingkan dengan rata-rata lima musim sebelumnya. Jika beda harinya 7 hari atau lebih, desa diberi tanda lebih lambat. Angka ini perkiraan dan bisa meleset beberapa minggu.'] },
+      { q: 'Mengapa angka berapa kali tanam berbeda dengan jumlah panen padi?', a: ['Angka itu menghitung semua tanaman di sawah, tidak hanya padi, karena cara satelit mengenali padi kadang melewatkan sebagian padi.'] },
+      { q: 'Bolehkah data diunduh dan dipakai?', a: ['Boleh. Data dapat diunduh dari bagian bawah setiap halaman. Sebutkan sumber datanya saat memakainya, dan periksa izin setiap sumber di halaman Tentang.'] },
+      { q: 'Apakah situs ini menggantikan penyuluh pertanian?', a: ['Tidak. Informasi di sini hanya perkiraan dari foto satelit. Untuk keputusan tanam, tanyakan juga kepada penyuluh pertanian di kantor kecamatan.'] },
       { q: 'Bagaimana menghubungi pengelola?', a: ['Informasi kontak akan dicantumkan saat situs diterbitkan.'] }
     ]
   },
@@ -182,16 +182,18 @@ export const COPY = {
 
   onset: {
     title: 'Mulai Tanam Dibanding Rata-rata 5 Musim',
-    body: (year: number, n: number) => `Mulai tanam musim tanam utama tahun ${year} dibandingkan dengan rata-rata ${n} musim sebelumnya. Batang ke kanan berarti lebih lambat, dan batang ke kiri berarti lebih awal.`,
+    body: 'Mulai tanam musim tanam utama terakhir yang tercatat di setiap desa, dibandingkan dengan rata-rata musim-musim sebelumnya di desa itu.',
     value: (d: number) => (d === 0 ? 'Sama dengan rata-rata' : d > 0 ? `${d} hari lebih lambat` : `${-d} hari lebih awal`),
     card: 'Mulai Tanam',
+    seasonOf: (year: number) => `musim ${year}`,
     short: (d: number) => (d >= 7 ? 'Lebih Lambat' : d <= -7 ? 'Lebih Awal' : 'Sama Saja'),
-    cardDetail: (year: number, shift: number, plant: string, mean: string) => `Tahun ${year}: ${shift === 0 ? 'sama dengan rata-rata' : shift > 0 ? `${shift} hari lebih lambat dari rata-rata` : `${-shift} hari lebih awal dari rata-rata`}. Mulai tanam ${plant}, rata-rata sebelumnya ${mean}.`,
-    note: 'Selisih diperkirakan dari foto satelit sehingga dapat meleset beberapa minggu. Tanda lebih lambat muncul pada selisih 7 hari atau lebih.',
+    cardDetail: (year: number, shift: number, plant: string, mean: string) => `Dibandingkan musim-musim sebelumnya di desa ini, bukan dengan desa lain. Tahun ${year}: ${shift === 0 ? 'sama dengan rata-rata' : shift > 0 ? `${shift} hari lebih lambat dari rata-rata` : `${-shift} hari lebih awal dari rata-rata`}. Mulai tanam ${plant}, rata-rata sebelumnya ${mean}.`,
     late: 'Lebih Lambat',
     lateAfter: 7,
-    columns: { unit: 'Desa', plant: 'Mulai Tanam', mean: 'Rata-rata Sebelumnya', shift: 'Selisih (hari)' }
+    columns: { unit: 'Desa', plant: 'Mulai Tanam', mean: 'Rata-rata Sebelumnya', shift: 'Beda (hari)' }
   },
+
+  stageNote: 'Belum Diketahui berarti sawah yang tidak dapat dilihat satelit saat foto diambil.',
 
   stageHelp: {
     planted: 'Padi sudah ditanam dan sedang tumbuh.',
@@ -213,14 +215,14 @@ export const COPY = {
     since: 'Berdasarkan pola musim tanam sejak tahun 2017.',
     reference: 'BPS',
     satellite: 'Satelit',
-    diff: 'Selisih',
+    diff: 'Beda',
     mapHint: 'Pilih untuk melihat jadwal desa.',
     today: (date: string) => `Per ${date}`,
-    range: 'Paling sedikit sampai paling banyak sejak 2017'
+    range: 'Hujan paling sedikit dan paling banyak sejak 2017'
   },
 
   landing: {
-    seoTitle: 'Kalender Tanam',
+    seoTitle: 'tikungcrops',
     eyebrow: 'Kabupaten Lamongan',
     steps: [
       { title: 'Pilih Wilayah dan Tanaman', body: 'Tentukan wilayah dan tanaman yang ingin dilihat.' },
@@ -231,7 +233,7 @@ export const COPY = {
     description: (units: number) => `Padi menjadi tanaman pertama yang tersedia, lengkap dengan jadwal tanam, kondisi sawah, dan perkiraan panen ${units} desa di Kecamatan Tikung dari foto satelit. Jagung, kedelai, tebu, dan singkong menyusul.`,
     primaryCta: 'Cari Desa',
     secondaryCta: 'Lihat Kalender Tanam',
-    tableToggle: 'Lihat Angkanya',
+    tableToggle: 'Lihat Tabel',
     mapLoading: 'Memuat peta…',
     mapLabel: 'Peta petak sawah dan batas wilayah',
     mapFailed: 'Peta tidak dapat ditampilkan pada perangkat ini. Seluruh angka tetap tersedia pada halaman ini.',
@@ -240,7 +242,7 @@ export const COPY = {
       eyebrow: 'Ringkasan',
       title: 'Kondisi Kecamatan Tikung',
       labels: {
-        seasonOutside: 'mulai tanam berikutnya di kecamatan',
+        seasonOutside: 'mulai tanam berikutnya, rata-rata semua desa',
         seasonDuring: 'dari musim tanam utama',
         fallow: (ha: string) => `sawah belum ditanami, dari ${ha} sawah yang diketahui`,
         rainPct: 'dibanding rata-rata 5 tahun',
@@ -254,8 +256,8 @@ export const COPY = {
       },
       fallow: {
         title: (pct: string) => `${pct} sawah belum ditanami`,
-        offSeason: 'Sekarang belum musim tanam, jadi sawah belum ditanami.',
-        body: (bera: string, readable: string) => `Sebanyak ${bera} dari ${readable} sawah belum ditanami kembali.`
+        offSeason: (date: string) => `Pada ${date} belum musim tanam, jadi sawah belum ditanami.`,
+        body: (bera: string, readable: string, unknown: string) => `Sebanyak ${bera} dari ${readable} sawah belum ditanami. Sawah seluas ${unknown} belum diketahui.`
       },
       rain: {
         title: (month: string, word: string) => `Curah hujan ${month} ${word}`,
@@ -295,6 +297,10 @@ export const COPY = {
     rain: {
       title: 'Curah Hujan 12 Bulan Terakhir',
       body: (month: string, mm: string, normal: string) => `Curah hujan bulan ${month} tercatat ${mm} mm, sedangkan rata-rata bulan tersebut di kecamatan sekitar ${normal} mm.`,
+      advice: {
+        dry: (m: string) => `Hujan ${m} kurang dari biasanya, jadi tunggu hujan turun sebelum mulai tanam.`,
+        ok: (m: string) => `Hujan ${m} tidak kurang dari biasanya.`
+      },
       plain: {
         wetter: (m: string, p: string) => `Hujan ${m} lebih banyak dari biasanya (${p}).`,
         drier: (m: string, p: string) => `Hujan ${m} lebih sedikit dari biasanya (${p}).`,
@@ -305,7 +311,7 @@ export const COPY = {
       },
       actual: 'Curah hujan',
       normal: 'Rata-rata 5 tahun',
-      band: 'Paling sedikit sampai paling banyak sejak 2017',
+      band: 'Hujan paling sedikit dan paling banyak sejak 2017',
       readout: (label: string, mm: string, normal: string) => `${label}: ${mm} mm, rata-rata ${normal} mm`,
       columns: { month: 'Bulan', mm: 'Curah Hujan (mm)', normal: 'Rata-rata 5 Tahun (mm)', lo: 'Terendah (mm)', hi: 'Tertinggi (mm)' }
     },
@@ -322,8 +328,8 @@ export const COPY = {
       body: 'Jadwal disusun dari pola musim tanam sejak tahun 2017. Desa yang berada paling atas umumnya memulai tanam lebih awal.',
       today: 'Hari ini',
       readout: (unit: string, plant: string, harvest: string) => `${unit}: mulai tanam ${plant}, panen ${harvest}`,
-      hint: 'Sentuh batang untuk melihat tanggal.',
-      legend: 'Batang dari mulai tanam sampai panen.',
+      hint: 'Sentuh garis warna untuk melihat tanggal.',
+      legend: 'Garis warna menunjukkan masa dari mulai tanam sampai panen.',
       columns: { unit: 'Desa', plant: 'Mulai Tanam', harvest: 'Panen' }
     },
 
@@ -331,9 +337,9 @@ export const COPY = {
       title: 'Perkiraan Panen 8 Minggu ke Depan',
       body: 'Desa dengan perkiraan panen paling awal berada di urutan teratas.',
       row: (week: string, ha: string) => `Panen terbanyak minggu ${week}, total sekitar ${ha}`,
-      empty: (month: string) => `Belum terdapat panen besar dalam 8 minggu ke depan. Panen musim berikutnya umumnya mencapai puncak pada bulan ${month}.`,
+      empty: (month: string) => `Belum terdapat panen besar dalam 8 minggu ke depan. Panen musim berikutnya umumnya paling banyak pada bulan ${month}.`,
       emptyTitle: 'Belum ada panen besar dalam 8 minggu ke depan',
-      emptyBody: (month: string) => `Panen musim berikutnya umumnya mencapai puncak pada bulan ${month}.`
+      emptyBody: (month: string) => `Panen musim berikutnya umumnya paling banyak pada bulan ${month}.`
     },
 
     desa: {
@@ -360,7 +366,7 @@ export const COPY = {
       early: 'Lebih awal',
       late: 'Lebih akhir'
     },
-    seoTitle: 'Jadwal Tanam dan Panen Desa - Kalender Tanam',
+    seoTitle: 'Jadwal Tanam dan Panen Desa - tikungcrops',
     title: 'Kalender Tanam',
     description: 'Jadwal tanam dan panen setiap desa di Kecamatan Tikung, disertai mulai tanam dan curah hujan.',
     views: { kalender: 'Kalender', peta: 'Peta', tabel: 'Tabel' },
@@ -369,14 +375,14 @@ export const COPY = {
     mapTitle: (measure: string) => `Peta Desa Menurut ${measure}`,
     tableTitle: 'Jadwal Tanam dan Panen Setiap Desa',
     tableBody: 'Klik judul kolom untuk mengurutkan.',
-    tableDetail: 'Batang menunjukkan musim tanam sejak 1 September.',
+    tableDetail: 'Garis warna menunjukkan musim tanam sejak 1 September.',
     trend: 'Musim',
     search: 'Cari desa…',
     notesLink: { text: 'Jadwal merupakan perkiraan dari foto satelit.', link: 'Baca penggunaan data' }
   },
 
   bandingkan: {
-    seoTitle: 'Perbandingan Wilayah - Kalender Tanam',
+    seoTitle: 'Perbandingan Wilayah - tikungcrops',
     title: 'Perbandingan Wilayah',
     description: 'Perbandingan desa di Kecamatan Tikung menurut luas sawah, berapa kali tanam padi, dan sawah yang ada tanamannya.',
     map: {
@@ -431,7 +437,7 @@ export const COPY = {
       detail: 'Luas seluruh tanaman dari satelit lebih besar karena peta lahan pertanian juga memuat jagung dan tegalan. Kemiripan urutan bernilai 0 sampai 1, dan semakin mendekati 1 semakin mirip urutan desa dari satelit dengan urutan dari BPS.',
       statRatio: (year: number) => `Luas padi dari satelit dibanding data BPS, tahun ${year}`,
       statR: 'Kemiripan urutan desa dengan BPS (0 sampai 1)',
-      scatterNote: (year: number) => `Titik pada grafik menunjukkan luas padi tahun ${year}. Data tahun tersebut tidak digunakan saat aturan deteksi padi disusun.`,
+      scatterNote: (year: number) => `Titik pada grafik menunjukkan luas padi tahun ${year}. Data tahun tersebut tidak dipakai saat cara mengenali padi disusun.`,
       x: 'Luas panen padi BPS (ha)',
       y: 'Luas padi dari satelit (ha)',
       equalNote: 'Garis putus-putus menunjukkan luas satelit sama dengan luas BPS.',
@@ -444,12 +450,12 @@ export const COPY = {
   },
 
   desa: {
-    seoTitle: (unit: string) => `Desa ${unit} - Kalender Tanam`,
+    seoTitle: (unit: string) => `Desa ${unit} - tikungcrops`,
     title: (unit: string) => `Desa ${unit}`,
     description: (unit: string) => `Kondisi sawah padi, jadwal tanam, dan perkiraan panen Desa ${unit}.`,
     summary: {
       usual: (plant: string, harvest: string) => `Biasanya mulai tanam sekitar ${plant} dan panen sekitar ${harvest}.`,
-      onset: (d: number) => (d >= 7 ? `Mulai tanam tahun ini ${d} hari lebih lambat dari biasanya.` : d <= -7 ? `Mulai tanam tahun ini ${-d} hari lebih awal dari biasanya.` : 'Mulai tanam tahun ini sama dengan biasanya.')
+      onset: (d: number, year: number) => (d >= 7 ? `Pada musim tanam terakhir yang tercatat (${year}), mulai tanamnya ${d} hari lebih lambat dari rata-rata.` : d <= -7 ? `Pada musim tanam terakhir yang tercatat (${year}), mulai tanamnya ${-d} hari lebih awal dari rata-rata.` : `Pada musim tanam terakhir yang tercatat (${year}), mulai tanamnya sama dengan rata-rata.`)
     },
     groups: { conditions: 'Kondisi dan Jadwal', history: 'Riwayat dan Panen', context: 'Perbandingan dan Hujan' },
     photo: {
@@ -465,12 +471,14 @@ export const COPY = {
     },
     mine: 'Jadikan Desa Saya',
     isMine: 'Desa Saya',
+    mineHelp: 'Desa Saya menyimpan desa ini di perangkat ini, supaya mudah dibuka dari halaman depan.',
     mineOpen: (unit: string) => `Buka Desa Saya: ${unit}`,
     share: 'Bagikan lewat WhatsApp',
     shareText: (unit: string, summary: string) => `Desa ${unit}. ${summary}`.trim(),
     notFound: 'Desa tidak ditemukan.',
     now: {
-      title: 'Kondisi Terkini'
+      title: 'Kondisi Terkini',
+      asOf: (date: string) => `Data per ${date}`
     },
     schedule: {
       title: 'Jadwal Musim Tanam Utama',
@@ -482,13 +490,13 @@ export const COPY = {
     harvest: {
       title: 'Perkiraan Panen 8 Minggu ke Depan',
       row: (week: string, ha: string) => `Minggu ${week}: sekitar ${ha}`,
-      empty: (date: string | null) => date ? `Belum terdapat perkiraan panen dalam 8 minggu ke depan. Panen musim tanam utama umumnya mencapai puncak sekitar ${date}.` : 'Belum terdapat perkiraan panen dalam 8 minggu ke depan.'
+      empty: (date: string | null) => date ? `Belum terdapat perkiraan panen dalam 8 minggu ke depan. Panen musim tanam utama umumnya paling banyak sekitar ${date}.` : 'Belum terdapat perkiraan panen dalam 8 minggu ke depan.'
     },
     compare: {
       title: 'Perbandingan dengan Desa Lain',
-      body: 'Urutan desa ini di antara 13 desa di Kecamatan Tikung. Urutan 1 berarti nilainya paling besar, bukan berarti paling baik.',
-      place: (place: number, total: number) => `${place} dari ${total}`,
-      basis: { intensitas: '', tumbuh: ' dari sawah yang diketahui' } as Record<string, string>,
+      body: 'Nomor desa ini di antara 13 desa di Kecamatan Tikung. Nomor 1 berarti angkanya paling besar, belum tentu paling baik. Berapa Kali Tanam adalah rata-rata berapa kali satu petak sawah ditanami dalam setahun.',
+      place: (place: number, total: number) => `Nomor ${place} dari ${total} desa`,
+      basisTumbuh: (growing: string, known: string) => ` (${growing} dari ${known} sawah yang diketahui)`,
       link: 'Lihat Perbandingan Seluruh Desa'
     },
     map: {

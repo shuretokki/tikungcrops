@@ -16,6 +16,7 @@
 @import "@fontsource/lexend/500.css";
 @import "@fontsource/lexend/600.css";
 @import "@fontsource/lexend/700.css";
+@import "@fontsource/open-runde/latin-700.css";
 
 @font-face { font-family: "Lilex"; font-weight: 400; font-display: swap; src: url("/fonts/Lilex-Regular.ttf") format("truetype"); }
 
@@ -159,4 +160,12 @@ svg.iconify * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* The site name uses Open Runde Bold, a rounded face, so it stands apart from the Lexend text. */
+/* To undo, remove the open-runde import and this rule, and the name falls back to Lexend. */
+.font-brand {
+  font-family: "Open Runde", var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }

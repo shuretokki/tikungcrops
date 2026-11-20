@@ -26,6 +26,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
       <UAccordion
         :items="items"
         type="multiple"
+        :default-value="items.map(i => i.value)"
         class="max-w-3xl"
       >
         <template #body="{ item }">

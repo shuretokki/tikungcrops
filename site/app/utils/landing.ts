@@ -148,6 +148,14 @@ export function rainPlain(m: RainMonth): string {
   return v.kind === 'wetter' ? r.wetter(month, p) : v.kind === 'drier' ? (v.pct >= 0.9 ? r.veryDry(month) : r.drier(month, p)) : r[v.kind](month)
 }
 
+// What the rain of a month means for starting to plant, in one plain sentence.
+export function rainAdvice(m: RainMonth): string {
+  const v = rainVerdict(m.mm, rainBaseline(m))
+  const month = new Date(Date.UTC(m.year, m.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  const dry = v.kind === 'drier' || v.kind === 'below'
+  return dry ? COPY.landing.rain.advice.dry(month) : COPY.landing.rain.advice.ok(month)
+}
+
 export interface SeasonYear { year: number, plant: number, harvest: number, ha: number }
 
 // The MT1 seasons of one desa, oldest first, with plant and harvest days counted in a non-leap year.

@@ -30,12 +30,26 @@ const schedule = computed(() => (mt1.value ? [{ unit: unit.value, plant: mt1.val
 const history = computed(() => seasonHistory((seasons.value ?? []).filter(s => s.unit === unit.value)))
 const historyRows = computed(() => history.value.map(h => ({ unit: unit.value, plant: h.plant, harvest: h.harvest, label: COPY.history.label(h.year) })))
 const onset = computed(() => onsetShift((seasons.value ?? []).filter(s => s.unit === unit.value)))
-const summary = computed(() => (mt1.value ? [t.summary.usual(day(mt1.value.plant), day(mt1.value.harvest)), ...(onset.value ? [t.summary.onset(onset.value.shift)] : [])].join(' ') : null))
+const summary = computed(() => (mt1.value ? [t.summary.usual(day(mt1.value.plant), day(mt1.value.harvest)), ...(onset.value ? [t.summary.onset(onset.value.shift, onset.value.year)] : [])].join(' ') : null))
 const lastRain = computed(() => rainMonths.value?.at(-1))
+// The percentage of growing sawah says how many hectares it is out of, so a small number of hectares is not mistaken for a large desa.
+function basisOf(key: string) {
+  if (key !== 'tumbuh') return ''
+  const known = stages.value.planted + stages.value.peaked + stages.value.fallow
+  return t.compare.basisTumbuh(formatHa(stages.value.planted + stages.value.peaked), formatHa(known))
+}
 // The harvest weeks and the timing line depend on today's date, so they are set in the browser once the page has loaded.
 const todayMs = ref<number | null>(null)
 onMounted(() => {
   todayMs.value = Date.now()
+})
+// The rain advice only shows when planting is within 30 days and the rain data is not older than about six weeks, so old dry months never decide the advice.
+const adviceOn = computed(() => {
+  if (todayMs.value === null || !mt1.value || !lastRain.value) return false
+  const now = dayOfYear(`2001-${new Date(todayMs.value).toISOString().slice(5, 10)}`)
+  const ahead = (mt1.value.plant - now + 365) % 365
+  const monthEnd = Date.UTC(lastRain.value.year, lastRain.value.month, 1)
+  return ahead <= 30 && todayMs.value - monthEnd <= 45 * 86_400_000
 })
 const timing = computed(() => {
   if (todayMs.value === null || !mt1.value) return null
@@ -137,6 +151,12 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         >
           {{ timing }}
         </p>
+        <p
+          v-if="lastRain && adviceOn"
+          class="max-w-xl text-lg text-white/90"
+        >
+          {{ rainAdvice(lastRain) }}
+        </p>
         <div class="flex flex-wrap gap-3">
           <ClientOnly>
             <UButton
@@ -157,6 +177,9 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
             @click="share"
           />
         </div>
+        <p class="max-w-xl text-sm text-white/70">
+          {{ t.mineHelp }}
+        </p>
         <p class="max-w-xl text-sm text-white/70">
           {{ COPY.site.advice }}
         </p>
@@ -188,6 +211,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
           <div class="tile-box flex flex-col gap-6">
             <h3 class="text-xl font-semibold">
               {{ t.now.title }}
+              <span class="block text-sm font-normal text-muted">{{ t.now.asOf(formatDate(meta?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })) }}</span>
             </h3>
             <StageBar :totals="stages" />
           </div>
@@ -200,7 +224,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
             </p>
             <template v-if="mt1">
               <dl class="grid gap-3 sm:grid-cols-3">
-                <div class="flex flex-col-reverse gap-1 rounded-lg bg-default p-4">
+                <div class="flex min-h-22 flex-col-reverse gap-1 rounded-lg bg-default p-4">
                   <dt class="text-sm text-muted">
                     {{ t.schedule.plant }}
                   </dt>
@@ -208,7 +232,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
                     {{ day(mt1.plant) }}
                   </dd>
                 </div>
-                <div class="flex flex-col-reverse gap-1 rounded-lg bg-default p-4">
+                <div class="flex min-h-22 flex-col-reverse gap-1 rounded-lg bg-default p-4">
                   <dt class="text-sm text-muted">
                     {{ t.schedule.harvest }}
                   </dt>
@@ -218,12 +242,12 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
                 </div>
                 <div
                   v-if="onset"
-                  class="flex flex-col-reverse gap-1 rounded-lg bg-default p-4"
+                  class="flex min-h-22 flex-col-reverse gap-1 rounded-lg bg-default p-4"
                 >
                   <dt class="text-sm text-muted">
                     {{ COPY.onset.card }}
                   </dt>
-                  <dd class="text-xl font-semibold">
+                  <dd class="flex items-center gap-1 text-xl font-semibold whitespace-nowrap">
                     {{ COPY.onset.short(onset.shift) }}
                     <InfoTip :text="COPY.onset.cardDetail(onset.year, onset.shift, day(onset.plant), day(onset.mean))" />
                   </dd>
@@ -325,10 +349,10 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
               <div
                 v-for="p in places"
                 :key="p.key"
-                class="flex flex-col-reverse gap-1 rounded-lg bg-default p-4"
+                class="flex min-h-22 flex-col-reverse gap-1 rounded-lg bg-default p-4"
               >
                 <dt class="text-sm text-muted">
-                  {{ p.label }}: {{ p.text }}{{ t.compare.basis[p.key] }}
+                  {{ p.label }}: {{ p.text }}{{ basisOf(p.key) }}
                 </dt>
                 <dd class="text-3xl/[1.15] font-semibold tabular-nums">
                   {{ t.compare.place(p.place, p.total) }}

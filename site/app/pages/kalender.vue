@@ -298,7 +298,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
           {{ COPY.onset.title }}
         </h2>
         <p class="text-muted">
-          {{ COPY.onset.body(onsets[0]!.year, onsets[0]!.priorSeasons) }}
+          {{ COPY.onset.body }}
         </p>
       </header>
       <div class="flex flex-col gap-8">
@@ -333,13 +333,10 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
                 v-if="o.shift >= COPY.onset.lateAfter"
                 class="sr-only"
               >{{ COPY.onset.late }}:</span>
-              {{ COPY.onset.value(o.shift) }}
+              {{ COPY.onset.value(o.shift) }}, {{ COPY.onset.seasonOf(o.year) }}
             </span>
           </li>
         </ul>
-        <p class="max-w-2xl text-sm text-muted">
-          {{ COPY.onset.note }}
-        </p>
         <ChartTable
           :caption="COPY.onset.title"
           :columns="[COPY.onset.columns.unit, COPY.onset.columns.plant, COPY.onset.columns.mean, COPY.onset.columns.shift]"

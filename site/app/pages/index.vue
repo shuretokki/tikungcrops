@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
-import { AREAS, STAGES, formatHa, useAreaClientFile, useAreaFile, useAreaRainMonths, useAreaSeasons, type Cell, type CurrentRow, type Meta, type Stage } from '~/composables/useArea'
+import { AREAS, STAGES, formatDate, formatHa, useAreaClientFile, useAreaFile, useAreaRainMonths, useAreaSeasons, type Cell, type CurrentRow, type Meta, type Stage } from '~/composables/useArea'
 
 const t = COPY.landing
 const mine = useMyDesa()
@@ -68,7 +68,7 @@ const snapshot = computed(() => {
   if (readable > 0) {
     const share = pct(stages.value.fallow / readable)
     const offSeason = progress.value === null
-    items.push({ key: 'fallow', value: share, valueLabel: s.labels.fallow(formatHa(readable)), title: offSeason ? s.fallow.offSeason : s.fallow.title(share), body: s.fallow.body(formatHa(stages.value.fallow), formatHa(readable)) })
+    items.push({ key: 'fallow', value: share, valueLabel: s.labels.fallow(formatHa(readable)), title: offSeason ? s.fallow.offSeason(formatDate(meta.value?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })) : s.fallow.title(share), body: s.fallow.body(formatHa(stages.value.fallow), formatHa(readable), formatHa(hidden)) })
   }
   const last = rainMonths.value?.at(-1)
   if (last) {
@@ -147,6 +147,9 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
         <h2 class="text-3xl/[1.1] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.snapshot.title }}
         </h2>
+        <p class="text-sm text-muted">
+          {{ COPY.desa.now.asOf(formatDate(meta?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })) }}
+        </p>
       </header>
       <ol class="grid gap-12 lg:grid-cols-3 lg:gap-0">
         <li

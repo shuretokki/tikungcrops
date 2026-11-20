@@ -78,3 +78,9 @@ path = "site/public/crops/tebu.jpg"
 precedence = "override"
 SPDX-FileCopyrightText = "Sarah and Jason, Wikimedia Commons, resized"
 SPDX-License-Identifier = "CC-BY-SA-2.0"
+
+[[annotations]]
+path = ["site/public/logo.png", "site/public/favicon.ico"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Tri Rianto Utomo, Heartland Harvest Emblem"
+SPDX-License-Identifier = "LicenseRef-Project-Logo"

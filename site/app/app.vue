@@ -26,9 +26,18 @@ const links = computed(() => [
     >{{ COPY.site.skip }}</a>
     <UHeader to="/">
       <template #title>
-        <span class="flex flex-col leading-tight">
-          <span class="text-sm font-bold tracking-wide uppercase">{{ COPY.site.title }}</span>
-          <span class="text-xs font-normal text-muted">{{ COPY.site.subtitle }}</span>
+        <span class="flex items-center gap-3">
+          <img
+            src="/logo.png"
+            alt=""
+            width="234"
+            height="192"
+            class="h-9 w-auto dark:invert"
+          >
+          <span class="flex flex-col leading-tight">
+            <span class="font-brand text-xl/none">{{ COPY.site.title }}</span>
+            <span class="text-xs font-normal text-muted">{{ COPY.site.subtitle }}</span>
+          </span>
         </span>
       </template>
       <UNavigationMenu
@@ -62,9 +71,17 @@ const links = computed(() => [
       </NuxtLayout>
     </UMain>
     <footer class="tile tile-parchment tile-slim border-t border-default">
-      <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
-        <div class="flex flex-col gap-2">
-          <p class="font-semibold">
+      <div class="grid gap-10 text-center sm:text-left sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+        <div class="flex flex-col items-center gap-2 sm:items-start">
+          <img
+            src="/logo.png"
+            alt=""
+            width="234"
+            height="192"
+            loading="lazy"
+            class="mb-2 h-12 w-auto dark:invert"
+          >
+          <p class="font-brand text-2xl/none">
             {{ COPY.site.title }}
           </p>
           <p class="text-sm text-muted">
@@ -76,7 +93,7 @@ const links = computed(() => [
         </div>
         <nav
           :aria-label="COPY.site.footer.pages"
-          class="flex flex-col"
+          class="flex flex-col items-center sm:items-start"
         >
           <p class="mb-2 text-sm font-semibold">
             {{ COPY.site.footer.pages }}
@@ -92,7 +109,7 @@ const links = computed(() => [
         </nav>
         <nav
           :aria-label="COPY.site.footer.data"
-          class="flex flex-col"
+          class="flex flex-col items-center sm:items-start"
         >
           <p class="mb-2 text-sm font-semibold">
             {{ COPY.site.footer.data }}
@@ -107,7 +124,7 @@ const links = computed(() => [
         </nav>
         <nav
           :aria-label="COPY.site.footer.info"
-          class="flex flex-col"
+          class="flex flex-col items-center sm:items-start"
         >
           <p class="mb-2 text-sm font-semibold">
             {{ COPY.site.footer.info }}
@@ -122,7 +139,7 @@ const links = computed(() => [
           </NuxtLink>
         </nav>
       </div>
-      <p class="mt-10 border-t border-default pt-6 text-xs text-muted">
+      <p class="mt-10 text-center sm:text-left border-t border-default pt-6 text-xs text-muted">
         {{ COPY.site.footer.copyright }}
       </p>
     </footer>

@@ -169,6 +169,9 @@ importers:
       '@fontsource/lexend':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource/open-runde':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@iconify-json/lucide':
         specifier: ^1.2.145
         version: 1.2.145
@@ -835,6 +838,9 @@ packages:
 
   '@fontsource/lexend@5.3.0':
     resolution: {integrity: sha512-4igbsooynC6xwfagkAW6eo9JMrw8ALFGkWn1YChYmYchufMJSPgWihD+cy5ruX5YX/gDk/gllcl1Oj7q6KUZmw==}
+
+  '@fontsource/open-runde@5.3.0':
+    resolution: {integrity: sha512-htjSGuJ/cq2DARGqEvXhkghhRXxIz3gzw+tbB0xt6zidL0mvDrR/VQCfDeCCw7wp0x5ar6dTLWD5iOF0EDqaGA==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -6560,6 +6566,8 @@ snapshots:
       vue: 3.5.44(typescript@6.0.3)
 
   '@fontsource/lexend@5.3.0': {}
+
+  '@fontsource/open-runde@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:
