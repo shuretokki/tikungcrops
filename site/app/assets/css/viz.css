@@ -35,10 +35,86 @@
   --vis-dark-axis-label-color: var(--ui-text-muted);
   --vis-dark-axis-tick-color: var(--ui-border);
   --vis-dark-axis-grid-color: var(--ui-border);
-  --vis-tooltip-background-color: var(--ui-bg-elevated);
+  --vis-tooltip-background-color: color-mix(in srgb, var(--ui-bg) 82%, transparent);
   --vis-tooltip-border-color: var(--ui-border);
   --vis-tooltip-text-color: var(--ui-text);
-  --vis-dark-tooltip-background-color: var(--ui-bg-elevated);
+  --vis-tooltip-backdrop-filter: blur(20px) saturate(1.8);
+  --vis-tooltip-border-radius: 11px;
+  --vis-tooltip-padding: 12px 14px;
+  --vis-tooltip-box-shadow: 0 2px 3px rgb(0 0 0 / 0.12);
+  --vis-dark-tooltip-background-color: color-mix(in srgb, var(--ui-bg) 82%, transparent);
   --vis-dark-tooltip-border-color: var(--ui-border);
   --vis-dark-tooltip-text-color: var(--ui-text);
+  --vis-timeline-line-hover-stroke-color: var(--ui-text);
+  --vis-timeline-line-hover-stroke-width: 2px;
+  --vis-timeline-cursor: pointer;
+}
+
+/* Tooltip content. The same shape is used by every chart and by the map. */
+.tip {
+  display: grid;
+  gap: 6px;
+  min-width: 11rem;
+  max-width: 18rem;
+  font-size: 14px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.tip-title {
+  font-weight: 700;
+}
+
+.tip-sub {
+  margin-top: -4px;
+  color: var(--ui-text-muted);
+  font-size: 12px;
+}
+
+.tip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tip-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ui-text-muted);
+}
+
+.tip-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+}
+
+.tip-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tip-note {
+  padding-top: 6px;
+  border-top: 1px solid var(--ui-border);
+  color: var(--ui-text-muted);
+  font-size: 12px;
+}
+
+/* The map popup follows the same card. */
+.map-tip .maplibregl-popup-content {
+  padding: 12px 14px;
+  border: 1px solid var(--ui-border);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--ui-bg) 82%, transparent);
+  color: var(--ui-text);
+  box-shadow: 0 2px 3px rgb(0 0 0 / 0.12);
+  backdrop-filter: blur(20px) saturate(1.8);
+  pointer-events: none;
+}
+
+.map-tip .maplibregl-popup-tip {
+  display: none;
 }

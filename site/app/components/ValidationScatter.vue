@@ -9,7 +9,14 @@ const t = COPY.bandingkan.accuracy
 const max = computed(() => Math.ceil(Math.max(...props.points.flatMap(p => [p.reference_ha, p.satellite_ha])) / 500) * 500)
 const diagonal = computed(() => [0, max.value])
 const triggers = {
-  [Scatter.selectors.point]: (p: ValidationUnit) => t.readout(p.unit, formatHa(p.reference_ha), formatHa(p.satellite_ha))
+  [Scatter.selectors.point]: (p: ValidationUnit) => tip({
+    title: `Desa ${p.unit}`,
+    rows: [
+      { label: COPY.tip.reference, value: formatHa(p.reference_ha) },
+      { label: COPY.tip.satellite, value: formatHa(p.satellite_ha), color: 'var(--viz-1)' },
+      { label: COPY.tip.diff, value: p.reference_ha > 0 ? signedPercent((p.satellite_ha - p.reference_ha) / p.reference_ha) : '-' }
+    ]
+  })
 }
 const grid = (v: number | Date) => Number(v).toLocaleString('id-ID')
 </script>

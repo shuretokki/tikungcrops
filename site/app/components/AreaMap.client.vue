@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LngLatBounds, Map as MapLibreMap, NavigationControl, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
+import { LngLatBounds, Map as MapLibreMap, NavigationControl, Popup, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
 // MapLibre 6 finds its worker with new URL(..., import.meta.url) at runtime, which Vite does not see,
 // so the ?url import makes Vite emit the file and setWorkerUrl points MapLibre at it
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
@@ -79,17 +79,22 @@ function addLayers() {
       paint: { 'line-color': outline, 'line-width': ['case', ['==', ['get', 'unit'], props.selected ?? ''], 2.5, 1] }
     })
     let hovered: string | number | undefined
+    // The popup shows the desa name and a hint, and it follows the pointer.
+    const popup = new Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 14 })
     map.on('mousemove', 'inner-fill', (e) => {
       const id = e.features?.[0]?.id
       if (hovered !== undefined) map!.setFeatureState({ source: 'inner', id: hovered }, { hover: false })
       hovered = id
       if (id !== undefined) map!.setFeatureState({ source: 'inner', id }, { hover: true })
       map!.getCanvas().style.cursor = 'pointer'
+      const unit = e.features?.[0]?.properties?.unit
+      if (unit) popup.setLngLat(e.lngLat).setHTML(tip({ title: `Desa ${unit}`, note: COPY.tip.mapHint })).addTo(map!)
     })
     map.on('mouseleave', 'inner-fill', () => {
       if (hovered !== undefined) map!.setFeatureState({ source: 'inner', id: hovered }, { hover: false })
       hovered = undefined
       map!.getCanvas().style.cursor = ''
+      popup.remove()
     })
     map.on('click', 'inner-fill', (e) => {
       const unit = e.features?.[0]?.properties?.unit

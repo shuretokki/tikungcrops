@@ -28,14 +28,25 @@ const date = (day: number) => new Date(Date.UTC(2001, 0, 1 + day)).toLocaleDateS
 
 // Rows run in planting order from the data date, so the desa that plants first is on top.
 const items = computed<Item[]>(() => {
-  const out = [...props.rows].sort((a, b) => rel(a.plant) - rel(b.plant)).map(r => ({
-    row: r.unit,
-    start: rel(r.plant),
-    length: (rel(r.harvest) - rel(r.plant) + 365) % 365,
-    color: 'var(--viz-3)',
-    tip: t.readout(r.unit, date(r.plant), date(r.harvest))
-  }))
-  if (props.today !== null) out.push({ row: t.today, start: rel(props.today), length: 3, color: 'var(--ui-primary)', tip: t.today })
+  const out = [...props.rows].sort((a, b) => rel(a.plant) - rel(b.plant)).map((r) => {
+    const length = (rel(r.harvest) - rel(r.plant) + 365) % 365
+    return {
+      row: r.unit,
+      start: rel(r.plant),
+      length,
+      color: 'var(--viz-3)',
+      tip: tip({
+        title: `Desa ${r.unit}`,
+        rows: [
+          { label: COPY.tip.plant, value: date(r.plant) },
+          { label: COPY.tip.harvest, value: date(r.harvest) },
+          { label: COPY.tip.span, value: COPY.tip.days(length) }
+        ],
+        note: COPY.tip.since
+      })
+    }
+  })
+  if (props.today !== null) out.push({ row: t.today, start: rel(props.today), length: 3, color: 'var(--ui-primary)', tip: tip({ title: t.today, subtitle: date(props.today) }) })
   return out
 })
 

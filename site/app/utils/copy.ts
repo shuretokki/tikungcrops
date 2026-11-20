@@ -31,6 +31,31 @@ export const COPY = {
     unknown: 'Tidak Terbaca (Tertutup Awan)'
   },
 
+  stageHelp: {
+    planted: 'Padi sudah ditanam dan sedang tumbuh.',
+    peaked: 'Tanaman berada pada puncak kehijauan. Panen biasanya tinggal beberapa minggu lagi.',
+    fallow: 'Lahan setelah panen dan belum ditanami kembali.',
+    unknown: 'Awan menutupi lahan sehingga satelit tidak dapat membaca kondisinya.'
+  },
+
+  tip: {
+    wetter: (p: string) => `${p} lebih basah dari rata-rata`,
+    drier: (p: string) => `${p} lebih kering dari rata-rata`,
+    average: 'Sama dengan rata-rata',
+    plant: 'Puncak tanam',
+    harvest: 'Puncak panen',
+    start: 'Awal tanam',
+    end: 'Akhir panen',
+    days: (n: number) => `${n} hari`,
+    span: 'Lama dari tanam sampai panen',
+    since: 'Berdasarkan pola musim tanam sejak tahun 2017.',
+    reference: 'BPS',
+    satellite: 'Satelit',
+    diff: 'Selisih',
+    mapHint: 'Pilih untuk melihat jadwal desa.',
+    today: (date: string) => `Per ${date}`
+  },
+
   landing: {
     seoTitle: 'Kalender Tanam Padi Kecamatan Tikung',
     eyebrow: 'Kecamatan Tikung, Kabupaten Lamongan',
@@ -54,7 +79,7 @@ export const COPY = {
       body: (units: number, year: number) => `Pada tahun ${year}, Kabupaten Lamongan menjadi penghasil padi terbesar di Provinsi Jawa Timur, unggul tipis dari Kabupaten Bojonegoro. Sawah di ${units} desa Kecamatan Tikung turut berkontribusi terhadap capaian tersebut.`,
       chartTitle: (year: number) => `Produksi Padi Tahun ${year}, Lima Kabupaten Teratas`,
       unit: 'ribu ton gabah kering giling',
-      rank: 'Peringkat 1',
+      rank: '#1',
       stats: {
         share: 'dari seluruh produksi padi Jawa Timur',
         rice: 'produksi beras Kabupaten Lamongan',

@@ -36,6 +36,29 @@
   --radius-lg: 18px;
 }
 
+/* A tile is a full-width band. */
+/* Its padding keeps the content in line with the 80rem container, so only the color runs edge to edge. */
+.tile {
+  padding-block: 4rem;
+  padding-inline: max(1rem, calc((100% - 80rem) / 2 + 1rem));
+}
+
+@media (min-width: 640px) {
+  .tile {
+    padding-block: 5rem;
+    padding-inline: max(1.5rem, calc((100% - 80rem) / 2 + 1.5rem));
+  }
+}
+
+.tile-parchment {
+  background: var(--ui-bg-muted);
+}
+
+.tile-dark {
+  background: var(--tile-dark);
+  color: #fff;
+}
+
 /* Apple tracks body text tighter by 0.374px at 17px, and headlines tighter still. */
 body {
   font-weight: var(--font-weight-normal);

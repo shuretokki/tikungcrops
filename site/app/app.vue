@@ -47,9 +47,9 @@ const links = computed(() => [
       </template>
     </UHeader>
     <UMain id="isi">
-      <UContainer>
+      <NuxtLayout>
         <NuxtPage />
-      </UContainer>
+      </NuxtLayout>
     </UMain>
     <UFooter>
       <template #left>

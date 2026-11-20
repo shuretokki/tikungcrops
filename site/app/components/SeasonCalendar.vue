@@ -23,16 +23,28 @@ const MONTH_STARTS = Array.from({ length: 12 }, (_, m) => dayOfYear(`2001-${Stri
 const items = computed<Item[]>(() => {
   const out = props.bands.flatMap((b) => {
     const row = t.seasons[b.season]
-    const tip = t.readout(row, monthName(b.start), monthName(b.end), monthName(b.plant), monthName(b.harvest))
     return seasonSegments(b).map(s => ({
       row,
       start: s.start,
       length: s.length,
       color: (b.season === 'MT1' ? PHASE_COLOR : MUTED)[s.phase],
-      tip
+      tip: tip({
+        title: row,
+        subtitle: t.phases[s.phase],
+        rows: [
+          { label: COPY.tip.start, value: monthName(b.start) },
+          { label: COPY.tip.plant, value: monthName(b.plant) },
+          { label: COPY.tip.harvest, value: monthName(b.harvest) },
+          { label: COPY.tip.end, value: monthName(b.end) }
+        ],
+        note: t.seasonNote[b.season]
+      })
     }))
   })
-  if (props.today !== null) out.push({ row: t.today, start: props.today, length: 3, color: 'var(--ui-primary)', tip: t.today })
+  if (props.today !== null) {
+    const date = new Date(Date.UTC(2001, 0, 1 + props.today)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', timeZone: 'UTC' })
+    out.push({ row: t.today, start: props.today, length: 3, color: 'var(--ui-primary)', tip: tip({ title: t.today, subtitle: date }) })
+  }
   return out
 })
 

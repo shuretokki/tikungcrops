@@ -14,8 +14,22 @@ const tick = (v: number | Date) => {
   const m = props.months[Number(v)]
   return m ? short(m) : ''
 }
+function compare(m: RainMonth) {
+  if (m.normal <= 0) return undefined
+  const diff = (m.mm - m.normal) / m.normal
+  if (Math.abs(diff) < 0.05) return COPY.tip.average
+  const p = signedPercent(Math.abs(diff)).replace('+', '')
+  return diff > 0 ? COPY.tip.wetter(p) : COPY.tip.drier(p)
+}
 const triggers = {
-  [GroupedBar.selectors.bar]: (m: RainMonth) => t.readout(label(m), fmt(m.mm), fmt(m.normal))
+  [GroupedBar.selectors.bar]: (m: RainMonth) => tip({
+    title: label(m),
+    rows: [
+      { label: t.actual, value: `${fmt(m.mm)} mm`, color: 'var(--viz-1)' },
+      { label: t.normal, value: `${fmt(m.normal)} mm`, color: 'var(--viz-outline)' }
+    ],
+    note: compare(m)
+  })
 }
 const latest = computed(() => props.months.at(-1))
 </script>

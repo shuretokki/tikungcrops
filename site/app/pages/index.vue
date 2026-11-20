@@ -88,12 +88,14 @@ const stats = computed(() => [
   { label: t.stats.asOf, value: formatDate(meta.value?.as_of) }
 ])
 
+definePageMeta({ layout: 'tiles' })
+
 useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.length) })
 </script>
 
 <template>
-  <div class="flex flex-col gap-20 pb-16">
-    <section class="grid items-center gap-8 pt-10 lg:grid-cols-[5fr_6fr] lg:pt-16">
+  <div class="flex flex-col">
+    <section class="tile grid items-center gap-8 lg:grid-cols-[5fr_6fr]">
       <div class="flex flex-col gap-5">
         <p class="text-sm font-semibold text-(--ui-primary)">
           {{ t.eyebrow }}
@@ -156,13 +158,13 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
     </section>
 
     <section
-      class="overflow-hidden rounded-lg ring ring-default"
+      class="tile tile-dark"
       data-figure="lumbung-padi"
     >
-      <div class="grid lg:grid-cols-[2fr_3fr]">
-        <div class="flex flex-col justify-between gap-6 bg-(--ui-primary) p-6 text-inverted sm:p-10">
+      <div class="grid gap-10 lg:grid-cols-[2fr_3fr] lg:items-center">
+        <div class="flex flex-col justify-between gap-8 lg:pe-8">
           <div class="flex flex-col gap-3">
-            <p class="text-5xl font-semibold sm:text-6xl">
+            <p class="text-7xl/none font-bold tracking-tight text-(--tile-accent) sm:text-8xl/none">
               {{ t.pride.rank }}
             </p>
             <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
@@ -187,10 +189,10 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
             </div>
           </dl>
         </div>
-        <figure class="flex flex-col gap-4 bg-muted p-6 sm:p-10">
+        <figure class="flex flex-col gap-4 rounded-lg bg-white/10 p-6 sm:p-8">
           <figcaption class="flex flex-col gap-1">
             <span class="font-semibold">{{ t.pride.chartTitle(JATIM_RICE.year) }}</span>
-            <span class="text-xs text-muted">{{ t.pride.unit }}</span>
+            <span class="text-xs text-white/70">{{ t.pride.unit }}</span>
           </figcaption>
           <ol class="flex flex-col gap-3">
             <li
@@ -198,28 +200,28 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
               :key="k.name"
               class="grid grid-cols-[6.5rem_1fr_3rem] items-center gap-3 text-sm"
             >
-              <span :class="i === 0 ? 'font-semibold' : 'text-muted'">{{ i + 1 }}. {{ k.name }}</span>
-              <span class="h-6 rounded-sm bg-(--ui-bg)">
+              <span :class="i === 0 ? 'font-semibold' : 'text-white/70'">{{ i + 1 }}. {{ k.name }}</span>
+              <span class="h-6 rounded-full bg-white/15">
                 <span
-                  class="block h-full rounded-sm"
-                  :class="i === 0 ? 'bg-(--ui-primary)' : 'bg-(--viz-neutral)'"
+                  class="block h-full rounded-full"
+                  :class="i === 0 ? 'bg-(--tile-accent)' : 'bg-white/45'"
                   :style="{ width: `${(k.tons / prideTop) * 100}%` }"
                 />
               </span>
               <span
                 class="text-right tabular-nums"
-                :class="i === 0 ? 'font-semibold' : 'text-muted'"
+                :class="i === 0 ? 'font-semibold' : 'text-white/70'"
               >{{ thousandOne(k.tons) }}</span>
             </li>
           </ol>
-          <p class="mt-auto text-xs text-muted">
+          <p class="mt-auto text-xs text-white/70">
             {{ t.pride.source(JATIM_RICE.year) }}
           </p>
         </figure>
       </div>
     </section>
 
-    <section class="grid gap-8 lg:grid-cols-[1fr_2fr]">
+    <section class="tile tile-parchment grid gap-8 lg:grid-cols-[1fr_2fr]">
       <header class="flex flex-col gap-3">
         <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
           {{ t.now.title(resting) }}
@@ -238,7 +240,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
       </div>
     </section>
 
-    <section class="flex flex-col gap-4">
+    <section class="tile flex flex-col gap-4">
       <header class="flex max-w-2xl flex-col gap-2">
         <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
           {{ t.harvest.title }}
@@ -288,7 +290,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
     <section
       id="desa"
       data-figure="cari-desamu"
-      class="flex scroll-mt-20 flex-col gap-6"
+      class="tile tile-parchment flex scroll-mt-20 flex-col gap-6"
     >
       <header class="flex flex-wrap items-end justify-between gap-4">
         <div class="flex flex-col gap-2">
@@ -374,7 +376,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
       </p>
     </section>
 
-    <section class="flex flex-col gap-6">
+    <section class="tile flex flex-col gap-6">
       <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15]">
         {{ t.more.title }}
       </h2>

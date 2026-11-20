@@ -99,16 +99,25 @@ function pct(v: number) {
       <li
         v-for="p in parts"
         :key="p.key"
-        class="flex items-start gap-2"
       >
-        <span
-          class="mt-1 size-3 shrink-0 rounded-sm"
-          :style="SWATCH[p.key]"
-        />
-        <span class="flex flex-col">
-          <span class="text-sm">{{ p.label }}</span>
-          <span class="text-xs text-muted tabular-nums">{{ formatHa(p.ha) }} · {{ pct(p.share) }}</span>
-        </span>
+        <UTooltip
+          :text="COPY.stageHelp[p.key]"
+          :content="{ side: 'top' }"
+        >
+          <button
+            type="button"
+            class="flex cursor-help items-start gap-2 rounded-md text-left focus-visible:outline-2 focus-visible:outline-(--focus-ring)"
+          >
+            <span
+              class="mt-1 size-3 shrink-0 rounded-sm"
+              :style="SWATCH[p.key]"
+            />
+            <span class="flex flex-col">
+              <span class="text-sm">{{ p.label }}</span>
+              <span class="text-xs text-muted tabular-nums">{{ formatHa(p.ha) }} · {{ pct(p.share) }}</span>
+            </span>
+          </button>
+        </UTooltip>
       </li>
     </ul>
   </figure>
