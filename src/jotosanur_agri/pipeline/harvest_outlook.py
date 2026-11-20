@@ -153,7 +153,7 @@ def weekly(cells: pl.DataFrame) -> pl.DataFrame:
                 "w_day",
             )
         )
-        .explode("day")
+        .explode("day", empty_as_null=True)
     )
     return (
         days.group_by(
