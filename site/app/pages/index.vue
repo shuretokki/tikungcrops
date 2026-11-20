@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
-import { AREAS, STAGES, formatDate, formatHa, useAreaClientFile, useAreaFile, useAreaSeasons, type Cell, type CurrentRow, type Meta, type OutlookRow, type Stage } from '~/composables/useArea'
+import { AREAS, STAGES, formatDate, formatHa, useAreaClientFile, useAreaFile, useAreaRainMonths, useAreaSeasons, type Cell, type CurrentRow, type Meta, type OutlookRow, type Stage } from '~/composables/useArea'
 
 const t = COPY.landing
 const area = AREAS.tikung
@@ -8,6 +8,7 @@ const { data: meta } = await useAreaFile<Meta>(area, 'meta.json')
 const { data: current } = await useAreaFile<CurrentRow[]>(area, 'current.json')
 const { data: seasons } = await useAreaSeasons(area)
 const { data: outlook } = await useAreaFile<OutlookRow[]>(area, 'outlook.json')
+const { data: rainMonths } = await useAreaRainMonths(area)
 const { data: desa } = await useAreaFile<FeatureCollection>(area, 'boundaries.geojson')
 const { data: cells } = useAreaClientFile<Cell[]>(area, 'cells.json')
 const { data: kecamatan } = useAreaClientFile<FeatureCollection>(AREAS.lamongan, 'boundaries.geojson')
@@ -90,6 +91,30 @@ const stats = computed(() => [
   { label: t.stats.asOf, value: formatDate(meta.value?.as_of) }
 ])
 
+// Three headlines in the shape of a FAO GIEWS country brief: season, land, rain.
+const snapshot = computed(() => {
+  const s = t.snapshot
+  const items: { title: string, body: string }[] = []
+  if (main.value) {
+    items.push(progress.value === null
+      ? { title: s.season.before, body: s.season.beforeBody(monthName(main.value.start)) }
+      : { title: s.season.during(pct(progress.value)), body: s.season.duringBody(monthName(main.value.end)) })
+  }
+  if (stageSum.value) {
+    items.push({ title: s.fallow.title(pct(fallowShare.value)), body: s.fallow.body(formatHa(stages.value.fallow), formatHa(stageSum.value)) })
+  }
+  const last = rainMonths.value?.at(-1)
+  if (last) {
+    const base = rainBaseline(last)
+    const diff = base > 0 ? (last.mm - base) / base : 0
+    const p = signedPercent(Math.abs(diff)).replace('+', '')
+    const word = Math.abs(diff) < 0.05 ? s.rain.same : diff > 0 ? s.rain.wetter(p) : s.rain.drier(p)
+    const month = new Date(Date.UTC(last.year, last.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+    items.push({ title: s.rain.title(month, word), body: s.rain.body(Math.round(last.mm).toLocaleString('id-ID'), Math.round(base).toLocaleString('id-ID')) })
+  }
+  return items
+})
+
 definePageMeta({ layout: 'tiles' })
 
 useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.length) })
@@ -157,6 +182,41 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
           </template>
         </ClientOnly>
       </div>
+    </section>
+
+    <section
+      v-if="snapshot.length"
+      class="tile tile-parchment grid gap-10 lg:grid-cols-[2fr_3fr]"
+      data-figure="ringkasan-singkat"
+    >
+      <header class="flex flex-col gap-3">
+        <p class="text-sm font-semibold text-(--ui-primary)">
+          {{ t.snapshot.eyebrow }}
+        </p>
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+          {{ t.snapshot.title }}
+        </h2>
+        <p class="text-muted">
+          {{ t.snapshot.reference(formatDate(meta?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })) }}
+        </p>
+      </header>
+      <ol class="flex flex-col gap-6">
+        <li
+          v-for="(item, i) in snapshot"
+          :key="i"
+          class="grid grid-cols-[2.5rem_1fr] items-start gap-4"
+        >
+          <span class="flex size-10 items-center justify-center rounded-full bg-(--ui-primary) font-semibold text-(--ui-on-primary) tabular-nums">{{ i + 1 }}</span>
+          <div class="flex flex-col gap-1">
+            <p class="text-xl/[1.3] font-semibold text-balance">
+              {{ item.title }}
+            </p>
+            <p class="text-muted">
+              {{ item.body }}
+            </p>
+          </div>
+        </li>
+      </ol>
     </section>
 
     <section

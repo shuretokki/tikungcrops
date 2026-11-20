@@ -14,6 +14,19 @@ export const COPY = {
     subtitle: 'Kecamatan Tikung, Kabupaten Lamongan',
     skip: 'Lewati ke Konten Utama',
     search: 'Cari Desa',
+    download: {
+      label: 'Unduh data (JSON)',
+      files: [
+        { label: 'Ringkasan desa', file: 'meta.json' },
+        { label: 'Kondisi sawah', file: 'current.json' },
+        { label: 'Prakiraan panen', file: 'outlook.json' },
+        { label: 'Musim tanam', file: 'seasons.json' },
+        { label: 'Curah hujan', file: 'rain.json' },
+        { label: 'Kali tanam', file: 'intensity.json' },
+        { label: 'Ketepatan data', file: 'validation.json' },
+        { label: 'Batas desa', file: 'boundaries.geojson' }
+      ]
+    },
     updated: (generated: string, asOf: string) => `Diperbarui pada ${generated}. Citra satelit terakhir tanggal ${asOf}.`,
     footer: 'Data diolah dari Copernicus Sentinel-1/2 (ESA), CHIRPS, ESA WorldCover, dan Lahan Baku Sawah (BIG). Batas wilayah: geoBoundaries (OCHA ROAP, BPS 2019), CC BY 3.0 IGO. Peta dasar: OpenFreeMap, © OpenStreetMap.'
   },
@@ -85,6 +98,29 @@ export const COPY = {
     mapLoading: 'Memuat peta…',
     mapLabel: 'Peta petak sawah dan batas wilayah',
     mapFailed: 'Peta tidak dapat ditampilkan pada perangkat ini. Seluruh angka tetap tersedia pada halaman ini.',
+
+    snapshot: {
+      eyebrow: 'Ringkasan Singkat',
+      title: 'Kondisi Kecamatan Tikung',
+      reference: (date: string) => `Tanggal acuan: ${date}`,
+      season: {
+        before: 'Musim tanam 1 belum dimulai',
+        during: (pct: string) => `Musim tanam 1 telah berjalan ${pct}`,
+        beforeBody: (month: string) => `Awal tanam umumnya pada bulan ${month}.`,
+        duringBody: (to: string) => `Panen terakhir umumnya selesai pada bulan ${to}.`
+      },
+      fallow: {
+        title: (pct: string) => `${pct} sawah berstatus bera`,
+        body: (bera: string, total: string) => `Sebanyak ${bera} dari ${total} luas sawah belum ditanami kembali.`
+      },
+      rain: {
+        title: (month: string, diff: string) => `Curah hujan ${month} ${diff}`,
+        body: (mm: string, base: string) => `Tercatat ${mm} mm, sedangkan rata-rata 5 tahun ${base} mm.`,
+        wetter: (p: string) => `${p} lebih basah dari rata-rata`,
+        drier: (p: string) => `${p} lebih kering dari rata-rata`,
+        same: 'sama dengan rata-rata'
+      }
+    },
 
     pride: {
       title: 'Lamongan, Lumbung Padi Jawa Timur',

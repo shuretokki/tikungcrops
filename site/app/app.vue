@@ -57,6 +57,16 @@ const links = computed(() => [
           <p class="text-sm text-default">
             {{ COPY.site.updated(formatDate(meta?.generated_at, long), formatDate(meta?.as_of, long)) }}
           </p>
+          <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+            <span class="font-semibold text-default">{{ COPY.site.download.label }}:</span>
+            <a
+              v-for="f in COPY.site.download.files"
+              :key="f.file"
+              :href="`/json/${AREAS.tikung.slug}/${f.file}`"
+              :download="f.file"
+              class="text-(--ui-primary) underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-(--focus-ring)"
+            >{{ f.label }}</a>
+          </p>
           <p class="text-xs text-muted">
             {{ COPY.site.footer }}
           </p>
