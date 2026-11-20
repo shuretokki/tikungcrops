@@ -27,10 +27,19 @@
             sqlite
             ruff
             basedpyright
+            reuse
+            pnpm
           ];
           TYPST_FONT_PATHS = "${pkgs.source-sans}/share/fonts";
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
+            pkgs.stdenv.cc.cc.lib
+            pkgs.zlib
+          ];
           shellHook = ''
             export UV_PROJECT_ENVIRONMENT="$HOME/.cache/venvs/mini-project"
+            export pnpm_config_virtual_store_dir="$HOME/.cache/node-stores/mini-project-site"
+            export pnpm_config_store_dir="$HOME/.cache/pnpm-store"
+            export pnpm_config_pm_on_fail=ignore
           '';
         };
       };

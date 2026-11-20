@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - [Nix](https://nixos.org/download/) with flakes, optionally [direnv](https://direnv.net/) (`.envrc` runs `use flake`).
-  The devshell provides `uv`, `just`, `typst`, `mongosh`, `sqlite`.
+  The devshell provides `uv`, `just`, `typst`, `mongosh`, `sqlite`, `ruff`, `basedpyright`, `reuse` and `pnpm`.
 - Docker Engine ≥ 24 with Compose v2: https://docs.docker.com/engine/install/
 - `cp .env.example .env` and set `MONGO_ROOT_PASSWORD` (and the same password in `MONGO_URI`).
 
@@ -19,6 +19,19 @@ just dekit up   # dev tasks from dekit.yaml: site on :3017, then just dekit star
 ```
 
 Data layout: `data/README.md`. Reference statistics and their provenance: `data/reference/README.md`.
+
+## Checks
+
+```sh
+just test            # Python tests
+just lint            # ruff and basedpyright
+just license-check   # REUSE
+just site            # build the static site into site/.output/public
+cd site && pnpm test && pnpm lint && pnpm typecheck && pnpm knip
+```
+
+Run these inside `nix develop`, because the devshell sets the library path that the Python wheels need.
+It also keeps the pnpm store on the home drive, since native Node modules cannot load from an NTFS mount.
 
 ## Scheduled extraction
 

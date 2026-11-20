@@ -155,14 +155,14 @@ app:
 # Lint and check types
 [group("checks")]
 @lint:
-    uv run ruff check {{ PATHS }}
-    uv run ruff format --check {{ PATHS }}
-    uv run basedpyright src tests
+    ruff check {{ PATHS }}
+    ruff format --check {{ PATHS }}
+    basedpyright --pythonpath "${UV_PROJECT_ENVIRONMENT:-.venv}/bin/python" src tests
 
 # Check that every file has a license and a copyright holder, and that LICENSES/ matches (REUSE)
 [group("checks")]
 @license-check:
-    uvx reuse lint
+    reuse lint
 
 # Run the tests, or only some: just test tests/test_gold_sentinel.py -k rice
 [group("test")]
@@ -188,5 +188,14 @@ pdf target="proposal":
 # Capture the laporan's website figures listed in scripts/figures.yml (start `just site-dev` first)
 [group("docs")]
 figures *args:
-    uvx --from shot-scraper==1.12 shot-scraper install
-    uvx --from shot-scraper==1.12 shot-scraper multi scripts/figures.yml --retina --auth scripts/figures-light.json {{ args }}
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # NixOS cannot run the browser that Playwright downloads, so the recipe uses the nixpkgs browsers.
+    # Playwright must match the nixpkgs build, so the recipe pins the Python package to the same version.
+    version=$(nix eval --raw nixpkgs#playwright-driver.version)
+    PLAYWRIGHT_BROWSERS_PATH=$(nix build nixpkgs#playwright-driver.browsers --no-link --print-out-paths)
+    export PLAYWRIGHT_BROWSERS_PATH
+    export PLAYWRIGHT_NODEJS_PATH
+    PLAYWRIGHT_NODEJS_PATH=$(command -v node)
+    export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+    uvx --from shot-scraper==1.12 --with "playwright==$version" shot-scraper multi scripts/figures.yml --retina --auth scripts/figures-light.json {{ args }}
