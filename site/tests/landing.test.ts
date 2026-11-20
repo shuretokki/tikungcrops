@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, it } from 'vitest'
-import { dayOfYear, mainSeasonDates, rainByMonth, seasonBands, stageTotals } from '../app/utils/landing'
+import { dayOfYear, mainSeasonDates, rainBaseline, rainByMonth, seasonBands, seasonProgress, stageTotals } from '../app/utils/landing'
 import type { CurrentRow, RainRow, SeasonRow } from '../app/composables/useArea'
 
 function season(over: Partial<SeasonRow>): SeasonRow {
@@ -69,6 +69,44 @@ describe('rainByMonth', () => {
     ] as RainRow[]
     expect(rainByMonth(rows, 1)).toEqual([{ year: 2026, month: 2, mm: 50, normal: 150 }])
     expect(rainByMonth(rows)[0]).toEqual({ year: 2026, month: 1, mm: 200, normal: 200 })
+  })
+})
+
+describe('rain band', () => {
+  const january = (year: number, mm: number) => ({ unit: 'A', year, month: 1, precip_mm: mm, normal_mm: 100 }) as RainRow
+  const rows = [january(2018, 50), january(2019, 400), january(2020, 100), january(2021, 100), january(2022, 100), january(2023, 100), january(2024, 100), january(2025, 300)]
+
+  it('takes the minimum and maximum of earlier years in the same calendar month', () => {
+    const m = rainByMonth(rows, 1)[0]!
+    expect(m.year).toBe(2025)
+    expect(m.lo).toBe(50)
+    expect(m.hi).toBe(400)
+  })
+
+  it('averages only the five latest earlier years, so 2018 and 2019 drop out', () => {
+    expect(rainByMonth(rows, 1)[0]!.mean5).toBe(100)
+  })
+
+  it('has no band for the first year and falls back to the normal', () => {
+    const first = rainByMonth([january(2018, 50)], 1)[0]!
+    expect(first.lo).toBeUndefined()
+    expect(rainBaseline(first)).toBe(100)
+    expect(rainBaseline({ ...first, mean5: 80 })).toBe(80)
+  })
+})
+
+describe('seasonProgress', () => {
+  const season1 = { start: 315, end: 125 }
+
+  it('runs from 0 at the start to 1 at the end, across the new year', () => {
+    expect(seasonProgress(season1, 315)).toBe(0)
+    expect(seasonProgress(season1, 125)).toBe(1)
+    expect(seasonProgress(season1, 20)).toBeCloseTo((20 + 365 - 315) / 175)
+  })
+
+  it('is null outside the season', () => {
+    expect(seasonProgress(season1, 200)).toBeNull()
+    expect(seasonProgress({ start: 10, end: 10 }, 10)).toBeNull()
   })
 })
 

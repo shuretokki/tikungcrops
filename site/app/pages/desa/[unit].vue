@@ -54,41 +54,41 @@ const places = computed(() => {
 })
 
 const rainMm = (v: number) => Math.round(v).toLocaleString('id-ID')
+const orDash = (v?: number) => (v === undefined ? '-' : rainMm(v))
 const monthLabel = (m: RainMonth) => new Date(Date.UTC(m.year, m.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
 
+definePageMeta({ layout: 'tiles' })
 useSeoMeta({ title: () => t.seoTitle(unit.value) })
 </script>
 
 <template>
-  <UPage>
-    <UPageHeader
-      :title="t.title(unit)"
-      :description="info ? t.description(formatHa(info.paddy_ha), formatDate(meta?.as_of)) : t.notFound"
-    >
-      <template #links>
-        <UButton
-          :label="t.back"
-          to="/#desa"
-          icon="i-lucide-arrow-left"
-          color="neutral"
-          variant="outline"
-        />
-      </template>
-    </UPageHeader>
-    <UPageBody
-      v-if="info"
-      class="flex flex-col gap-14"
-    >
-      <section class="flex flex-col gap-4">
-        <h2 class="text-xl font-semibold">
+  <div>
+    <section class="tile flex flex-col items-start gap-5 pb-12 sm:pb-16">
+      <UButton
+        :label="t.back"
+        to="/#desa"
+        icon="i-lucide-arrow-left"
+        color="neutral"
+        variant="outline"
+      />
+      <h1 class="text-4xl/[1.07] font-semibold text-balance sm:text-5xl/[1.07]">
+        {{ t.title(unit) }}
+      </h1>
+      <p class="max-w-2xl text-lg text-muted">
+        {{ info ? t.description(formatHa(info.paddy_ha), formatDate(meta?.as_of)) : t.notFound }}
+      </p>
+    </section>
+    <template v-if="info">
+      <section class="tile tile-parchment flex flex-col gap-8">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
           {{ t.now.title }}
         </h2>
         <StageBar :totals="stages" />
       </section>
 
-      <section class="flex flex-col gap-4">
-        <header class="flex flex-col gap-2">
-          <h2 class="text-xl font-semibold">
+      <section class="tile flex flex-col gap-8">
+        <header class="flex flex-col gap-3">
+          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
             {{ t.schedule.title }}
           </h2>
           <p class="text-muted">
@@ -121,8 +121,8 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         </template>
       </section>
 
-      <section class="flex flex-col gap-4">
-        <h2 class="text-xl font-semibold">
+      <section class="tile tile-parchment flex flex-col gap-8">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
           {{ t.harvest.title }}
         </h2>
         <ul
@@ -157,10 +157,10 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
 
       <section
         v-if="places.length"
-        class="flex flex-col gap-4"
+        class="tile flex flex-col gap-8"
       >
         <header class="flex flex-col gap-2">
-          <h2 class="text-xl font-semibold">
+          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
             {{ t.compare.title }}
           </h2>
           <p class="text-muted">
@@ -193,21 +193,21 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
 
       <section
         v-if="rainMonths?.length"
-        class="flex flex-col gap-4"
+        class="tile tile-parchment flex flex-col gap-8"
       >
-        <h2 class="text-xl font-semibold">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
           {{ COPY.landing.rain.title }}
         </h2>
         <RainBars :months="rainMonths" />
         <ChartTable
           :caption="COPY.landing.rain.title"
-          :columns="[COPY.landing.rain.columns.month, COPY.landing.rain.columns.mm, COPY.landing.rain.columns.normal]"
-          :rows="rainMonths.map(m => [monthLabel(m), rainMm(m.mm), rainMm(m.normal)])"
+          :columns="[COPY.landing.rain.columns.month, COPY.landing.rain.columns.mm, COPY.landing.rain.columns.normal, COPY.landing.rain.columns.lo, COPY.landing.rain.columns.hi]"
+          :rows="rainMonths.map(m => [monthLabel(m), rainMm(m.mm), rainMm(rainBaseline(m)), orDash(m.lo), orDash(m.hi)])"
         />
       </section>
 
-      <section class="flex flex-col gap-4">
-        <h2 class="text-xl font-semibold">
+      <section class="tile flex flex-col gap-8">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
           {{ t.map.title }}
         </h2>
         <div class="h-[26rem]">
@@ -228,6 +228,6 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
           </ClientOnly>
         </div>
       </section>
-    </UPageBody>
-  </UPage>
+    </template>
+  </div>
 </template>

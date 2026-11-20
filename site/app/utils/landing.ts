@@ -89,7 +89,21 @@ export function seasonBands(rows: SeasonSlim[]): SeasonBand[] {
   })
 }
 
-export interface RainMonth { year: number, month: number, mm: number, normal: number }
+// The band and the five-year mean follow the AGMET plots of GEOGLAM Crop Monitor.
+// They use the same calendar month of earlier years only, so the current year never compares with itself.
+export interface RainMonth { year: number, month: number, mm: number, normal: number, lo?: number, hi?: number, mean5?: number }
+
+// The baseline of a month is the mean of the last five years, and the long-term normal when fewer years exist.
+export const rainBaseline = (m: RainMonth) => m.mean5 ?? m.normal
+
+// Share of a season that has passed on a given day of the year, from its start to its end.
+// This is the Progress of Season of FAO ASIS. It is null when the day is outside the season.
+export function seasonProgress(band: { start: number, end: number }, today: number): number | null {
+  const length = (band.end - band.start + 365) % 365
+  if (length === 0) return null
+  const passed = (today - band.start + 365) % 365
+  return passed <= length ? passed / length : null
+}
 
 export interface MainSeasonDates { plant: number, harvest: number, seasons: number }
 
@@ -165,10 +179,20 @@ export function rainByMonth(rows: RainRow[], months = 12): RainMonth[] {
     m.n += 1
     byMonth.set(key, m)
   }
-  return [...byMonth.values()]
+  const all = [...byMonth.values()]
     .sort((a, b) => a.year - b.year || a.month - b.month)
-    .slice(-months)
     .map(m => ({ year: m.year, month: m.month, mm: m.mm / m.n, normal: m.normal / m.n }))
+  return all.slice(-months).map((m): RainMonth => {
+    const prior = all.filter(o => o.month === m.month && o.year < m.year).sort((a, b) => b.year - a.year)
+    if (!prior.length) return m
+    const last5 = prior.slice(0, 5)
+    return {
+      ...m,
+      lo: Math.min(...prior.map(p => p.mm)),
+      hi: Math.max(...prior.map(p => p.mm)),
+      mean5: last5.reduce((s, p) => s + p.mm, 0) / last5.length
+    }
+  })
 }
 
 export function stageTotals(rows: CurrentRow[]) {

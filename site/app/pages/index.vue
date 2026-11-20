@@ -30,6 +30,8 @@ const stageRows = computed(() => STAGE_ORDER.map(k => [
 
 const bands = computed(() => seasonBands(seasons.value ?? []))
 const main = computed(() => bands.value.find(b => b.season === 'MT1'))
+const todayDay = computed(() => (meta.value?.as_of ? dayOfYear(meta.value.as_of) : null))
+const progress = computed(() => (main.value && todayDay.value !== null ? seasonProgress(main.value, todayDay.value) : null))
 
 // Weeks within eight weeks of the data date. Desa with less than one hectare are left out as noise.
 const HORIZON_DAYS = 56
@@ -230,7 +232,33 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
           {{ t.now.body(resting, pct(fallowShare), formatDate(meta?.as_of, { day: 'numeric', month: 'long' })) }}
         </p>
       </header>
-      <div class="flex flex-col justify-center gap-4">
+      <div class="flex flex-col justify-center gap-8">
+        <div
+          v-if="main"
+          class="flex flex-col gap-3"
+        >
+          <div class="flex items-baseline justify-between gap-4">
+            <p class="font-semibold">
+              {{ t.progress.title }}
+            </p>
+            <p
+              v-if="progress !== null"
+              class="text-sm text-muted tabular-nums"
+            >
+              {{ pct(progress) }}
+            </p>
+          </div>
+          <UProgress
+            v-if="progress !== null"
+            :model-value="progress * 100"
+            :max="100"
+            size="lg"
+            :aria-label="t.progress.label(pct(progress))"
+          />
+          <p class="text-sm text-muted">
+            {{ progress !== null ? t.progress.inSeason(pct(progress), monthName(main.start), monthName(main.end)) : t.progress.outside(monthName(main.start)) }}
+          </p>
+        </div>
         <StageBar :totals="stages" />
         <ChartTable
           :caption="t.now.title(resting)"

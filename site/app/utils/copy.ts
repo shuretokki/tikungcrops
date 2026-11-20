@@ -53,7 +53,8 @@ export const COPY = {
     satellite: 'Satelit',
     diff: 'Selisih',
     mapHint: 'Pilih untuk melihat jadwal desa.',
-    today: (date: string) => `Per ${date}`
+    today: (date: string) => `Per ${date}`,
+    range: 'Rentang sejak 2017'
   },
 
   landing: {
@@ -67,7 +68,7 @@ export const COPY = {
       paddy: 'Luas Sawah',
       units: 'Jumlah Desa',
       season: 'Awal Musim Tanam 1',
-      asOf: 'Data Terakhir'
+      asOf: 'Tanggal Acuan'
     },
     tableToggle: 'Tampilkan Tabel',
     mapLoading: 'Memuat peta…',
@@ -113,9 +114,17 @@ export const COPY = {
       title: 'Curah Hujan 12 Bulan Terakhir',
       body: (month: string, mm: string, normal: string) => `Curah hujan bulan ${month} tercatat ${mm} mm, sedangkan rata-rata bulan tersebut sekitar ${normal} mm.`,
       actual: 'Curah hujan',
-      normal: 'Rata-rata',
+      normal: 'Rata-rata 5 tahun',
+      band: 'Rentang sejak 2017',
       readout: (label: string, mm: string, normal: string) => `${label}: ${mm} mm, rata-rata ${normal} mm`,
-      columns: { month: 'Bulan', mm: 'Curah Hujan (mm)', normal: 'Rata-rata (mm)' }
+      columns: { month: 'Bulan', mm: 'Curah Hujan (mm)', normal: 'Rata-rata 5 Tahun (mm)', lo: 'Terendah (mm)', hi: 'Tertinggi (mm)' }
+    },
+
+    progress: {
+      title: 'Kemajuan Musim Tanam 1',
+      inSeason: (pct: string, from: string, to: string) => `${pct} dari musim tanam 1 telah berjalan, dengan rentang ${from} sampai ${to}.`,
+      outside: (from: string) => `Musim tanam 1 belum dimulai. Awal tanam umumnya pada bulan ${from}.`,
+      label: (pct: string) => `Kemajuan musim ${pct}`
     },
 
     schedule: {

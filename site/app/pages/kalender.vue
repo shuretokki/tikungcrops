@@ -102,14 +102,14 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
           {{ t.rain.title }}
         </h2>
         <p class="text-muted">
-          {{ t.rain.body(monthLabel(lastMonth), mm(lastMonth.mm), mm(lastMonth.normal)) }}
+          {{ t.rain.body(monthLabel(lastMonth), mm(lastMonth.mm), mm(rainBaseline(lastMonth))) }}
         </p>
       </header>
       <RainBars :months="months" />
       <ChartTable
         :caption="t.rain.title"
-        :columns="[t.rain.columns.month, t.rain.columns.mm, t.rain.columns.normal]"
-        :rows="months.map(m => [monthLabel(m), mm(m.mm), mm(m.normal)])"
+        :columns="[t.rain.columns.month, t.rain.columns.mm, t.rain.columns.normal, t.rain.columns.lo, t.rain.columns.hi]"
+        :rows="months.map(m => [monthLabel(m), mm(m.mm), mm(rainBaseline(m)), m.lo === undefined ? '-' : mm(m.lo), m.hi === undefined ? '-' : mm(m.hi)])"
       />
     </section>
 
