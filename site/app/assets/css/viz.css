@@ -22,3 +22,23 @@
   --viz-neutral: #62746b;
   --viz-outline: #aabdb4;
 }
+
+/* Unovis reads these variables, so charts follow the site theme in both modes. */
+/* Each chart sets the vis-chart class on its container. */
+.vis-chart {
+  --vis-axis-tick-label-color: var(--ui-text-muted);
+  --vis-axis-label-color: var(--ui-text-muted);
+  --vis-axis-tick-color: var(--ui-border);
+  --vis-axis-domain-color: var(--ui-border);
+  --vis-axis-grid-color: var(--ui-border);
+  --vis-dark-axis-tick-label-color: var(--ui-text-muted);
+  --vis-dark-axis-label-color: var(--ui-text-muted);
+  --vis-dark-axis-tick-color: var(--ui-border);
+  --vis-dark-axis-grid-color: var(--ui-border);
+  --vis-tooltip-background-color: var(--ui-bg-elevated);
+  --vis-tooltip-border-color: var(--ui-border);
+  --vis-tooltip-text-color: var(--ui-text);
+  --vis-dark-tooltip-background-color: var(--ui-bg-elevated);
+  --vis-dark-tooltip-border-color: var(--ui-border);
+  --vis-dark-tooltip-text-color: var(--ui-text);
+}

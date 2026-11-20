@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
-import { AREAS, STAGES, formatDate, formatHa, useAreaClientFile, useAreaFile, type Cell, type CurrentRow, type Meta, type RainRow, type SeasonRow, type Stage } from '~/composables/useArea'
+import { AREAS, STAGES, formatDate, formatHa, useAreaClientFile, useAreaFile, useAreaSeasons, type Cell, type CurrentRow, type Meta, type OutlookRow, type Stage } from '~/composables/useArea'
 
 const t = COPY.landing
 const area = AREAS.tikung
 const { data: meta } = await useAreaFile<Meta>(area, 'meta.json')
 const { data: current } = await useAreaFile<CurrentRow[]>(area, 'current.json')
-const { data: seasons } = await useAreaFile<SeasonRow[]>(area, 'seasons.json')
-const { data: rain } = await useAreaFile<RainRow[]>(area, 'rain.json')
+const { data: seasons } = await useAreaSeasons(area)
+const { data: outlook } = await useAreaFile<OutlookRow[]>(area, 'outlook.json')
 const { data: desa } = await useAreaFile<FeatureCollection>(area, 'boundaries.geojson')
 const { data: cells } = useAreaClientFile<Cell[]>(area, 'cells.json')
 const { data: kecamatan } = useAreaClientFile<FeatureCollection>(AREAS.lamongan, 'boundaries.geojson')
 
 const pct = (v: number) => v.toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: 0 })
-const mm = (v: number) => Math.round(v).toLocaleString('id-ID')
 
 const units = computed(() => meta.value?.units ?? [])
 const paddy = computed(() => units.value.reduce((s, u) => s + u.paddy_ha, 0))
@@ -31,11 +30,24 @@ const stageRows = computed(() => STAGE_ORDER.map(k => [
 
 const bands = computed(() => seasonBands(seasons.value ?? []))
 const main = computed(() => bands.value.find(b => b.season === 'MT1'))
-const today = computed(() => (meta.value?.as_of ? dayOfYear(meta.value.as_of) : null))
 
-const months = computed(() => rainByMonth(rain.value ?? []))
-const lastMonth = computed(() => months.value.at(-1))
-const monthLabel = (m: RainMonth) => new Date(Date.UTC(m.year, m.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+// Weeks within eight weeks of the data date. Desa with less than one hectare are left out as noise.
+const HORIZON_DAYS = 56
+const upcoming = computed(() => {
+  const asOf = meta.value?.as_of ? new Date(meta.value.as_of).getTime() : 0
+  const near = (outlook.value ?? []).filter((o) => {
+    const dt = new Date(o.week).getTime() - asOf
+    return dt >= -6 * 86_400_000 && dt <= HORIZON_DAYS * 86_400_000
+  })
+  const byUnit = new Map<string, OutlookRow[]>()
+  for (const o of near) byUnit.set(o.unit, [...(byUnit.get(o.unit) ?? []), o])
+  const rows = [...byUnit.entries()].map(([unit, weeks]) => {
+    const top = weeks.reduce((a, b) => (b.expected_ha > a.expected_ha ? b : a))
+    return { unit, total: weeks.reduce((s, w) => s + w.expected_ha, 0), topWeek: top.week }
+  }).filter(r => r.total >= 1)
+  return rows.sort((a, b) => a.topWeek.localeCompare(b.topWeek))
+})
+const upcomingMax = computed(() => Math.max(1, ...upcoming.value.map(r => r.total)))
 
 // Each desa tile shows its stage mix today and its place in the kecamatan.
 const desaCards = computed(() => units.value.map((u) => {
@@ -86,7 +98,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
         <p class="text-sm font-semibold text-(--ui-primary)">
           {{ t.eyebrow }}
         </p>
-        <h1 class="text-3xl font-semibold text-balance sm:text-4xl">
+        <h1 class="text-4xl/[1.07] font-semibold text-balance sm:text-5xl/[1.07] lg:text-[3.5rem]/[1.07]">
           {{ t.headline }}
         </h1>
         <p class="text-lg text-muted">
@@ -101,9 +113,8 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
           />
           <UButton
             :label="t.secondaryCta"
-            to="/ringkasan"
-            color="neutral"
-            variant="subtle"
+            to="/kalender"
+            variant="outline"
             size="lg"
           />
         </div>
@@ -154,7 +165,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
             <p class="text-5xl font-semibold sm:text-6xl">
               {{ t.pride.rank }}
             </p>
-            <h2 class="text-2xl font-semibold text-balance">
+            <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
               {{ t.pride.title }}
             </h2>
             <p class="opacity-90">
@@ -210,7 +221,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
 
     <section class="grid gap-8 lg:grid-cols-[1fr_2fr]">
       <header class="flex flex-col gap-3">
-        <h2 class="text-2xl font-semibold text-balance">
+        <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
           {{ t.now.title(resting) }}
         </h2>
         <p class="text-muted">
@@ -227,49 +238,51 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
       </div>
     </section>
 
-    <section
-      v-if="main"
-      data-figure="kalender-tanam"
-      class="flex flex-col gap-6"
-    >
-      <header class="flex max-w-2xl flex-col gap-3">
-        <h2 class="text-2xl font-semibold text-balance">
-          {{ t.calendar.title(monthName(main.start)) }}
+    <section class="flex flex-col gap-4">
+      <header class="flex max-w-2xl flex-col gap-2">
+        <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
+          {{ t.harvest.title }}
         </h2>
-        <p class="text-muted">
-          {{ t.calendar.body }}
+        <p
+          v-if="upcoming.length"
+          class="text-muted"
+        >
+          {{ t.harvest.body }}
         </p>
       </header>
-      <SeasonCalendar
-        :bands="bands"
-        :today="today"
-      />
-      <ChartTable
-        :caption="t.calendar.title(monthName(main.start))"
-        :columns="[t.calendar.columns.season, t.calendar.columns.start, t.calendar.columns.plant, t.calendar.columns.harvest, t.calendar.columns.end]"
-        :rows="bands.map(b => [t.calendar.seasons[b.season], monthName(b.start), monthName(b.plant), monthName(b.harvest), monthName(b.end)])"
-      />
-    </section>
-
-    <section
-      v-if="lastMonth"
-      data-figure="hujan-bulanan"
-      class="flex flex-col gap-6"
-    >
-      <header class="flex max-w-2xl flex-col gap-3">
-        <h2 class="text-2xl font-semibold">
-          {{ t.rain.title }}
-        </h2>
-        <p class="text-muted">
-          {{ t.rain.body(monthLabel(lastMonth), mm(lastMonth.mm), mm(lastMonth.normal)) }}
-        </p>
-      </header>
-      <RainBars :months="months" />
-      <ChartTable
-        :caption="t.rain.title"
-        :columns="[t.rain.columns.month, t.rain.columns.mm, t.rain.columns.normal]"
-        :rows="months.map(m => [monthLabel(m), mm(m.mm), mm(m.normal)])"
-      />
+      <ul
+        v-if="upcoming.length"
+        class="flex flex-col gap-2"
+      >
+        <li
+          v-for="r in upcoming"
+          :key="r.unit"
+        >
+          <NuxtLink
+            :to="`/desa/${encodeURIComponent(r.unit)}`"
+            class="grid grid-cols-[7rem_1fr] items-center gap-x-3 gap-y-1 rounded-md px-2 py-1.5 hover:bg-muted focus-visible:outline-2 focus-visible:outline-(--ui-primary) sm:grid-cols-[9rem_1fr_16rem]"
+          >
+            <span class="font-semibold">{{ r.unit }}</span>
+            <span class="h-3 rounded-sm bg-muted">
+              <span
+                class="block h-full rounded-sm bg-(--viz-2)"
+                :style="{ width: `${(r.total / upcomingMax) * 100}%` }"
+              />
+            </span>
+            <span class="col-span-2 text-sm text-muted tabular-nums sm:col-span-1">{{ t.harvest.row(formatDate(r.topWeek, { day: 'numeric', month: 'short' }), formatHa(r.total)) }}</span>
+          </NuxtLink>
+        </li>
+      </ul>
+      <p
+        v-else
+        class="flex items-center gap-3 rounded-md bg-muted p-4 text-sm"
+      >
+        <UIcon
+          name="i-lucide-calendar-clock"
+          class="size-5 shrink-0 text-(--ui-primary)"
+        />
+        {{ t.harvest.empty(main ? monthName(main.harvest) : '-') }}
+      </p>
     </section>
 
     <section
@@ -279,7 +292,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
     >
       <header class="flex flex-wrap items-end justify-between gap-4">
         <div class="flex flex-col gap-2">
-          <h2 class="text-2xl font-semibold">
+          <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15]">
             {{ t.desa.title }}
           </h2>
           <p class="text-muted">
@@ -359,6 +372,22 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
       >
         {{ t.desa.empty }}
       </p>
+    </section>
+
+    <section class="flex flex-col gap-6">
+      <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15]">
+        {{ t.more.title }}
+      </h2>
+      <UPageGrid class="lg:grid-cols-3">
+        <UPageCard
+          v-for="m in t.more.items"
+          :key="m.to"
+          :to="m.to"
+          :icon="m.icon"
+          :title="m.title"
+          :description="m.description"
+        />
+      </UPageGrid>
     </section>
   </div>
 </template>

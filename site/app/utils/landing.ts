@@ -12,6 +12,22 @@ export interface Validation {
   area_units: ValidationUnit[]
 }
 
+// The season columns the pages read. The server keeps only these, so the page payload stays small.
+export type SeasonSlim = Pick<SeasonRow, 'unit' | 'year' | 'season' | 'rice_area_ha' | 'flood_start' | 'flood_median' | 'harvest_median' | 'harvest_end'>
+
+export function slimSeasons(rows: SeasonRow[]): SeasonSlim[] {
+  return rows.map(r => ({
+    unit: r.unit,
+    year: r.year,
+    season: r.season,
+    rice_area_ha: r.rice_area_ha,
+    flood_start: r.flood_start,
+    flood_median: r.flood_median,
+    harvest_median: r.harvest_median,
+    harvest_end: r.harvest_end
+  }))
+}
+
 export interface SeasonBand {
   season: SeasonRow['season']
   start: number
@@ -46,12 +62,12 @@ function circularMean(points: [day: number, weight: number][]) {
 // Peaks in February to April come from the partial first year and from radar gaps (F08, F22), not from real planting.
 const SEP1 = dayOfYear('2001-09-01')
 const sinceSep = (iso: string) => (dayOfYear(iso) - SEP1 + 365) % 365
-function isReliable(r: SeasonRow) {
+function isReliable(r: SeasonSlim) {
   if (r.season !== 'MT1') return true
   return !!r.flood_median && sinceSep(r.flood_median) >= 30 && sinceSep(r.flood_median) < 153
 }
 
-export function seasonBands(rows: SeasonRow[]): SeasonBand[] {
+export function seasonBands(rows: SeasonSlim[]): SeasonBand[] {
   const order: SeasonRow['season'][] = ['MT1', 'MT2', 'MT3']
   return order.flatMap((season) => {
     const own = rows.filter(r => r.season === season && r.rice_area_ha > 0 && isReliable(r))
@@ -79,7 +95,7 @@ export interface MainSeasonDates { plant: number, harvest: number, seasons: numb
 
 // Typical main-season (MT1) dates for one desa, as day-of-year.
 // The median of the reliable seasons resists the odd year better than a mean.
-export function mainSeasonDates(rows: SeasonRow[], minSeasons = 3): MainSeasonDates | null {
+export function mainSeasonDates(rows: SeasonSlim[], minSeasons = 3): MainSeasonDates | null {
   const ok = rows.filter(r => r.season === 'MT1' && r.rice_area_ha > 0 && r.harvest_median && isReliable(r))
   if (ok.length < minSeasons) return null
   const median = (v: number[]) => {

@@ -1,0 +1,15 @@
+// SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+// SPDX-License-Identifier: Apache-2.0
+
+import { fileURLToPath } from 'node:url'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  resolve: {
+    alias: { '~': fileURLToPath(new URL('./app', import.meta.url)) }
+  },
+  test: {
+    include: ['tests/**/*.test.ts'],
+    environment: 'node'
+  }
+})

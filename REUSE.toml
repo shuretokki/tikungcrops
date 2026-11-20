@@ -18,16 +18,6 @@ SPDX-FileCopyrightText = [
 SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
-path = [
-  "site/public/fonts/IBMPlexSans-Regular.ttf",
-  "site/public/fonts/IBMPlexSans-SemiBold.ttf",
-  "site/public/fonts/IBMPlexSans-LICENSE.txt",
-]
-precedence = "override"
-SPDX-FileCopyrightText = "2017 IBM Corp. with Reserved Font Name \"Plex\""
-SPDX-License-Identifier = "OFL-1.1-RFN"
-
-[[annotations]]
 path = ["site/public/fonts/Lilex-Regular.ttf", "site/public/fonts/Lilex-OFL.txt"]
 precedence = "override"
 SPDX-FileCopyrightText = "2019 The Lilex Project Authors (https://github.com/mishamyrt/Lilex)"

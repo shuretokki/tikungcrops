@@ -1,112 +1,99 @@
 <script setup lang="ts">
+import { VisAxis, VisTimeline, VisTooltip, VisXYContainer } from '@unovis/vue'
+import { Timeline } from '@unovis/ts'
+
 const props = defineProps<{ bands: SeasonBand[], today: number | null }>()
 const t = COPY.landing.calendar
 
-const MONTHS = Array.from({ length: 12 }, (_, m) => {
-  const start = dayOfYear(`2001-${String(m + 1).padStart(2, '0')}-01`)
-  return { start, label: monthName(start, 'short') }
-})
+interface Item { row: string, start: number, length: number, color: string, tip: string }
 
-const pos = (day: number) => `${(day / 365) * 100}%`
-
-// A season that crosses the new year is drawn as two pieces.
-function pieces(b: SeasonBand) {
-  return b.end >= b.start
-    ? [{ left: b.start, width: b.end - b.start }]
-    : [{ left: b.start, width: 365 - b.start }, { left: 0, width: b.end }]
+const PHASE_COLOR: Record<Phase, string> = {
+  sow: 'color-mix(in srgb, var(--viz-3) 45%, transparent)',
+  grow: 'var(--viz-3)',
+  harvest: 'var(--viz-2)'
+}
+const MUTED: Record<Phase, string> = {
+  sow: 'color-mix(in srgb, var(--viz-neutral) 45%, transparent)',
+  grow: 'var(--viz-neutral)',
+  harvest: 'color-mix(in srgb, var(--viz-neutral) 70%, transparent)'
 }
 
-const rows = computed(() => props.bands.map(b => ({
-  ...b,
-  main: b.season === 'MT1',
-  label: t.seasons[b.season],
-  note: t.seasonNote[b.season],
-  pieces: pieces(b)
-})))
+const MONTH_STARTS = Array.from({ length: 12 }, (_, m) => dayOfYear(`2001-${String(m + 1).padStart(2, '0')}-01`))
+
+const items = computed<Item[]>(() => {
+  const out = props.bands.flatMap((b) => {
+    const row = t.seasons[b.season]
+    const tip = t.readout(row, monthName(b.start), monthName(b.end), monthName(b.plant), monthName(b.harvest))
+    return seasonSegments(b).map(s => ({
+      row,
+      start: s.start,
+      length: s.length,
+      color: (b.season === 'MT1' ? PHASE_COLOR : MUTED)[s.phase],
+      tip
+    }))
+  })
+  if (props.today !== null) out.push({ row: t.today, start: props.today, length: 3, color: 'var(--ui-primary)', tip: t.today })
+  return out
+})
+
+const ROW = 40
+const height = computed(() => (props.bands.length + (props.today === null ? 0 : 1)) * ROW + 36)
+const tick = (v: number | Date) => monthName(Number(v), 'short')
+const triggers = { [Timeline.selectors.line]: (d: Item) => d.tip }
+
+const legend = [
+  { key: 'sow', label: t.phases.sow, color: PHASE_COLOR.sow },
+  { key: 'grow', label: t.phases.grow, color: PHASE_COLOR.grow },
+  { key: 'harvest', label: t.phases.harvest, color: PHASE_COLOR.harvest }
+]
 </script>
 
 <template>
-  <figure class="flex flex-col gap-1">
-    <div class="grid grid-cols-[7.5rem_1fr] items-end gap-x-3 sm:grid-cols-[9rem_1fr]">
-      <span />
-      <div class="relative h-5 text-xs text-muted">
-        <span
-          v-for="m in MONTHS"
-          :key="m.start"
-          class="absolute top-0"
-          :style="{ left: pos(m.start) }"
-        >
-          <span class="hidden sm:inline">{{ m.label }}</span>
-          <span class="sm:hidden">{{ m.label.slice(0, 1) }}</span>
-        </span>
-      </div>
-    </div>
-
-    <div
-      v-for="r in rows"
-      :key="r.season"
-      class="grid grid-cols-[7.5rem_1fr] items-center gap-x-3 sm:grid-cols-[9rem_1fr]"
-    >
-      <div class="flex flex-col leading-tight">
-        <span
-          class="text-sm"
-          :class="r.main ? 'font-semibold' : ''"
-        >{{ r.label }}</span>
-        <span class="text-xs text-muted">{{ r.note }}</span>
-      </div>
-      <div
-        class="relative h-10"
+  <figure class="flex flex-col gap-2">
+    <ClientOnly>
+      <VisXYContainer
+        :data="items"
+        :height="height"
+        :x-domain="[0, 365]"
+        class="vis-chart"
         role="img"
-        :aria-label="`${r.label}: ${monthName(r.start)} sampai ${monthName(r.end)}, ${t.plant.toLowerCase()} ${monthName(r.plant)}, ${t.harvest.toLowerCase()} ${monthName(r.harvest)}`"
+        :aria-label="t.body"
+      >
+        <VisTimeline
+          :x="(d: Item) => d.start"
+          :line-duration="(d: Item) => d.length"
+          :line-row="(d: Item) => d.row"
+          :color="(d: Item) => d.color"
+          :row-height="ROW"
+          :line-width="16"
+          :show-row-labels="true"
+          :row-label-width="140"
+        />
+        <VisAxis
+          type="x"
+          :tick-values="MONTH_STARTS"
+          :tick-format="tick"
+          :grid-line="true"
+        />
+        <VisTooltip :triggers="triggers" />
+      </VisXYContainer>
+      <template #fallback>
+        <div
+          class="rounded-md bg-muted"
+          :style="{ height: `${height}px` }"
+        />
+      </template>
+    </ClientOnly>
+    <figcaption class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
+      <span
+        v-for="l in legend"
+        :key="l.key"
+        class="flex items-center gap-1.5"
       >
         <span
-          v-for="m in MONTHS"
-          :key="m.start"
-          class="absolute inset-y-0 w-px bg-(--ui-border)"
-          :style="{ left: pos(m.start) }"
-        />
-        <span
-          v-for="(p, i) in r.pieces"
-          :key="i"
-          class="absolute top-1/2 h-4 -translate-y-1/2 rounded-sm"
-          :class="r.main ? 'bg-(--viz-3)' : 'bg-(--viz-neutral)'"
-          :style="{ left: pos(p.left), width: pos(p.width) }"
-        />
-        <span
-          v-if="today !== null"
-          class="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-(--ui-primary)"
-          :style="{ left: pos(today) }"
-        />
-        <span
-          class="absolute top-1/2 size-3 -translate-1/2 rounded-full border-2 border-(--viz-outline) bg-(--ui-bg)"
-          :style="{ left: pos(r.plant) }"
-          :title="`${t.plant}: ${monthName(r.plant)}`"
-        />
-        <span
-          class="absolute top-1/2 size-3 -translate-1/2 rounded-full border-2 border-(--ui-bg) bg-(--viz-outline)"
-          :style="{ left: pos(r.harvest) }"
-          :title="`${t.harvest}: ${monthName(r.harvest)}`"
-        />
-      </div>
-    </div>
-
-    <div class="grid grid-cols-[7.5rem_1fr] gap-x-3 sm:grid-cols-[9rem_1fr]">
-      <span />
-      <div class="relative h-6">
-        <span
-          v-if="today !== null"
-          class="absolute top-0 -translate-x-1/2 text-xs font-semibold text-(--ui-primary)"
-          :style="{ left: pos(today) }"
-        >▲ {{ t.today }}</span>
-      </div>
-    </div>
-
-    <figcaption class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
-      <span class="flex items-center gap-1.5">
-        <span class="size-3 rounded-full border-2 border-(--viz-outline)" />{{ t.plant }}
-      </span>
-      <span class="flex items-center gap-1.5">
-        <span class="size-3 rounded-full bg-(--viz-outline)" />{{ t.harvest }}
+          class="size-3 rounded-sm"
+          :style="{ background: l.color }"
+        />{{ l.label }}
       </span>
     </figcaption>
   </figure>

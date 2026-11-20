@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { VisStackedBar, VisXYContainer } from '@unovis/vue'
 import { STAGES, formatHa, type Stage } from '~/composables/useArea'
 
 const props = defineProps<{ totals: Record<Stage, number> }>()
@@ -6,7 +7,13 @@ const props = defineProps<{ totals: Record<Stage, number> }>()
 const ORDER: Stage[] = ['planted', 'peaked', 'fallow', 'unknown']
 
 // Cloud-hidden cells get a hatch so they never read as a fourth hue.
-const FILL: Record<Stage, Record<string, string>> = {
+const FILL: Record<Stage, string> = {
+  planted: 'var(--viz-3)',
+  peaked: 'var(--viz-2)',
+  fallow: 'var(--viz-neutral)',
+  unknown: 'url(#stage-hatch)'
+}
+const SWATCH: Record<Stage, Record<string, string>> = {
   planted: { background: 'var(--viz-3)' },
   peaked: { background: 'var(--viz-2)' },
   fallow: { background: 'var(--viz-neutral)' },
@@ -24,6 +31,9 @@ const parts = computed(() => ORDER.map(k => ({
   share: sum.value ? props.totals[k] / sum.value : 0
 })))
 
+const colors = ORDER.map(k => FILL[k])
+const accessors = computed(() => ORDER.map(k => () => props.totals[k]))
+
 function pct(v: number) {
   return v.toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: v < 0.1 ? 1 : 0 })
 }
@@ -31,18 +41,59 @@ function pct(v: number) {
 
 <template>
   <figure class="flex flex-col gap-3">
+    <svg
+      width="0"
+      height="0"
+      class="absolute"
+      aria-hidden="true"
+    >
+      <defs>
+        <pattern
+          id="stage-hatch"
+          width="6"
+          height="6"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(45)"
+        >
+          <rect
+            width="6"
+            height="6"
+            fill="transparent"
+          />
+          <rect
+            width="2"
+            height="6"
+            fill="var(--viz-neutral)"
+          />
+        </pattern>
+      </defs>
+    </svg>
     <div
-      class="flex h-10 w-full gap-0.5"
       role="img"
       :aria-label="parts.map(p => `${p.label} ${pct(p.share)}`).join(', ')"
     >
-      <div
-        v-for="p in parts.filter(p => p.share > 0)"
-        :key="p.key"
-        class="h-full min-w-1 first:rounded-l-sm last:rounded-r-sm"
-        :style="{ ...FILL[p.key], flexGrow: p.share }"
-        :title="`${p.label}: ${formatHa(p.ha)} (${pct(p.share)})`"
-      />
+      <ClientOnly>
+        <VisXYContainer
+          :data="[{ row: 0 }]"
+          :height="40"
+          :margin="{ top: 0, right: 0, bottom: 0, left: 0 }"
+          :padding="{ top: 0, right: 0, bottom: 0, left: 0 }"
+          :y-domain="[0, sum]"
+          class="vis-chart"
+        >
+          <VisStackedBar
+            :x="() => 0"
+            :y="accessors"
+            :color="colors"
+            orientation="horizontal"
+            :bar-padding="0"
+            :rounded-corners="3"
+          />
+        </VisXYContainer>
+        <template #fallback>
+          <div class="h-10 rounded-sm bg-muted" />
+        </template>
+      </ClientOnly>
     </div>
     <ul class="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
       <li
@@ -52,7 +103,7 @@ function pct(v: number) {
       >
         <span
           class="mt-1 size-3 shrink-0 rounded-sm"
-          :style="FILL[p.key]"
+          :style="SWATCH[p.key]"
         />
         <span class="flex flex-col">
           <span class="text-sm">{{ p.label }}</span>

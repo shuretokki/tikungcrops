@@ -57,6 +57,8 @@
   --ui-warning: #dfa000;
   --ui-error: #f85552;
   --ui-on-primary: #ffffff;
+  /* Focus Blue is for the keyboard focus ring and the hover fill of a blue pill. */
+  --focus-ring: #0071e3;
   --ui-info-bg: #ecf5ed;
   --ui-info-border: #3a94c566;
   --ui-success-bg: #f3f5d9;
@@ -94,6 +96,7 @@
   --ui-error: #e67e80;
   /* White on the dark-mode blue is only 3:1, black reaches 7:1. */
   --ui-on-primary: #000000;
+  --focus-ring: #2997ff;
   --ui-info-bg: #384b55;
   --ui-info-border: #7fbbb366;
   --ui-success-bg: #3c4841;

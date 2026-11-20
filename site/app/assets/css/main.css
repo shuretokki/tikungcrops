@@ -11,15 +11,41 @@
 @import "./theme.css";
 @import "./density.css";
 
-/* IBM Plex Sans has only weights 400 and 600,
-   so font-medium renders as 400. */
-@font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-display: swap; src: url("/fonts/IBMPlexSans-Regular.ttf") format("truetype"); }
-@font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-display: swap; src: url("/fonts/IBMPlexSans-SemiBold.ttf") format("truetype"); }
+/* Open Runde is self-hosted through Fontsource, so no request leaves the site. */
+/* Only the weights that the theme below uses are loaded. */
+@import "@fontsource/open-runde/500.css";
+@import "@fontsource/open-runde/600.css";
+@import "@fontsource/open-runde/700.css";
+
 @font-face { font-family: "Lilex"; font-weight: 400; font-display: swap; src: url("/fonts/Lilex-Regular.ttf") format("truetype"); }
 
+/* Each Tailwind weight step is moved one step up, because Open Runde reads thin at body size. */
+/* To undo, delete the four --font-weight lines and the 500 import is no longer needed. */
 @theme {
-  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Open Runde", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Lilex", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  --font-weight-normal: 500;
+  --font-weight-medium: 600;
+  --font-weight-semibold: 700;
+  --font-weight-bold: 700;
+
+  /* Radius steps from the Apple DESIGN.md: 5, 8, 11 and 18 pixels. Pills use rounded-full. */
+  --radius-xs: 5px;
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 18px;
+}
+
+/* Apple tracks body text tighter by 0.374px at 17px, and headlines tighter still. */
+body {
+  font-weight: var(--font-weight-normal);
+  letter-spacing: -0.022em;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
 }
 
 /* No radius setting is needed. */

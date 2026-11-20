@@ -21,7 +21,7 @@ const floating = 'bg-muted rounded-lg shadow-(--shadow-elev)'
 const field = {
   xs: { base: 'min-h-(--ctl-default) px-(--px-field) py-0 text-(length:--field-text) gap-1.5', leading: 'ps-(--px-field)', trailing: 'pe-(--px-field)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
   sm: { base: 'min-h-(--ctl-field-sm) px-(--px-field) py-0 text-(length:--field-text) gap-1.5', leading: 'ps-(--px-field)', trailing: 'pe-(--px-field)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
-  md: { base: 'min-h-(--ctl-medium) px-(--px-field) py-0 text-(length:--field-text) gap-1.5', leading: 'ps-(--px-field)', trailing: 'pe-(--px-field)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
+  md: { base: 'min-h-(--ctl-large) px-(--px-field) py-0 text-(length:--field-text) gap-1.5', leading: 'ps-(--px-field)', trailing: 'pe-(--px-field)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
   lg: { base: 'min-h-(--ctl-large) px-(--px-field) py-0 text-(length:--field-text) gap-2', leading: 'ps-(--px-field)', trailing: 'pe-(--px-field)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
   xl: { base: 'min-h-(--ctl-touch) px-(--px-field) py-0 text-base gap-2', leading: 'ps-(--px-field)', trailing: 'pe-(--px-field)', leadingIcon: 'size-5', trailingIcon: 'size-5' }
 }
@@ -33,7 +33,7 @@ const fieldPadding = [
   { trailing: true, class: 'pe-(--ps-icon)' }
 ]
 
-const fieldOutline = 'bg-muted hover:bg-muted disabled:bg-muted ring-default hover:ring-accented'
+const fieldOutline = 'bg-default hover:bg-default disabled:bg-default ring-default hover:ring-accented'
 
 const menuRow = {
   item: 'min-h-(--row-menu) px-(--px-field) py-0 text-sm gap-2 items-center',
@@ -89,22 +89,25 @@ export default defineAppConfig({
       neutral: 'ink'
     },
 
+    // Buttons are pills with a press scale of 0.95 and a 2px focus ring, as in the Apple DESIGN.md.
+    // Medium is the 44px primary pill, and Large is the 52px store hero pill.
+    // Small is the 36px utility button, and Extra small is the 32px compact button.
     button: {
-      slots: { base: 'rounded-sm' },
+      slots: { base: 'rounded-full font-normal transition-transform active:scale-95 focus-visible:outline-2 focus-visible:outline-(--focus-ring)' },
       variants: {
         size: {
-          xs: { base: 'min-h-(--ctl-compact) px-(--px-tight) py-0 text-xs gap-(--gap-ctl)', leadingIcon: 'size-(--icon-sm)', trailingIcon: 'size-(--icon-sm)' },
-          sm: { base: 'min-h-(--ctl-default) px-(--px-tight) py-0 text-sm gap-(--gap-ctl)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
-          md: { base: 'min-h-(--ctl-medium) px-(--px-normal) py-0 text-sm gap-(--gap-ctl)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
-          lg: { base: 'min-h-(--ctl-large) px-(--px-normal) py-0 text-sm gap-(--gap-ctl)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
-          xl: { base: 'min-h-(--ctl-touch) px-3 py-0 text-base gap-2', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' }
+          xs: { base: 'min-h-(--ctl-default) px-(--px-tight) py-0 text-xs gap-(--gap-ctl)', leadingIcon: 'size-(--icon-sm)', trailingIcon: 'size-(--icon-sm)' },
+          sm: { base: 'min-h-(--ctl-field-sm) px-[0.9375rem] py-0 text-sm gap-(--gap-ctl)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
+          md: { base: 'min-h-(--ctl-large) px-(--px-normal) py-0 text-(length:--body-size) gap-(--gap-ctl)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
+          lg: { base: 'min-h-(--ctl-touch) px-7 py-0 text-lg gap-(--gap-ctl)', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' },
+          xl: { base: 'min-h-(--ctl-touch) px-7 py-0 text-lg gap-2', leadingIcon: 'size-(--icon-ui)', trailingIcon: 'size-(--icon-ui)' }
         }
       },
       compoundVariants: [
-        { size: 'xs', square: true, class: 'min-h-(--ctl-compact) min-w-(--ctl-compact) p-0 justify-center' },
-        { size: 'sm', square: true, class: 'min-h-(--ctl-default) min-w-(--ctl-default) p-0 justify-center' },
-        { size: 'md', square: true, class: 'min-h-(--ctl-medium) min-w-(--ctl-medium) p-0 justify-center' },
-        { size: 'lg', square: true, class: 'min-h-(--ctl-large) min-w-(--ctl-large) p-0 justify-center' },
+        { size: 'xs', square: true, class: 'min-h-(--ctl-default) min-w-(--ctl-default) p-0 justify-center' },
+        { size: 'sm', square: true, class: 'min-h-(--ctl-field-sm) min-w-(--ctl-field-sm) p-0 justify-center' },
+        { size: 'md', square: true, class: 'min-h-(--ctl-large) min-w-(--ctl-large) p-0 justify-center' },
+        { size: 'lg', square: true, class: 'min-h-(--ctl-touch) min-w-(--ctl-touch) p-0 justify-center' },
         { size: 'xl', square: true, class: 'min-h-(--ctl-touch) min-w-(--ctl-touch) p-0 justify-center' },
         { color: 'neutral', variant: 'soft', class: 'bg-muted hover:bg-elevated active:bg-accented disabled:bg-muted aria-disabled:bg-muted' },
         // A neutral solid button would be a bright inverted pill, which the design does not have.
@@ -117,13 +120,15 @@ export default defineAppConfig({
         { color: 'success', variant: 'subtle', class: 'text-default bg-(--ui-success-bg) ring-(color:--ui-success-border) hover:bg-(--ui-success-bg) active:bg-(--ui-success-bg) disabled:bg-(--ui-success-bg) aria-disabled:bg-(--ui-success-bg)' },
         { color: 'warning', variant: 'subtle', class: 'text-default bg-(--ui-warning-bg) ring-(color:--ui-warning-border) hover:bg-(--ui-warning-bg) active:bg-(--ui-warning-bg) disabled:bg-(--ui-warning-bg) aria-disabled:bg-(--ui-warning-bg)' },
         { color: 'error', variant: 'subtle', class: 'text-default bg-(--ui-error-bg) ring-(color:--ui-error-border) hover:bg-(--ui-error-bg) active:bg-(--ui-error-bg) disabled:bg-(--ui-error-bg) aria-disabled:bg-(--ui-error-bg)' },
-        { color: 'primary', variant: 'solid', class: 'text-(color:--ui-on-primary)' }
+        { color: 'primary', variant: 'solid', class: 'text-(color:--ui-on-primary) hover:bg-(--focus-ring) active:bg-(--ui-primary)' },
+        // The second action beside a blue pill is a ghost pill: a blue outline and blue text.
+        { color: 'primary', variant: 'outline', class: 'bg-transparent ring-(--ui-primary) hover:bg-transparent active:bg-transparent' }
       ],
-      defaultVariants: { size: 'sm' }
+      defaultVariants: { size: 'md' }
     },
 
     input: {
-      slots: { base: 'rounded-sm' },
+      slots: { base: 'rounded-full' },
       variants: {
         size: field,
         variant: { outline: fieldOutline }
@@ -140,7 +145,7 @@ export default defineAppConfig({
 
     select: {
       slots: {
-        base: 'rounded-sm',
+        base: 'rounded-full',
         content: floating,
         item: 'before:rounded-sm data-highlighted:not-data-disabled:before:bg-elevated',
         label: 'text-muted'
@@ -154,7 +159,7 @@ export default defineAppConfig({
     },
     selectMenu: {
       slots: {
-        base: 'rounded-sm',
+        base: 'rounded-full',
         content: floating,
         item: 'before:rounded-sm data-highlighted:not-data-disabled:before:bg-elevated',
         label: 'text-muted'
@@ -211,13 +216,13 @@ export default defineAppConfig({
     },
 
     tabs: {
-      slots: { trigger: 'rounded-none hover:data-[state=inactive]:not-disabled:bg-elevated' },
+      slots: { trigger: 'rounded-full hover:data-[state=inactive]:not-disabled:bg-elevated' },
       variants: {
         variant: {
           pill: {
-            list: 'bg-muted rounded-sm p-0 ring ring-default overflow-hidden',
-            indicator: 'rounded-none shadow-none',
-            trigger: 'rounded-none'
+            list: 'bg-muted rounded-full p-0 ring ring-default overflow-hidden',
+            indicator: 'rounded-full shadow-none',
+            trigger: 'rounded-full'
           }
         },
         size: {
@@ -234,7 +239,7 @@ export default defineAppConfig({
           class: {
             indicator: 'bg-default',
             // The last three classes style the active tab before the sliding indicator exists.
-            trigger: 'data-[state=active]:text-default in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-default in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-none in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:shadow-none'
+            trigger: 'data-[state=active]:text-default in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-default in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:shadow-none'
           }
         },
         { orientation: 'horizontal', variant: 'pill', class: { indicator: 'inset-y-0' } }
@@ -243,7 +248,7 @@ export default defineAppConfig({
     },
 
     alert: {
-      slots: { root: 'rounded-sm px-(--pad-alert-x) py-(--pad-alert-y) gap-2', icon: 'size-(--icon-ui) mt-0.5' },
+      slots: { root: 'rounded-md px-(--pad-alert-x) py-(--pad-alert-y) gap-2', icon: 'size-(--icon-ui) mt-0.5' },
       compoundVariants: [
         { color: 'info', variant: 'subtle', class: { root: 'text-default bg-(--ui-info-bg) ring-(color:--ui-info-border)', icon: 'text-info' } },
         { color: 'success', variant: 'subtle', class: { root: 'text-default bg-(--ui-success-bg) ring-(color:--ui-success-border)', icon: 'text-success' } },
@@ -257,7 +262,7 @@ export default defineAppConfig({
       variants: {
         size: {
           xs: { base: 'min-h-(--badge-h) min-w-(--badge-h) justify-center px-1 py-0 text-(length:--badge-text) leading-none rounded-full' },
-          md: { base: 'px-1.5 py-0.5 rounded-sm' }
+          md: { base: 'px-2.5 py-0.5 rounded-full' }
         }
       },
       compoundVariants: [
@@ -271,12 +276,12 @@ export default defineAppConfig({
 
     card: {
       slots: {
-        root: 'rounded-sm',
+        root: 'rounded-lg',
         header: 'p-(--pad-card) sm:px-(--pad-card)',
         body: 'p-(--pad-card) sm:p-(--pad-card)',
         footer: 'p-(--pad-card) sm:px-(--pad-card)'
       },
-      variants: { variant: { outline: { root: 'bg-muted ring-default' } } }
+      variants: { variant: { outline: { root: 'bg-default ring-default' } } }
     },
 
     table: {
@@ -298,10 +303,10 @@ export default defineAppConfig({
     // Lets the left side shrink.
     // A long logo and menu pill otherwise widen the page,
     // and phones zoom out and leave a blank strip on the right.
-    // The bar is flat: no blur and no see-through fill.
+    // The bar is the frosted sub-nav of the Apple DESIGN.md: parchment at 80% with a blur.
     header: {
       slots: {
-        root: 'bg-default backdrop-blur-none',
+        root: 'bg-muted/80 backdrop-blur-[20px] backdrop-saturate-[1.8] border-b border-default',
         left: 'min-w-0',
         right: 'shrink-0 gap-1',
         title: 'text-base font-semibold'
@@ -321,7 +326,7 @@ export default defineAppConfig({
       variants: { fullscreen: { false: { content: 'shadow-(--shadow-modal)' } } }
     },
 
-    progress: { slots: { base: 'bg-muted' } },
+    progress: { slots: { base: 'bg-muted rounded-full' } },
 
     // Key caps use the xs radius.
     // At md they are 16px tall, so they fit a 22px button with a gap above and below.
@@ -345,8 +350,8 @@ export default defineAppConfig({
       slots: {
         root: 'py-4',
         headline: 'mb-1 text-xs',
-        title: 'text-[1.43rem]/[1.6rem] sm:text-[1.43rem]/[1.6rem] font-semibold',
-        description: 'text-sm'
+        title: 'text-[2rem]/[1.1] sm:text-[2.5rem]/[1.1] font-semibold tracking-tight',
+        description: 'text-lg'
       },
       variants: { title: { true: { description: 'mt-2' } } }
     },
@@ -375,12 +380,12 @@ export default defineAppConfig({
     },
     pageCard: {
       slots: {
-        root: 'rounded-md',
+        root: 'rounded-lg',
         container: 'p-(--pad-card) sm:p-(--pad-card) gap-y-2',
         header: 'mb-2',
         leading: 'mb-1.5',
         leadingIcon: 'size-(--icon-ui)',
-        title: 'text-sm',
+        title: 'text-(length:--body-size)',
         description: 'text-sm'
       }
     },
@@ -402,6 +407,7 @@ export default defineAppConfig({
     },
     footer: {
       slots: {
+        root: 'bg-muted border-t-0',
         top: 'py-4 lg:py-6',
         bottom: 'py-4 lg:py-6',
         container: 'py-4 lg:py-2'
@@ -451,7 +457,6 @@ export default defineAppConfig({
     contentSearch: { variants: { fullscreen: { false: { modal: 'sm:max-w-xl sm:h-[24rem]' } } } },
 
     // Article text. The headlines follow the headline steps in DESIGN.md.
-    // IBM Plex Sans has weights 400 and 600, so bold becomes semibold.
     prose: {
       h1: { slots: { base: 'text-[1.43rem]/[1.6rem] font-semibold mb-4' } },
       h2: { slots: { base: 'text-[1.27rem]/[1.6rem] font-semibold mt-8 mb-3' } },

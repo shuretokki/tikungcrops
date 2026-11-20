@@ -29,8 +29,9 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css', '~/assets/css/viz.css', 'maplibre-gl/dist/maplibre-gl.css'],
 
-  // the design is dark first
-  colorMode: { preference: 'dark', fallback: 'dark' },
+  // Light is the default on every device, so the system theme is not followed.
+  // To undo, set preference to 'system'.
+  colorMode: { preference: 'light', fallback: 'light' },
 
   ui: {
     // the design has no "secondary" color, a short list stops it showing a stock Tailwind blue

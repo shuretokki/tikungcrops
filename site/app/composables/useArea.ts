@@ -58,6 +58,23 @@ export function useAreaFile<T>(area: Area, file: string) {
   )
 }
 
+// Seasons and rain are large, so the server trims them before they enter a page payload.
+export function useAreaSeasons(area: Area) {
+  return useAsyncData(`${area.slug}/seasons.slim`, async () => {
+    const rows = await $fetch<SeasonRow[]>(`/api/area/${area.slug}/seasons.json`).catch(() => null)
+    return rows ? slimSeasons(rows) : null
+  })
+}
+
+// Without a unit the months average over every unit of the area.
+export function useAreaRainMonths(area: Area, unit?: MaybeRefOrGetter<string>) {
+  return useAsyncData(`${area.slug}/rain.months/${toValue(unit) ?? 'all'}`, async () => {
+    const rows = await $fetch<RainRow[]>(`/api/area/${area.slug}/rain.json`).catch(() => null)
+    const only = toValue(unit)
+    return rows ? rainByMonth(only ? rows.filter(r => r.unit === only) : rows) : null
+  })
+}
+
 // Large map-only files load in the browser from the static copy in public/json.
 // They stay out of the page payload, and every page shares one cached download.
 export function useAreaClientFile<T>(area: Area, file: string) {

@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { VisAxis, VisTimeline, VisTooltip, VisXYContainer } from '@unovis/vue'
+import { Timeline } from '@unovis/ts'
+
 export interface ScheduleRow { unit: string, plant: number, harvest: number }
 
 const props = defineProps<{ rows: ScheduleRow[], today: number | null }>()
-const t = COPY.ringkasan.schedule
+const t = COPY.landing.schedule
+
+interface Item { row: string, start: number, length: number, color: string, tip: string }
 
 // The axis starts at the month of the data date and runs twelve months ahead.
 const start = computed(() => {
@@ -11,111 +16,76 @@ const start = computed(() => {
   return dayOfYear(`2001-${String(d.getUTCMonth() + 1).padStart(2, '0')}-01`)
 })
 const rel = (day: number) => (day - start.value + 365) % 365
-const pos = (day: number) => `${(rel(day) / 365) * 100}%`
 
 const months = computed(() => Array.from({ length: 12 }, (_, i) => {
   const d = new Date(Date.UTC(2001, 0, 1 + start.value))
   d.setUTCMonth(d.getUTCMonth() + i)
   const day = dayOfYear(`2001-${String(d.getUTCMonth() + 1).padStart(2, '0')}-01`)
-  return { day, label: monthName(day, 'short') }
+  return { at: rel(day), label: monthName(day, 'short') }
 }))
 
 const date = (day: number) => new Date(Date.UTC(2001, 0, 1 + day)).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', timeZone: 'UTC' })
 
 // Rows run in planting order from the data date, so the desa that plants first is on top.
-const sorted = computed(() => [...props.rows].sort((a, b) => rel(a.plant) - rel(b.plant)).map(r => ({
-  ...r,
-  from: rel(r.plant),
-  span: (rel(r.harvest) - rel(r.plant) + 365) % 365
-})))
+const items = computed<Item[]>(() => {
+  const out = [...props.rows].sort((a, b) => rel(a.plant) - rel(b.plant)).map(r => ({
+    row: r.unit,
+    start: rel(r.plant),
+    length: (rel(r.harvest) - rel(r.plant) + 365) % 365,
+    color: 'var(--viz-3)',
+    tip: t.readout(r.unit, date(r.plant), date(r.harvest))
+  }))
+  if (props.today !== null) out.push({ row: t.today, start: rel(props.today), length: 3, color: 'var(--ui-primary)', tip: t.today })
+  return out
+})
 
-const hovered = ref<string | null>(null)
-const shown = computed(() => sorted.value.find(r => r.unit === hovered.value))
+const ROW = 30
+const height = computed(() => items.value.length * ROW + 36)
+const tick = (v: number | Date) => months.value.find(m => m.at === Number(v))?.label ?? ''
+const triggers = { [Timeline.selectors.line]: (d: Item) => d.tip }
 </script>
 
 <template>
   <figure class="flex flex-col gap-2">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <p
-        class="text-sm tabular-nums"
-        :class="shown ? '' : 'text-muted'"
-        aria-live="polite"
+    <p class="text-sm text-muted">
+      {{ t.hint }}
+    </p>
+    <ClientOnly>
+      <VisXYContainer
+        :data="items"
+        :height="height"
+        :x-domain="[0, 365]"
+        class="vis-chart"
+        role="img"
+        :aria-label="t.title"
       >
-        {{ shown ? t.readout(shown.unit, date(shown.plant), date(shown.harvest)) : t.hint }}
-      </p>
-      <div class="flex gap-4 text-xs text-muted">
-        <span class="flex items-center gap-1.5"><span class="size-3 rounded-full border-2 border-(--viz-3) bg-(--ui-bg)" />{{ t.plant }}</span>
-        <span class="flex items-center gap-1.5"><span class="size-3 rounded-full bg-(--viz-2)" />{{ t.harvest }}</span>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-[7rem_1fr] gap-x-3 sm:grid-cols-[9rem_1fr]">
-      <span />
-      <div class="relative h-5 text-xs text-muted">
-        <span
-          v-for="m in months"
-          :key="m.day"
-          class="absolute"
-          :style="{ left: pos(m.day) }"
-        >
-          <span class="hidden sm:inline">{{ m.label }}</span>
-          <span class="sm:hidden">{{ m.label.slice(0, 1) }}</span>
-        </span>
-      </div>
-
-      <template
-        v-for="r in sorted"
-        :key="r.unit"
-      >
-        <span
-          class="truncate text-sm leading-8"
-          :class="hovered === r.unit ? 'font-semibold' : ''"
-        >{{ r.unit }}</span>
+        <VisTimeline
+          :x="(d: Item) => d.start"
+          :line-duration="(d: Item) => d.length"
+          :line-row="(d: Item) => d.row"
+          :color="(d: Item) => d.color"
+          :row-height="ROW"
+          :line-width="12"
+          :show-row-labels="true"
+          :row-label-width="130"
+        />
+        <VisAxis
+          type="x"
+          :tick-values="months.map(m => m.at)"
+          :tick-format="tick"
+          :grid-line="true"
+        />
+        <VisTooltip :triggers="triggers" />
+      </VisXYContainer>
+      <template #fallback>
         <div
-          class="relative h-8 cursor-default"
-          tabindex="0"
-          role="img"
-          :aria-label="t.readout(r.unit, date(r.plant), date(r.harvest))"
-          @mouseenter="hovered = r.unit"
-          @mouseleave="hovered = null"
-          @focus="hovered = r.unit"
-          @blur="hovered = null"
-        >
-          <span
-            v-for="m in months"
-            :key="m.day"
-            class="absolute inset-y-0 w-px bg-(--ui-border)"
-            :style="{ left: pos(m.day) }"
-          />
-          <span
-            v-if="today !== null"
-            class="absolute inset-y-0 w-0.5 bg-(--ui-primary)"
-            :style="{ left: pos(today) }"
-          />
-          <span
-            class="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full"
-            :class="hovered === r.unit ? 'bg-(--viz-outline)' : 'bg-(--viz-neutral)'"
-            :style="{ left: `${(r.from / 365) * 100}%`, width: `${(r.span / 365) * 100}%` }"
-          />
-          <span
-            class="absolute top-1/2 size-3.5 -translate-1/2 rounded-full border-2 border-(--viz-3) bg-(--ui-bg)"
-            :style="{ left: pos(r.plant) }"
-          />
-          <span
-            class="absolute top-1/2 size-3.5 -translate-1/2 rounded-full border-2 border-(--ui-bg) bg-(--viz-2)"
-            :style="{ left: pos(r.harvest) }"
-          />
-        </div>
+          class="rounded-md bg-muted"
+          :style="{ height: `${height}px` }"
+        />
       </template>
-
-      <span />
-      <div class="relative h-5">
-        <span
-          v-if="today !== null"
-          class="absolute -translate-x-1/2 text-xs font-semibold whitespace-nowrap text-(--ui-primary)"
-          :style="{ left: pos(today) }"
-        >▲ {{ t.today }}</span>
-      </div>
-    </div>
+    </ClientOnly>
+    <p class="flex items-center gap-1.5 text-xs text-muted">
+      <span class="size-3 rounded-sm bg-(--viz-3)" />{{ t.legend }}
+    </p>
   </figure>
 </template>

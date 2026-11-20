@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
-import { AREAS, formatDate, formatHa, useAreaClientFile, useAreaFile, type Cell, type CurrentRow, type Meta, type OutlookRow, type SeasonRow } from '~/composables/useArea'
+import { AREAS, formatDate, formatHa, useAreaClientFile, useAreaFile, useAreaRainMonths, useAreaSeasons, type Cell, type CurrentRow, type IntensityRow, type Meta, type OutlookRow } from '~/composables/useArea'
 
 const t = COPY.desa
 const route = useRoute()
@@ -9,7 +9,9 @@ const area = AREAS.tikung
 const { data: meta } = await useAreaFile<Meta>(area, 'meta.json')
 const { data: current } = await useAreaFile<CurrentRow[]>(area, 'current.json')
 const { data: outlook } = await useAreaFile<OutlookRow[]>(area, 'outlook.json')
-const { data: seasons } = await useAreaFile<SeasonRow[]>(area, 'seasons.json')
+const { data: seasons } = await useAreaSeasons(area)
+const { data: intensity } = await useAreaFile<IntensityRow[]>(area, 'intensity.json')
+const { data: rainMonths } = await useAreaRainMonths(area, unit)
 const { data: desa } = await useAreaFile<FeatureCollection>(area, 'boundaries.geojson')
 const { data: cells } = useAreaClientFile<Cell[]>(area, 'cells.json')
 const { data: kecamatan } = useAreaClientFile<FeatureCollection>(AREAS.lamongan, 'boundaries.geojson')
@@ -23,7 +25,7 @@ const stages = computed(() => stageTotals((current.value ?? []).filter(r => r.un
 const mt1 = computed(() => mainSeasonDates((seasons.value ?? []).filter(s => s.unit === unit.value)))
 const schedule = computed(() => (mt1.value ? [{ unit: unit.value, plant: mt1.value.plant, harvest: mt1.value.harvest }] : []))
 
-// Same eight-week window as the Ringkasan page, so both pages agree.
+// Same eight-week window as the Beranda page, so both pages agree.
 const HORIZON_DAYS = 56
 const weeks = computed(() => {
   const asOf = meta.value?.as_of ? new Date(meta.value.as_of).getTime() : 0
@@ -35,6 +37,24 @@ const weeks = computed(() => {
     .sort((a, b) => a.week.localeCompare(b.week))
 })
 const weekMax = computed(() => Math.max(1, ...weeks.value.map(w => w.expected_ha)))
+
+// The place of this desa among the desa of Tikung, for the same three measures as the comparison page.
+const places = computed(() => {
+  const sets: Record<'sawah' | 'intensitas' | 'tumbuh', Entry[]> = {
+    sawah: (meta.value?.units ?? []).map(u => ({ unit: u.unit, value: u.paddy_ha })),
+    intensitas: latestIntensity(intensity.value ?? []).entries,
+    tumbuh: growingShare(current.value ?? [])
+  }
+  return (Object.keys(sets) as (keyof typeof sets)[]).flatMap((key) => {
+    const own = sets[key].find(e => e.unit === unit.value)
+    const spot = placeOf(sets[key], unit.value)
+    if (!own || !spot) return []
+    return [{ key, label: COPY.bandingkan.metrics[key].label, text: COPY.bandingkan.metrics[key].value(own.value), ...spot }]
+  })
+})
+
+const rainMm = (v: number) => Math.round(v).toLocaleString('id-ID')
+const monthLabel = (m: RainMonth) => new Date(Date.UTC(m.year, m.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
 
 useSeoMeta({ title: () => t.seoTitle(unit.value) })
 </script>
@@ -48,7 +68,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
       <template #links>
         <UButton
           :label="t.back"
-          to="/ringkasan"
+          to="/#desa"
           icon="i-lucide-arrow-left"
           color="neutral"
           variant="outline"
@@ -135,6 +155,57 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         </p>
       </section>
 
+      <section
+        v-if="places.length"
+        class="flex flex-col gap-4"
+      >
+        <header class="flex flex-col gap-2">
+          <h2 class="text-xl font-semibold">
+            {{ t.compare.title }}
+          </h2>
+          <p class="text-muted">
+            {{ t.compare.body }}
+          </p>
+        </header>
+        <dl class="grid gap-4 sm:grid-cols-3">
+          <div
+            v-for="p in places"
+            :key="p.key"
+            class="flex flex-col-reverse gap-1 rounded-lg bg-muted p-4"
+          >
+            <dt class="text-sm text-muted">
+              {{ p.label }}: {{ p.text }}
+            </dt>
+            <dd class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] tabular-nums">
+              {{ t.compare.place(p.place, p.total) }}
+            </dd>
+          </div>
+        </dl>
+        <div>
+          <UButton
+            :label="t.compare.link"
+            to="/perbandingan"
+            trailing-icon="i-lucide-arrow-right"
+            variant="outline"
+          />
+        </div>
+      </section>
+
+      <section
+        v-if="rainMonths?.length"
+        class="flex flex-col gap-4"
+      >
+        <h2 class="text-xl font-semibold">
+          {{ COPY.landing.rain.title }}
+        </h2>
+        <RainBars :months="rainMonths" />
+        <ChartTable
+          :caption="COPY.landing.rain.title"
+          :columns="[COPY.landing.rain.columns.month, COPY.landing.rain.columns.mm, COPY.landing.rain.columns.normal]"
+          :rows="rainMonths.map(m => [monthLabel(m), rainMm(m.mm), rainMm(m.normal)])"
+        />
+      </section>
+
       <section class="flex flex-col gap-4">
         <h2 class="text-xl font-semibold">
           {{ t.map.title }}
@@ -151,7 +222,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
             />
             <template #fallback>
               <div class="flex h-full items-center justify-center rounded-md bg-muted text-sm text-muted">
-                {{ COPY.ringkasan.mapLoading }}
+                {{ COPY.landing.mapLoading }}
               </div>
             </template>
           </ClientOnly>

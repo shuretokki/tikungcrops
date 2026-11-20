@@ -17,6 +17,7 @@ const emit = defineEmits<{ select: [unit: string] }>()
 setWorkerUrl(workerUrl)
 
 const container = ref<HTMLDivElement>()
+const failed = ref(false)
 const colorMode = useColorMode()
 let map: MapLibreMap | undefined
 
@@ -132,7 +133,14 @@ onMounted(async () => {
   // so the container element exists one tick later
   await nextTick()
   if (!container.value) return
-  map = new MapLibreMap({ container: container.value, style: basemap(), attributionControl: { compact: true } })
+  // Without WebGL the map cannot start, and an uncaught error here would replace the whole page with a 500 screen.
+  // The desa list and the tables still work, so the map shows a message instead.
+  try {
+    map = new MapLibreMap({ container: container.value, style: basemap(), attributionControl: { compact: true } })
+  } catch {
+    failed.value = true
+    return
+  }
   map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
   // sources and layers go in after the style loads, and again after every style change
   map.on('style.load', () => {
@@ -155,13 +163,23 @@ const legend = Object.entries(STAGES).filter(([k]) => k !== 'unknown')
 
 <template>
   <div class="relative h-full min-h-80 w-full overflow-hidden rounded-md ring ring-default">
+    <p
+      v-if="failed"
+      class="flex h-full min-h-80 items-center justify-center bg-muted p-6 text-center text-sm text-muted"
+    >
+      {{ COPY.landing.mapFailed }}
+    </p>
     <div
+      v-show="!failed"
       ref="container"
       class="h-full w-full"
       role="region"
-      aria-label="Peta sel sawah dan batas wilayah"
+      :aria-label="COPY.landing.mapLabel"
     />
-    <ul class="absolute bottom-2 left-2 flex flex-col gap-1 rounded-lg bg-muted px-2 py-1.5 text-xs shadow-(--shadow-elev)">
+    <ul
+      v-show="!failed"
+      class="absolute bottom-2 left-2 flex flex-col gap-1 rounded-lg bg-muted px-2 py-1.5 text-xs shadow-(--shadow-elev)"
+    >
       <li
         v-for="[key, s] in legend"
         :key="key"
