@@ -61,7 +61,8 @@ function circularMean(points: [day: number, weight: number][]) {
 // MT1 seasons count only when their flooding peak falls in October to January.
 // Peaks in February to April come from the partial first year and from radar gaps (F08, F22), not from real planting.
 const SEP1 = dayOfYear('2001-09-01')
-const sinceSep = (iso: string) => (dayOfYear(iso) - SEP1 + 365) % 365
+// The month and day are read in a common non-leap year, so a leap year never shifts a date by one day.
+const sinceSep = (iso: string) => (dayOfYear(`2001-${iso.slice(5, 10)}`) - SEP1 + 365) % 365
 function isReliable(r: SeasonSlim) {
   if (r.season !== 'MT1') return true
   return !!r.flood_median && sinceSep(r.flood_median) >= 30 && sinceSep(r.flood_median) < 153
@@ -123,6 +124,24 @@ export function mainSeasonDates(rows: SeasonSlim[], minSeasons = 3): MainSeasonD
     harvest: back(median(ok.map(r => sinceSep(r.harvest_median!)))),
     seasons: ok.length
   }
+}
+
+export interface OnsetShift { year: number, plant: number, mean: number, shift: number, priorSeasons: number }
+
+// How much later or earlier the newest MT1 planting peak came than the mean of up to five earlier MT1 seasons.
+// This is the Delayed Onset driver of GEOGLAM Crop Monitor. A positive shift means later, in days.
+export function onsetShift(rows: SeasonSlim[], baselineSeasons = 5, minPrior = 3): OnsetShift | null {
+  const ok = rows
+    .filter(r => r.season === 'MT1' && r.rice_area_ha > 0 && r.flood_median && isReliable(r))
+    .sort((a, b) => a.year - b.year)
+  const latest = ok.at(-1)
+  if (!latest) return null
+  const prior = ok.slice(0, -1).slice(-baselineSeasons)
+  if (prior.length < minPrior) return null
+  const mean = prior.reduce((s, r) => s + sinceSep(r.flood_median!), 0) / prior.length
+  const own = sinceSep(latest.flood_median!)
+  const back = (d: number) => Math.round((d + SEP1) % 365)
+  return { year: latest.year, plant: back(own), mean: back(mean), shift: Math.round(own - mean), priorSeasons: prior.length }
 }
 
 export interface DesaOutlines { viewBox: string, paths: { unit: string, d: string }[] }

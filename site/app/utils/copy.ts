@@ -31,6 +31,17 @@ export const COPY = {
     unknown: 'Tidak Terbaca (Tertutup Awan)'
   },
 
+  onset: {
+    title: 'Awal Tanam Dibanding Rata-rata 5 Musim',
+    body: (year: number, n: number) => `Puncak tanam musim tanam 1 tahun ${year} dibandingkan dengan rata-rata ${n} musim sebelumnya. Batang ke kanan berarti lebih lambat, dan batang ke kiri berarti lebih awal.`,
+    value: (d: number) => (d === 0 ? 'Sama dengan rata-rata' : d > 0 ? `${d} hari lebih lambat` : `${-d} hari lebih awal`),
+    card: (year: number, plant: string, mean: string) => `Awal tanam musim tanam 1 tahun ${year}: ${plant}. Rata-rata sebelumnya: ${mean}.`,
+    note: 'Selisih dihitung dari puncak penggenangan sawah yang terbaca radar, sehingga dapat meleset beberapa minggu. Tanda terlambat muncul pada selisih 14 hari atau lebih.',
+    late: 'Terlambat',
+    lateAfter: 14,
+    columns: { unit: 'Desa', plant: 'Puncak Tanam', mean: 'Rata-rata Sebelumnya', shift: 'Selisih (hari)' }
+  },
+
   stageHelp: {
     planted: 'Padi sudah ditanam dan sedang tumbuh.',
     peaked: 'Tanaman berada pada puncak kehijauan. Panen biasanya tinggal beberapa minggu lagi.',

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, it } from 'vitest'
-import { dayOfYear, mainSeasonDates, rainBaseline, rainByMonth, seasonBands, seasonProgress, stageTotals } from '../app/utils/landing'
+import { dayOfYear, mainSeasonDates, onsetShift, rainBaseline, rainByMonth, seasonBands, seasonProgress, stageTotals } from '../app/utils/landing'
 import type { CurrentRow, RainRow, SeasonRow } from '../app/composables/useArea'
 
 function season(over: Partial<SeasonRow>): SeasonRow {
@@ -56,7 +56,8 @@ describe('mainSeasonDates', () => {
     const dates = mainSeasonDates(rows)
     expect(dates?.seasons).toBe(3)
     expect(dates?.plant).toBe(dayOfYear('2023-11-25'))
-    expect(dates?.harvest).toBe(dayOfYear('2024-03-10'))
+    // Dates are counted in a non-leap year, which is the frame the pages use to print them.
+    expect(dates?.harvest).toBe(dayOfYear('2001-03-10'))
   })
 })
 
@@ -92,6 +93,32 @@ describe('rain band', () => {
     expect(first.lo).toBeUndefined()
     expect(rainBaseline(first)).toBe(100)
     expect(rainBaseline({ ...first, mean5: 80 })).toBe(80)
+  })
+})
+
+describe('onsetShift', () => {
+  const peak = (year: number, day: string) => season({ year, flood_median: `${year - 1}-${day}` })
+
+  it('compares the newest planting peak with the mean of the five seasons before it', () => {
+    const rows = [peak(2019, '11-20'), peak(2020, '11-20'), peak(2021, '11-20'), peak(2022, '11-20'), peak(2023, '11-20'), peak(2024, '11-20'), peak(2025, '12-04')]
+    const s = onsetShift(rows)!
+    expect(s.year).toBe(2025)
+    expect(s.shift).toBe(14)
+    expect(s.priorSeasons).toBe(5)
+  })
+
+  it('is negative when the peak came earlier', () => {
+    const rows = [peak(2021, '11-20'), peak(2022, '11-20'), peak(2023, '11-20'), peak(2024, '11-10')]
+    expect(onsetShift(rows)!.shift).toBe(-10)
+  })
+
+  it('needs at least three earlier seasons', () => {
+    expect(onsetShift([peak(2023, '11-20'), peak(2024, '11-20'), peak(2025, '11-30')])).toBeNull()
+  })
+
+  it('ignores seasons whose peak is outside the October to January window', () => {
+    const rows = [peak(2020, '11-20'), peak(2021, '11-20'), peak(2022, '11-20'), peak(2023, '11-20'), season({ year: 2024, flood_median: '2024-03-10' })]
+    expect(onsetShift(rows)!.year).toBe(2023)
   })
 })
 

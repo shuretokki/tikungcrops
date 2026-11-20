@@ -24,6 +24,7 @@ const day = (d: number) => new Date(Date.UTC(2001, 0, 1 + d)).toLocaleDateString
 const stages = computed(() => stageTotals((current.value ?? []).filter(r => r.unit === unit.value)))
 const mt1 = computed(() => mainSeasonDates((seasons.value ?? []).filter(s => s.unit === unit.value)))
 const schedule = computed(() => (mt1.value ? [{ unit: unit.value, plant: mt1.value.plant, harvest: mt1.value.harvest }] : []))
+const onset = computed(() => onsetShift((seasons.value ?? []).filter(s => s.unit === unit.value)))
 
 // Same eight-week window as the Beranda page, so both pages agree.
 const HORIZON_DAYS = 56
@@ -96,7 +97,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
           </p>
         </header>
         <template v-if="mt1">
-          <dl class="grid max-w-md grid-cols-2 gap-4">
+          <dl class="grid max-w-3xl gap-4 sm:grid-cols-3">
             <div class="flex flex-col-reverse gap-1 rounded-lg bg-muted p-4">
               <dt class="text-sm text-muted">
                 {{ t.schedule.plant }}
@@ -111,6 +112,17 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
               </dt>
               <dd class="text-xl font-semibold">
                 {{ day(mt1.harvest) }}
+              </dd>
+            </div>
+            <div
+              v-if="onset"
+              class="flex flex-col-reverse gap-1 rounded-lg bg-muted p-4"
+            >
+              <dt class="text-sm text-muted">
+                {{ COPY.onset.card(onset.year, day(onset.plant), day(onset.mean)) }}
+              </dt>
+              <dd class="text-xl font-semibold">
+                {{ COPY.onset.value(onset.shift) }}
               </dd>
             </div>
           </dl>
