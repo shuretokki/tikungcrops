@@ -67,17 +67,10 @@
   background: var(--ui-bg-muted);
 }
 
-/* On an alternate tile, data sits in a white box that the tile padding frames, as the utility cards on the Apple store pages. */
+/* On an alternate tile, content sits open under a hairline instead of in a card, so cards stay for the explorers only. */
 .tile-box {
-  padding: 1.5rem;
-  border-radius: 18px;
-  background: var(--ui-bg);
-}
-
-@media (min-width: 640px) {
-  .tile-box {
-    padding: 2.5rem;
-  }
+  padding-top: 2rem;
+  border-top: 1px solid var(--ui-border-accented);
 }
 
 /* Apple tracks body text tighter by 0.374px at 17px, and headlines tighter still. */

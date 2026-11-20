@@ -1,5 +1,20 @@
 <script setup lang="ts">
+import { AREAS, useAreaFile } from '~/composables/useArea'
+
 const t = COPY.tentang
+const a = COPY.bandingkan.accuracy
+const { data: check } = await useAreaFile<Validation>(AREAS.tikung, 'validation.json')
+
+const num = (v: number) => v.toLocaleString('id-ID', { maximumFractionDigits: 2 })
+const pctOf = (v: number) => `${Math.round(v * 100).toLocaleString('id-ID')}%`
+const summary = computed(() => [...(check.value?.area ?? [])].sort((x, y) => x.year - y.year || x.measure.localeCompare(y.measure)))
+const years = computed(() => [...new Set(summary.value.map(r => r.year))])
+// The scatter shows rice in the newest year, because the rice thresholds were tuned on the oldest one.
+const latestYear = computed(() => years.value.at(-1))
+const points = computed(() => (check.value?.area_units ?? []).filter(p => p.measure === 'rice' && p.year === latestYear.value))
+const checkedUnits = computed(() => Math.max(0, ...summary.value.map(r => r.units)))
+// The big numbers are for rice in the newest year, the same year as the scatter.
+const headline = computed(() => summary.value.find(r => r.measure === 'rice' && r.year === latestYear.value))
 
 definePageMeta({ layout: 'tiles' })
 useSeoMeta({ title: t.seoTitle, description: t.purpose[0] })
@@ -126,26 +141,87 @@ useSeoMeta({ title: t.seoTitle, description: t.purpose[0] })
 
     <section
       id="catatan"
-      class="tile tile-parchment flex scroll-mt-20 flex-col gap-10"
+      class="tile tile-parchment grid scroll-mt-20 gap-10 lg:grid-cols-[2fr_3fr]"
     >
-      <header class="flex max-w-3xl flex-col gap-3">
+      <header class="flex flex-col gap-3">
         <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.notes.title }}
         </h2>
-        <p class="text-muted">
+        <p class="text-lg text-muted">
           {{ t.notes.body }}
         </p>
       </header>
-      <div class="tile-box flex flex-col gap-4">
-        <UAlert
-          v-for="item in t.notes.items"
+      <ol class="flex flex-col divide-y divide-default border-y border-default">
+        <li
+          v-for="(item, i) in t.notes.items"
           :key="item"
-          color="warning"
-          variant="subtle"
-          icon="i-lucide-circle-alert"
-          :description="item"
+          class="grid grid-cols-[3rem_1fr] items-baseline gap-4 py-6"
+        >
+          <span class="text-4xl/none font-bold text-(--ui-primary) tabular-nums">{{ i + 1 }}</span>
+          <p class="text-lg">
+            {{ item }}
+          </p>
+        </li>
+      </ol>
+    </section>
+
+    <section
+      v-if="summary.length && latestYear"
+      id="ketepatan"
+      data-figure="validasi-bps"
+      class="tile grid scroll-mt-20 gap-12 lg:grid-cols-[2fr_3fr]"
+    >
+      <div class="flex flex-col gap-8">
+        <header class="flex flex-col gap-2">
+          <p class="text-sm font-semibold text-(--ui-primary)">
+            {{ t.researcher }}
+          </p>
+          <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.5rem]/[1.1] text-balance">
+            {{ a.title }}
+          </h2>
+          <p class="flex items-center gap-1 text-muted">
+            {{ a.short(years.join(' dan '), checkedUnits) }}
+            <InfoTip :text="a.detail" />
+          </p>
+        </header>
+        <dl
+          v-if="headline"
+          class="grid grid-cols-2 gap-6 border-t border-default pt-6"
+        >
+          <div class="flex flex-col-reverse gap-1">
+            <dt class="text-sm text-muted">
+              {{ a.statRatio(headline.year) }}
+            </dt>
+            <dd class="text-5xl/none font-bold tracking-tight text-(--ui-primary) tabular-nums">
+              {{ pctOf(headline.ratio) }}
+            </dd>
+          </div>
+          <div class="flex flex-col-reverse gap-1">
+            <dt class="text-sm text-muted">
+              {{ a.statR }}
+            </dt>
+            <dd class="text-5xl/none font-bold tracking-tight text-(--ui-primary) tabular-nums">
+              {{ num(headline.r) }}
+            </dd>
+          </div>
+        </dl>
+        <ChartTable
+          :caption="a.title"
+          :columns="[a.summaryColumns.year, a.summaryColumns.crop, a.summaryColumns.r, a.summaryColumns.ratio]"
+          :rows="summary.map(s => [s.year, a.cropNames[s.measure] ?? s.measure, num(s.r), pctOf(s.ratio)])"
         />
       </div>
+      <figure class="flex flex-col gap-3">
+        <figcaption class="text-sm text-muted">
+          {{ a.scatterNote(latestYear) }}
+        </figcaption>
+        <ValidationScatter :points="points" />
+        <ChartTable
+          :caption="a.title"
+          :columns="[a.columns.unit, a.columns.reference, a.columns.satellite]"
+          :rows="points.map(p => [p.unit, Math.round(p.reference_ha), Math.round(p.satellite_ha)])"
+        />
+      </figure>
     </section>
   </div>
 </template>

@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
-import { AREAS, STAGES, formatDate, formatHa, useAreaClientFile, useAreaFile, useAreaRainMonths, useAreaSeasons, type Cell, type CurrentRow, type Meta, type OutlookRow, type Stage } from '~/composables/useArea'
+import { AREAS, STAGES, formatHa, useAreaClientFile, useAreaFile, useAreaRainMonths, useAreaSeasons, type Cell, type CurrentRow, type Meta, type Stage } from '~/composables/useArea'
 
 const t = COPY.landing
+const mine = useMyDesa()
 const area = AREAS.tikung
 const { data: meta } = await useAreaFile<Meta>(area, 'meta.json')
 const { data: current } = await useAreaFile<CurrentRow[]>(area, 'current.json')
 const { data: seasons } = await useAreaSeasons(area)
-const { data: outlook } = await useAreaFile<OutlookRow[]>(area, 'outlook.json')
 const { data: rainMonths } = await useAreaRainMonths(area)
 const { data: desa } = await useAreaFile<FeatureCollection>(area, 'boundaries.geojson')
 const { data: cells } = useAreaClientFile<Cell[]>(area, 'cells.json')
-const { data: kecamatan } = useAreaClientFile<FeatureCollection>(AREAS.lamongan, 'boundaries.geojson')
 
 const pct = (v: number) => v.toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: 0 })
 
 const units = computed(() => meta.value?.units ?? [])
-const paddy = computed(() => units.value.reduce((s, u) => s + u.paddy_ha, 0))
 
 const stages = computed(() => stageTotals(current.value ?? []))
 const stageSum = computed(() => Object.values(stages.value).reduce((s, v) => s + v, 0))
@@ -31,24 +29,6 @@ const bands = computed(() => seasonBands(seasons.value ?? []))
 const main = computed(() => bands.value.find(b => b.season === 'MT1'))
 const todayDay = computed(() => (meta.value?.as_of ? dayOfYear(meta.value.as_of) : null))
 const progress = computed(() => (main.value && todayDay.value !== null ? seasonProgress(main.value, todayDay.value) : null))
-
-// Weeks within eight weeks of the data date. Desa with less than one hectare are left out as noise.
-const HORIZON_DAYS = 56
-const upcoming = computed(() => {
-  const asOf = meta.value?.as_of ? new Date(meta.value.as_of).getTime() : 0
-  const near = (outlook.value ?? []).filter((o) => {
-    const dt = new Date(o.week).getTime() - asOf
-    return dt >= -6 * 86_400_000 && dt <= HORIZON_DAYS * 86_400_000
-  })
-  const byUnit = new Map<string, OutlookRow[]>()
-  for (const o of near) byUnit.set(o.unit, [...(byUnit.get(o.unit) ?? []), o])
-  const rows = [...byUnit.entries()].map(([unit, weeks]) => {
-    const top = weeks.reduce((a, b) => (b.expected_ha > a.expected_ha ? b : a))
-    return { unit, total: weeks.reduce((s, w) => s + w.expected_ha, 0), topWeek: top.week }
-  }).filter(r => r.total >= 1)
-  return rows.sort((a, b) => a.topWeek.localeCompare(b.topWeek))
-})
-const upcomingMax = computed(() => Math.max(1, ...upcoming.value.map(r => r.total)))
 
 // Each desa tile shows its stage mix today and its place in the kecamatan.
 const desaCards = computed(() => units.value.map((u) => {
@@ -72,21 +52,6 @@ const STAGE_FILL: Record<Stage, string> = {
   unknown: 'repeating-linear-gradient(45deg, var(--viz-neutral) 0 2px, transparent 2px 5px)'
 }
 
-const thousand = (v: number) => Math.round(v / 1000).toLocaleString('id-ID')
-// The top two kabupaten differ by about 0,3 ribu ton, so whole thousands would show a false tie.
-const thousandOne = (v: number) => (v / 1000).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-const prideTop = JATIM_RICE.top[0]!.tons
-const prideStats = [
-  { value: (JATIM_RICE.top[0]!.tons / JATIM_RICE.province).toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: 1 }), label: t.pride.stats.share },
-  { value: `${thousand(JATIM_RICE.lamonganRiceTons)} ribu ton`, label: t.pride.stats.rice },
-  { value: `${thousand(JATIM_RICE.lamonganHarvestHa)} ribu ha`, label: t.pride.stats.harvest }
-]
-
-const stats = computed(() => [
-  { label: t.stats.paddy, value: formatHa(paddy.value) },
-  { label: t.stats.units, value: String(units.value.length) }
-])
-
 // Three headlines in the shape of a FAO GIEWS country brief: season, land, rain.
 // Each has one large figure, so the tile reads at a glance.
 const snapshot = computed(() => {
@@ -102,7 +67,8 @@ const snapshot = computed(() => {
   const readable = stageSum.value - hidden
   if (readable > 0) {
     const share = pct(stages.value.fallow / readable)
-    items.push({ key: 'fallow', value: share, valueLabel: s.labels.fallow, title: s.fallow.title(share), body: s.fallow.body(formatHa(stages.value.fallow), formatHa(readable), formatHa(hidden)) })
+    const offSeason = progress.value === null
+    items.push({ key: 'fallow', value: share, valueLabel: s.labels.fallow(formatHa(readable)), title: offSeason ? s.fallow.offSeason : s.fallow.title(share), body: s.fallow.body(formatHa(stages.value.fallow), formatHa(readable)) })
   }
   const last = rainMonths.value?.at(-1)
   if (last) {
@@ -113,12 +79,13 @@ const snapshot = computed(() => {
     const month = new Date(Date.UTC(last.year, last.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
     const mm = Math.round(last.mm).toLocaleString('id-ID')
     const baseText = Math.round(base).toLocaleString('id-ID')
-    const hasPct = v.kind === 'wetter' || v.kind === 'drier'
+    const veryDry = v.kind === 'drier' && v.pct >= 0.9
+    const hasPct = (v.kind === 'wetter' || v.kind === 'drier') && !veryDry
     items.push({
       key: 'rain',
       value: hasPct ? `${v.kind === 'drier' ? '-' : '+'}${p}` : `${mm} mm`,
       valueLabel: hasPct ? s.labels.rainPct : s.labels.rainMm(baseText),
-      title: s.rain.title(month, word),
+      title: veryDry ? s.rain.veryDry(month) : s.rain.title(month, word),
       body: s.rain.body(mm, baseText)
     })
   }
@@ -132,8 +99,8 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
 
 <template>
   <div class="flex flex-col">
-    <section class="tile grid items-center gap-8 lg:grid-cols-[5fr_6fr]">
-      <div class="flex flex-col gap-5">
+    <section class="tile flex flex-col items-center justify-center gap-10 text-center">
+      <div class="flex max-w-3xl flex-col items-center gap-5">
         <p class="text-sm font-semibold text-(--ui-primary)">
           {{ t.eyebrow }}
         </p>
@@ -143,49 +110,37 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
         <p class="text-lg text-muted">
           {{ t.description(units.length) }}
         </p>
-        <ScopePicker />
-        <dl class="mt-2 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-default pt-5">
-          <div
-            v-for="s in stats"
-            :key="s.label"
-            class="flex flex-col-reverse"
-          >
-            <dt class="text-xs text-muted">
-              {{ s.label }}
-            </dt>
-            <dd class="text-xl font-semibold tabular-nums">
-              {{ s.value }}
-            </dd>
-          </div>
-        </dl>
-      </div>
-      <div
-        class="h-[26rem] lg:h-[32rem]"
-        data-figure="peta-beranda"
-      >
         <ClientOnly>
-          <AreaMap
-            :outer="kecamatan"
-            :inner="desa"
-            :cells="cells"
-            :labels="labels"
-            :selected="null"
-            @select="(u: string) => navigateTo(`/desa/${encodeURIComponent(u)}`)"
+          <UButton
+            v-if="mine"
+            :to="`/desa/${encodeURIComponent(mine)}`"
+            :label="COPY.desa.mineOpen(mine)"
+            icon="i-lucide-map-pin"
+            color="neutral"
+            variant="subtle"
+            size="lg"
           />
-          <template #fallback>
-            <div class="flex h-full items-center justify-center rounded-md bg-muted text-sm text-muted">
-              {{ t.mapLoading }}
-            </div>
-          </template>
         </ClientOnly>
       </div>
+      <ScopePicker class="w-full max-w-3xl text-left" />
+      <ol class="grid w-full max-w-5xl gap-4 text-left sm:grid-cols-3">
+        <li
+          v-for="(s, i) in t.steps"
+          :key="s.title"
+          class="flex flex-col gap-2 border-t border-default pt-5"
+        >
+          <span class="text-sm font-semibold text-(--ui-primary) tabular-nums">{{ i + 1 }}</span>
+          <span class="font-semibold">{{ s.title }}</span>
+          <span class="text-sm text-muted">{{ s.body }}</span>
+        </li>
+      </ol>
     </section>
 
     <section
-      class="tile tile-parchment grid gap-10 lg:grid-cols-[1fr_2fr]"
+      class="tile tile-parchment flex flex-col gap-12"
       data-figure="ringkasan-singkat"
     >
-      <header class="flex flex-col gap-5">
+      <header class="flex max-w-2xl flex-col gap-3">
         <p class="text-sm font-semibold text-(--ui-primary)">
           {{ t.snapshot.eyebrow }}
         </p>
@@ -193,11 +148,11 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
           {{ t.snapshot.title }}
         </h2>
       </header>
-      <ol class="tile-box flex flex-col gap-14">
+      <ol class="grid gap-12 lg:grid-cols-3 lg:gap-0">
         <li
           v-for="item in snapshot"
           :key="item.key"
-          class="grid items-start gap-x-10 gap-y-4 sm:grid-cols-[13rem_1fr]"
+          class="flex flex-col gap-5 border-t border-default pt-6 lg:border-t-0 lg:border-l lg:px-8 lg:first:border-l-0 lg:first:ps-0 lg:last:pe-0"
         >
           <div class="flex flex-col gap-2">
             <p class="text-6xl/none font-bold tracking-tight text-(--ui-primary) tabular-nums sm:text-7xl/none">
@@ -207,155 +162,63 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
               {{ item.valueLabel }}
             </p>
           </div>
-          <div class="flex min-w-0 flex-col gap-3">
-            <p class="text-2xl/[1.25] font-semibold text-balance">
-              {{ item.title }}
-            </p>
-            <p class="text-lg text-muted">
-              {{ item.body }}
-            </p>
-            <UProgress
-              v-if="item.key === 'season' && progress !== null"
-              :model-value="progress * 100"
-              :max="100"
-              size="lg"
-              :aria-label="t.progress.label(pct(progress))"
+          <p class="text-xl/[1.3] font-semibold text-balance">
+            {{ item.title }}
+          </p>
+          <p class="text-muted">
+            {{ item.body }}
+          </p>
+          <UProgress
+            v-if="item.key === 'season' && progress !== null"
+            :model-value="progress * 100"
+            :max="100"
+            size="lg"
+            :aria-label="t.progress.label(pct(progress))"
+          />
+          <template v-if="item.key === 'fallow'">
+            <StageBar :totals="stages" />
+            <ChartTable
+              :caption="item.title"
+              :columns="[t.now.columns.stage, t.now.columns.ha, t.now.columns.share]"
+              :rows="stageRows"
             />
-            <template v-if="item.key === 'fallow'">
-              <StageBar :totals="stages" />
-              <ChartTable
-                :caption="item.title"
-                :columns="[t.now.columns.stage, t.now.columns.ha, t.now.columns.share]"
-                :rows="stageRows"
-              />
-            </template>
-          </div>
+          </template>
         </li>
       </ol>
     </section>
 
     <section
-      class="tile"
-      data-figure="lumbung-padi"
+      v-if="main"
+      class="tile flex flex-col gap-8"
     >
-      <div class="grid gap-10 lg:grid-cols-[2fr_3fr] lg:items-center">
-        <div class="flex flex-col justify-between gap-8 lg:pe-8">
-          <div class="flex flex-col gap-3">
-            <p class="text-7xl/none font-bold tracking-tight text-(--ui-primary) sm:text-8xl/none">
-              {{ t.pride.rank }}
-            </p>
-            <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.5rem]/[1.1] text-balance">
-              {{ t.pride.title }}
-            </h2>
-            <p class="opacity-90">
-              {{ t.pride.body(units.length, JATIM_RICE.year) }}
-            </p>
-          </div>
-          <dl class="grid grid-cols-3 items-start gap-4 border-t border-current/30 pt-5">
-            <div
-              v-for="s in prideStats"
-              :key="s.label"
-              class="flex flex-col-reverse justify-end gap-1"
-            >
-              <dt class="text-xs opacity-80">
-                {{ s.label }}
-              </dt>
-              <dd class="text-lg font-semibold tabular-nums sm:text-xl">
-                {{ s.value }}
-              </dd>
-            </div>
-          </dl>
-        </div>
-        <figure class="flex flex-col gap-4 rounded-lg bg-muted p-6 sm:p-8">
-          <figcaption class="flex flex-col gap-1">
-            <span class="font-semibold">{{ t.pride.chartTitle(JATIM_RICE.year) }}</span>
-            <span class="text-xs text-muted">{{ t.pride.unit }}</span>
-          </figcaption>
-          <ol class="flex flex-col gap-3">
-            <li
-              v-for="(k, i) in JATIM_RICE.top"
-              :key="k.name"
-              class="grid grid-cols-[6.5rem_1fr_3rem] items-center gap-3 text-sm"
-            >
-              <span :class="i === 0 ? 'font-semibold' : 'text-muted'">{{ i + 1 }}. {{ k.name }}</span>
-              <span class="h-6 rounded-full bg-default">
-                <span
-                  class="block h-full rounded-full"
-                  :class="i === 0 ? 'bg-(--ui-primary)' : 'bg-(--viz-neutral)'"
-                  :style="{ width: `${(k.tons / prideTop) * 100}%` }"
-                />
-              </span>
-              <span
-                class="text-right tabular-nums"
-                :class="i === 0 ? 'font-semibold' : 'text-muted'"
-              >{{ thousandOne(k.tons) }}</span>
-            </li>
-          </ol>
-          <p class="mt-auto text-xs text-muted">
-            {{ t.pride.source(JATIM_RICE.year) }}
+      <header class="flex flex-wrap items-end justify-between gap-4">
+        <div class="flex max-w-2xl flex-col gap-3">
+          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
+            {{ t.calendar.title(monthName(main.start)) }}
+          </h2>
+          <p class="text-muted">
+            {{ t.calendar.body }}
           </p>
-        </figure>
-      </div>
-    </section>
-
-    <section class="tile tile-parchment flex flex-col gap-8">
-      <header class="flex max-w-2xl flex-col gap-2">
-        <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.5rem]/[1.1] text-balance">
-          {{ t.harvest.title }}
-        </h2>
-        <p
-          v-if="upcoming.length"
-          class="text-muted"
-        >
-          {{ t.harvest.body }}
-        </p>
+        </div>
       </header>
-      <div class="tile-box">
-        <ul
-          v-if="upcoming.length"
-          class="flex flex-col gap-2"
-        >
-          <li
-            v-for="r in upcoming"
-            :key="r.unit"
-          >
-            <NuxtLink
-              :to="`/desa/${encodeURIComponent(r.unit)}`"
-              class="grid grid-cols-[7rem_1fr] items-center gap-x-3 gap-y-1 rounded-md px-2 py-1.5 hover:bg-muted focus-visible:outline-2 focus-visible:outline-(--ui-primary) sm:grid-cols-[9rem_1fr_16rem]"
-            >
-              <span class="font-semibold">{{ r.unit }}</span>
-              <span class="h-3 rounded-sm bg-muted">
-                <span
-                  class="block h-full rounded-sm bg-(--viz-2)"
-                  :style="{ width: `${(r.total / upcomingMax) * 100}%` }"
-                />
-              </span>
-              <span class="col-span-2 text-sm text-muted tabular-nums sm:col-span-1">{{ t.harvest.row(formatDate(r.topWeek, { day: 'numeric', month: 'short' }), formatHa(r.total)) }}</span>
-            </NuxtLink>
-          </li>
-        </ul>
-        <div
-          v-else
-          class="flex flex-col items-start gap-5 py-10"
-        >
-          <UIcon
-            name="i-lucide-calendar-clock"
-            class="size-14 text-(--ui-primary)"
-          />
-          <p class="text-3xl/[1.2] font-semibold text-balance sm:text-4xl/[1.15]">
-            {{ t.harvest.emptyTitle }}
-          </p>
-          <p class="text-xl text-muted">
-            {{ t.harvest.emptyBody(main ? monthName(main.harvest) : '-') }}
-          </p>
-        </div>
-      </div>
+      <SeasonCalendar
+        :bands="bands"
+        :today="todayDay"
+      />
+      <UButton
+        :label="t.calendar.link"
+        to="/kalender"
+        trailing-icon="i-lucide-arrow-right"
+        variant="outline"
+        size="lg"
+        class="self-start"
+      />
     </section>
 
     <section
       id="desa"
       data-figure="cari-desamu"
-      class="tile flex scroll-mt-20 flex-col gap-6"
+      class="tile tile-parchment flex scroll-mt-20 flex-col gap-6"
     >
       <header class="flex flex-wrap items-end justify-between gap-4">
         <div class="flex flex-col gap-2">
@@ -371,10 +234,33 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
           icon="i-lucide-search"
           :placeholder="t.desa.search"
           :aria-label="t.desa.search"
+          name="cari-desa"
+          type="search"
+          autocomplete="off"
           size="lg"
           class="w-full sm:w-72"
         />
       </header>
+      <div
+        class="h-[26rem] overflow-hidden rounded-[18px] lg:h-[32rem]"
+        data-figure="peta-beranda"
+      >
+        <ClientOnly>
+          <AreaMap
+            :outer="null"
+            :inner="desa"
+            :cells="cells"
+            :labels="labels"
+            :selected="null"
+            @select="(u: string) => navigateTo(`/desa/${encodeURIComponent(u)}`)"
+          />
+          <template #fallback>
+            <div class="flex h-full items-center justify-center rounded-md bg-muted text-sm text-muted">
+              {{ t.mapLoading }}
+            </div>
+          </template>
+        </ClientOnly>
+      </div>
       <ul
         v-if="shownDesa.length"
         class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
@@ -385,7 +271,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
         >
           <NuxtLink
             :to="`/desa/${encodeURIComponent(d.unit)}`"
-            class="group flex h-full flex-col overflow-hidden rounded-md bg-muted ring ring-default transition hover:ring-2 hover:ring-(--ui-primary) focus-visible:outline-2"
+            class="group flex h-full flex-col overflow-hidden rounded-md bg-default ring ring-default transition hover:ring-2 hover:ring-(--ui-primary) focus-visible:outline-2"
           >
             <svg
               v-if="outlines"

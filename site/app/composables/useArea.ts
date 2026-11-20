@@ -12,7 +12,6 @@ export interface Area {
 }
 
 export const AREAS = {
-  lamongan: { slug: 'idn-jawatimur-lamongan', name: 'Kabupaten Lamongan', unitLabel: 'kecamatan' },
   tikung: { slug: 'idn-jawatimur-lamongan-tikung', name: 'Kecamatan Tikung', unitLabel: 'desa' }
 } satisfies Record<string, Area>
 

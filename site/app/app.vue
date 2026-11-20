@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { AREAS, formatDate, useAreaFile, type Meta } from '~/composables/useArea'
 
-const route = useRoute()
 const { data: meta } = await useAreaFile<Meta>(AREAS.tikung, 'meta.json')
 const long = { day: 'numeric', month: 'long', year: 'numeric' } as const
 
@@ -13,7 +12,6 @@ const footerLinks = computed(() => [
 ])
 
 const links = computed(() => [
-  { label: COPY.nav.beranda, to: '/', icon: 'i-lucide-house', active: route.path === '/' },
   { label: COPY.nav.kalender, to: '/kalender', icon: 'i-lucide-calendar-days' },
   { label: COPY.nav.bandingkan, to: '/perbandingan', icon: 'i-lucide-chart-bar' },
   { label: COPY.nav.faq, to: '/faq', icon: 'i-lucide-circle-help' }
@@ -54,6 +52,10 @@ const links = computed(() => [
         />
       </template>
     </UHeader>
+    <DataAge
+      :as-of="meta?.as_of"
+      :label="formatDate(meta?.as_of, long)"
+    />
     <UMain id="isi">
       <NuxtLayout>
         <NuxtPage />
@@ -69,7 +71,7 @@ const links = computed(() => [
             {{ COPY.site.subtitle }}
           </p>
           <p class="mt-2 text-sm text-muted">
-            {{ COPY.site.updated(formatDate(meta?.generated_at, long), formatDate(meta?.as_of, long)) }}
+            {{ COPY.site.updated(formatDate(meta?.as_of, long)) }}
           </p>
         </div>
         <nav

@@ -47,3 +47,34 @@ path = [
 precedence = "override"
 SPDX-FileCopyrightText = "2025 Nuxt UI Templates"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "site/public/desa/*.jpg"
+precedence = "override"
+SPDX-FileCopyrightText = "Contains modified Copernicus Sentinel data 2026, Sentinel-2 L2A true colour, enlarged and cut by scripts/desa_images.py"
+SPDX-License-Identifier = "LicenseRef-Copernicus-Sentinel"
+
+[[annotations]]
+path = "site/app/data/desa-images.json"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Tri Rianto Utomo, with outlines from geoBoundaries (OCHA ROAP, BPS 2019)"
+SPDX-License-Identifier = "CC-BY-3.0-IGO"
+
+
+[[annotations]]
+path = ["site/public/crops/padi.jpg", "site/public/crops/jagung.jpg", "site/public/crops/singkong.jpg"]
+precedence = "override"
+SPDX-FileCopyrightText = "Wikimedia Commons, resized"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "site/public/crops/kedelai.jpg"
+precedence = "override"
+SPDX-FileCopyrightText = "United Soybean Board, Wikimedia Commons, resized"
+SPDX-License-Identifier = "CC-BY-2.0"
+
+[[annotations]]
+path = "site/public/crops/tebu.jpg"
+precedence = "override"
+SPDX-FileCopyrightText = "Sarah and Jason, Wikimedia Commons, resized"
+SPDX-License-Identifier = "CC-BY-SA-2.0"

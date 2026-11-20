@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
-import { AREAS, formatDate, formatHa, useAreaClientFile, useAreaFile, useAreaOutlines, useAreaRainMonths, useAreaSeasons, type Cell, type CurrentRow, type IntensityRow, type Meta, type OutlookRow } from '~/composables/useArea'
+import { AREAS, formatDate, formatHa, useAreaClientFile, useAreaFile, useAreaRainMonths, useAreaSeasons, type Cell, type CurrentRow, type IntensityRow, type Meta, type OutlookRow } from '~/composables/useArea'
+import desaImages from '~/data/desa-images.json'
 
 const t = COPY.desa
 const route = useRoute()
@@ -13,17 +14,15 @@ const { data: seasons } = await useAreaSeasons(area)
 const { data: intensity } = await useAreaFile<IntensityRow[]>(area, 'intensity.json')
 const { data: rainMonths } = await useAreaRainMonths(area, unit)
 const { data: desa } = await useAreaFile<FeatureCollection>(area, 'boundaries.geojson')
-const { data: outlines } = await useAreaOutlines(area)
 const { data: cells } = useAreaClientFile<Cell[]>(area, 'cells.json')
-const { data: kecamatan } = useAreaClientFile<FeatureCollection>(AREAS.lamongan, 'boundaries.geojson')
 
+type DesaImage = { file: string, width: number, height: number, outline: string, date: string }
+const images: Record<string, DesaImage> = desaImages
 const info = computed(() => meta.value?.units.find(u => u.unit === unit.value))
+const photo = computed(() => images[unit.value])
 const labels = computed(() => (meta.value?.units ?? []).map(u => ({ name: u.unit, lon: u.lon, lat: u.lat })))
 const today = computed(() => (meta.value?.as_of ? dayOfYear(meta.value.as_of) : null))
 const day = (d: number) => new Date(Date.UTC(2001, 0, 1 + d)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', timeZone: 'UTC' })
-
-// The shape of this desa among its neighbours. The own shape is drawn last, so its edge is never hidden.
-const shapes = computed(() => [...(outlines.value?.paths ?? [])].sort((a, b) => Number(a.unit === unit.value) - Number(b.unit === unit.value)))
 
 const stages = computed(() => stageTotals((current.value ?? []).filter(r => r.unit === unit.value)))
 const mt1 = computed(() => mainSeasonDates((seasons.value ?? []).filter(s => s.unit === unit.value)))
@@ -31,6 +30,33 @@ const schedule = computed(() => (mt1.value ? [{ unit: unit.value, plant: mt1.val
 const history = computed(() => seasonHistory((seasons.value ?? []).filter(s => s.unit === unit.value)))
 const historyRows = computed(() => history.value.map(h => ({ unit: unit.value, plant: h.plant, harvest: h.harvest, label: COPY.history.label(h.year) })))
 const onset = computed(() => onsetShift((seasons.value ?? []).filter(s => s.unit === unit.value)))
+const summary = computed(() => (mt1.value ? [t.summary.usual(day(mt1.value.plant), day(mt1.value.harvest)), ...(onset.value ? [t.summary.onset(onset.value.shift)] : [])].join(' ') : null))
+const lastRain = computed(() => rainMonths.value?.at(-1))
+// The harvest weeks and the timing line depend on today's date, so they are set in the browser once the page has loaded.
+const todayMs = ref<number | null>(null)
+onMounted(() => {
+  todayMs.value = Date.now()
+})
+const timing = computed(() => {
+  if (todayMs.value === null || !mt1.value) return null
+  const now = dayOfYear(`2001-${new Date(todayMs.value).toISOString().slice(5, 10)}`)
+  const { plant, harvest } = mt1.value
+  const sincePlant = (now - plant + 365) % 365
+  const length = (harvest - plant + 365) % 365
+  const ahead = (plant - now + 365) % 365
+  const r = t.timing
+  if (sincePlant <= length) return length - sincePlant <= 30 ? r.harvestSoon(day(harvest)) : r.during
+  return ahead <= 30 ? r.near(ahead, day(plant)) : r.before(day(plant))
+})
+const mine = useMyDesa()
+const isMine = computed(() => mine.value === unit.value)
+function toggleMine() {
+  mine.value = isMine.value ? null : unit.value
+}
+function share() {
+  const text = `${t.shareText(unit.value, summary.value ?? '')} ${window.location.href}`
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
+}
 
 // Same eight-week window as the Beranda page, so both pages agree.
 const HORIZON_DAYS = 56
@@ -39,7 +65,8 @@ const weeks = computed(() => {
   return (outlook.value ?? [])
     .filter((o) => {
       const dt = new Date(o.week).getTime() - asOf
-      return o.unit === unit.value && o.expected_ha >= 0.5 && dt >= -6 * 86_400_000 && dt <= HORIZON_DAYS * 86_400_000
+      const notPast = todayMs.value === null || new Date(o.week).getTime() >= todayMs.value - 6 * 86_400_000
+      return o.unit === unit.value && o.expected_ha >= 0.5 && notPast && dt >= -6 * 86_400_000 && dt <= HORIZON_DAYS * 86_400_000
     })
     .sort((a, b) => a.week.localeCompare(b.week))
 })
@@ -47,8 +74,7 @@ const weekMax = computed(() => Math.max(1, ...weeks.value.map(w => w.expected_ha
 
 // The place of this desa among the desa of Tikung, for the same three measures as the comparison page.
 const places = computed(() => {
-  const sets: Record<'sawah' | 'intensitas' | 'tumbuh', Entry[]> = {
-    sawah: (meta.value?.units ?? []).map(u => ({ unit: u.unit, value: u.paddy_ha })),
+  const sets: Record<'intensitas' | 'tumbuh', Entry[]> = {
     intensitas: latestIntensity(intensity.value ?? []).entries,
     tumbuh: growingShare(current.value ?? [])
   }
@@ -70,45 +96,87 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
 
 <template>
   <div>
-    <section class="tile grid items-center gap-10 lg:grid-cols-[1fr_1fr]">
+    <section class="tile relative isolate grid items-center gap-10 overflow-hidden text-white lg:grid-cols-[1fr_1fr]">
+      <img
+        v-if="photo"
+        :src="photo.file"
+        :width="photo.width"
+        :height="photo.height"
+        alt=""
+        fetchpriority="high"
+        class="absolute inset-0 -z-20 size-full scale-110 object-cover blur-2xl"
+      >
+      <div
+        class="absolute inset-0 -z-10 bg-black/60"
+        aria-hidden="true"
+      />
       <div class="flex flex-col items-start gap-5">
         <UButton
           :label="t.back"
           to="/#desa"
           icon="i-lucide-arrow-left"
           color="neutral"
-          variant="outline"
+          variant="subtle"
         />
+        <ScopeChip light />
         <h1 class="text-4xl/[1.07] font-semibold text-balance sm:text-5xl/[1.07] lg:text-[3.5rem]/[1.07]">
           {{ t.title(unit) }}
         </h1>
-        <p class="max-w-xl text-lg text-muted">
-          {{ info ? t.description(formatHa(info.paddy_ha)) : t.notFound }}
+        <p class="max-w-xl text-lg text-white/85">
+          {{ info ? t.description(unit) : t.notFound }}
+        </p>
+        <p
+          v-if="summary"
+          class="max-w-xl text-xl/[1.35] font-semibold"
+        >
+          {{ summary }}
+        </p>
+        <p
+          v-if="timing"
+          class="max-w-xl text-lg text-white/90"
+        >
+          {{ timing }}
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <ClientOnly>
+            <UButton
+              :label="isMine ? t.isMine : t.mine"
+              :icon="isMine ? 'i-lucide-map-pin-check' : 'i-lucide-map-pin-plus'"
+              :color="isMine ? 'primary' : 'neutral'"
+              :variant="isMine ? 'solid' : 'outline'"
+              :class="isMine ? '' : 'text-white ring-white/70 hover:bg-white/10'"
+              :aria-pressed="isMine"
+              @click="toggleMine"
+            />
+          </ClientOnly>
+          <UButton
+            :label="t.share"
+            icon="i-lucide-share-2"
+            color="neutral"
+            variant="subtle"
+            @click="share"
+          />
+        </div>
+        <p class="max-w-xl text-sm text-white/70">
+          {{ COPY.site.advice }}
         </p>
       </div>
-      <figure
-        v-if="outlines"
-        class="flex flex-col gap-3"
+      <svg
+        v-if="photo"
+        :viewBox="`0 0 ${photo.width} ${photo.height}`"
+        class="h-auto max-h-[58svh] w-full"
+        role="img"
+        :aria-label="t.photo.alt(unit)"
       >
-        <svg
-          :viewBox="outlines.viewBox"
-          class="h-auto max-h-[62svh] w-full"
-          role="img"
-          :aria-label="t.shape.label(unit)"
-        >
-          <path
-            v-for="p in shapes"
-            :key="p.unit"
-            :d="p.d"
-            :fill="p.unit === unit ? 'var(--ui-primary)' : 'var(--ui-bg-accented)'"
-            stroke="var(--ui-bg)"
-            stroke-width="0.6"
-          />
-        </svg>
-        <figcaption class="text-sm text-muted">
-          {{ t.shape.label(unit) }}
-        </figcaption>
-      </figure>
+        <path
+          :d="photo.outline"
+          fill="white"
+          fill-opacity="0.22"
+          stroke="white"
+          stroke-width="5"
+          stroke-linejoin="round"
+        />
+      </svg>
     </section>
 
     <template v-if="info">
@@ -132,7 +200,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
             </p>
             <template v-if="mt1">
               <dl class="grid gap-3 sm:grid-cols-3">
-                <div class="flex flex-col-reverse gap-1 rounded-lg bg-muted p-4">
+                <div class="flex flex-col-reverse gap-1 rounded-lg bg-default p-4">
                   <dt class="text-sm text-muted">
                     {{ t.schedule.plant }}
                   </dt>
@@ -140,7 +208,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
                     {{ day(mt1.plant) }}
                   </dd>
                 </div>
-                <div class="flex flex-col-reverse gap-1 rounded-lg bg-muted p-4">
+                <div class="flex flex-col-reverse gap-1 rounded-lg bg-default p-4">
                   <dt class="text-sm text-muted">
                     {{ t.schedule.harvest }}
                   </dt>
@@ -150,13 +218,14 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
                 </div>
                 <div
                   v-if="onset"
-                  class="flex flex-col-reverse gap-1 rounded-lg bg-muted p-4"
+                  class="flex flex-col-reverse gap-1 rounded-lg bg-default p-4"
                 >
                   <dt class="text-sm text-muted">
-                    {{ COPY.onset.card(onset.year, day(onset.plant), day(onset.mean)) }}
+                    {{ COPY.onset.card }}
                   </dt>
                   <dd class="text-xl font-semibold">
-                    {{ COPY.onset.value(onset.shift) }}
+                    {{ COPY.onset.short(onset.shift) }}
+                    <InfoTip :text="COPY.onset.cardDetail(onset.year, onset.shift, day(onset.plant), day(onset.mean))" />
                   </dd>
                 </div>
               </dl>
@@ -229,7 +298,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
                 name="i-lucide-calendar-clock"
                 class="size-5 shrink-0 text-(--ui-primary)"
               />
-              {{ t.harvest.empty }}
+              {{ t.harvest.empty(mt1 ? day(mt1.harvest) : null) }}
             </p>
           </div>
         </div>
@@ -256,10 +325,10 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
               <div
                 v-for="p in places"
                 :key="p.key"
-                class="flex flex-col-reverse gap-1 rounded-lg bg-muted p-4"
+                class="flex flex-col-reverse gap-1 rounded-lg bg-default p-4"
               >
                 <dt class="text-sm text-muted">
-                  {{ p.label }}: {{ p.text }}
+                  {{ p.label }}: {{ p.text }}{{ t.compare.basis[p.key] }}
                 </dt>
                 <dd class="text-3xl/[1.15] font-semibold tabular-nums">
                   {{ t.compare.place(p.place, p.total) }}
@@ -281,6 +350,18 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
             <h3 class="text-xl font-semibold">
               {{ COPY.landing.rain.title }}
             </h3>
+            <p
+              v-if="lastRain"
+              class="font-semibold"
+            >
+              {{ rainPlain(lastRain) }}
+            </p>
+            <p
+              v-if="lastRain"
+              class="text-sm text-muted"
+            >
+              {{ t.rainOwn(rainMm(rainBaseline(lastRain))) }}
+            </p>
             <RainBars :months="rainMonths" />
             <ChartTable
               :caption="COPY.landing.rain.title"
@@ -298,7 +379,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         <div class="h-[62svh] overflow-hidden rounded-[18px]">
           <ClientOnly>
             <AreaMap
-              :outer="kecamatan"
+              :outer="null"
               :inner="desa"
               :cells="cells"
               :labels="labels"

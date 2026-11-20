@@ -139,6 +139,15 @@ export function rainVerdict(mm: number, base: number, minBase = 20, tolerance = 
   return { kind: diff > 0 ? 'wetter' : 'drier', pct: Math.abs(diff) }
 }
 
+// One plain sentence about the rain of a month, for people who do not read charts.
+export function rainPlain(m: RainMonth): string {
+  const v = rainVerdict(m.mm, rainBaseline(m))
+  const p = `${Math.round(v.pct * 100)}%`
+  const month = new Date(Date.UTC(m.year, m.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  const r = COPY.landing.rain.plain
+  return v.kind === 'wetter' ? r.wetter(month, p) : v.kind === 'drier' ? (v.pct >= 0.9 ? r.veryDry(month) : r.drier(month, p)) : r[v.kind](month)
+}
+
 export interface SeasonYear { year: number, plant: number, harvest: number, ha: number }
 
 // The MT1 seasons of one desa, oldest first, with plant and harvest days counted in a non-leap year.
@@ -191,24 +200,6 @@ export function desaOutlines(fc: FeatureCollection | null | undefined, width = 1
     viewBox: `0 0 ${width} ${height.toFixed(1)}`,
     paths: rings.map(r => ({ unit: r.unit, d: r.rings.map(ring => `M${ring.map(pt).join('L')}Z`).join('') }))
   }
-}
-
-// BPS Provinsi Jawa Timur, "Luas Panen dan Produksi Padi di Provinsi Jawa Timur 2025" (released 3 Sep 2026), Lampiran 3, 6 and 8.
-// Production is tons of GKG.
-// Harvested area is the 2024 value plus the published 2025 change, because the 2025 column is unreadable in the PDF text.
-// Update once a year when BPS releases the next edition.
-export const JATIM_RICE = {
-  year: 2025,
-  top: [
-    { name: 'Lamongan', tons: 879_993.80 },
-    { name: 'Bojonegoro', tons: 879_685.13 },
-    { name: 'Ngawi', tons: 772_570.76 },
-    { name: 'Jember', tons: 679_513.67 },
-    { name: 'Tuban', tons: 577_963.77 }
-  ],
-  province: 10_438_360.58,
-  lamonganRiceTons: 508_126.15,
-  lamonganHarvestHa: 152_564
 }
 
 // Mean over desa for the most recent months in the export.

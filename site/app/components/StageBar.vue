@@ -27,16 +27,11 @@ const sum = computed(() => ORDER.reduce((s, k) => s + props.totals[k], 0))
 const parts = computed(() => ORDER.map(k => ({
   key: k,
   label: STAGES[k].label,
-  ha: props.totals[k],
-  share: sum.value ? props.totals[k] / sum.value : 0
+  ha: props.totals[k]
 })))
 
 const colors = ORDER.map(k => FILL[k])
 const accessors = computed(() => ORDER.map(k => () => props.totals[k]))
-
-function pct(v: number) {
-  return v.toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: v < 0.1 ? 1 : 0 })
-}
 </script>
 
 <template>
@@ -70,7 +65,7 @@ function pct(v: number) {
     </svg>
     <div
       role="img"
-      :aria-label="parts.map(p => `${p.label} ${pct(p.share)}`).join(', ')"
+      :aria-label="parts.map(p => `${p.label} ${formatHa(p.ha)}`).join(', ')"
     >
       <ClientOnly>
         <VisXYContainer
@@ -114,7 +109,7 @@ function pct(v: number) {
             />
             <span class="flex flex-col">
               <span class="text-sm">{{ p.label }}</span>
-              <span class="text-xs text-muted tabular-nums">{{ formatHa(p.ha) }} · {{ pct(p.share) }}</span>
+              <span class="text-xs text-muted tabular-nums">{{ formatHa(p.ha) }}</span>
             </span>
           </button>
         </UTooltip>
