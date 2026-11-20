@@ -15,7 +15,8 @@ const footerLinks = computed(() => [
 const links = computed(() => [
   { label: COPY.nav.beranda, to: '/', icon: 'i-lucide-house', active: route.path === '/' },
   { label: COPY.nav.kalender, to: '/kalender', icon: 'i-lucide-calendar-days' },
-  { label: COPY.nav.bandingkan, to: '/perbandingan', icon: 'i-lucide-chart-bar' }
+  { label: COPY.nav.bandingkan, to: '/perbandingan', icon: 'i-lucide-chart-bar' },
+  { label: COPY.nav.faq, to: '/faq', icon: 'i-lucide-circle-help' }
 ])
 </script>
 
@@ -102,25 +103,26 @@ const links = computed(() => [
             class="rounded-sm py-1 text-sm text-muted hover:text-default focus-visible:outline-2 focus-visible:outline-(--focus-ring)"
           >{{ f.label }}</a>
         </nav>
-        <div class="flex flex-col">
+        <nav
+          :aria-label="COPY.site.footer.info"
+          class="flex flex-col"
+        >
           <p class="mb-2 text-sm font-semibold">
-            {{ COPY.site.footer.sources }}
+            {{ COPY.site.footer.info }}
           </p>
-          <ul class="flex flex-col">
-            <li
-              v-for="s in COPY.site.footer.sourceList"
-              :key="s"
-              class="py-1 text-sm text-muted"
-            >
-              {{ s }}
-            </li>
-          </ul>
-        </div>
+          <NuxtLink
+            v-for="l in COPY.site.footer.infoLinks"
+            :key="l.to"
+            :to="l.to"
+            class="rounded-sm py-1 text-sm text-muted hover:text-default focus-visible:outline-2 focus-visible:outline-(--focus-ring)"
+          >
+            {{ l.label }}
+          </NuxtLink>
+        </nav>
       </div>
-      <div class="mt-10 flex flex-col gap-1 border-t border-default pt-6 text-xs text-muted">
-        <p>{{ COPY.site.footer.disclaimer }}</p>
-        <p>{{ COPY.site.footer.attribution }}</p>
-      </div>
+      <p class="mt-10 border-t border-default pt-6 text-xs text-muted">
+        {{ COPY.site.footer.copyright }}
+      </p>
     </footer>
   </UApp>
 </template>

@@ -78,6 +78,13 @@ const rows = computed(() => ranked.value.map((e, i) => ({
 })))
 const tikung = computed(() => rows.value.find(r => r.here))
 
+// The three highest, with the first in the middle, as a podium.
+const podium = computed(() => {
+  const [a, b, c] = rows.value
+  return [b, a, c].filter((r): r is NonNullable<typeof r> => !!r)
+})
+const podiumHeight: Record<number, string> = { 1: '19rem', 2: '15rem', 3: '12rem' }
+
 const heading = computed(() => {
   const m = t.metrics[metric.value]
   return metric.value === 'intensitas' ? t.metrics.intensitas.title(intensity.value.year) : (m.title as string)
@@ -139,12 +146,39 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
           {{ t.tikungRank(tikung.place, rows.length) }}
         </p>
       </div>
-      <HeroPhoto
-        src="/images/sawah-lamongan.jpg"
-        alt="Hamparan sawah di Kabupaten Lamongan"
-        author="Indonesiagood"
-        source="https://commons.wikimedia.org/wiki/File:Area_Pesawahan_di_Lamongan-2.jpg"
-      />
+      <figure
+        v-if="podium.length"
+        class="flex flex-col gap-4"
+      >
+        <ol
+          class="grid grid-cols-3 items-end gap-3"
+          :aria-label="t.podium.label(t.metrics[metric].label)"
+        >
+          <li
+            v-for="r in podium"
+            :key="r.unit"
+            class="flex"
+          >
+            <component
+              :is="r.to ? NuxtLink : 'div'"
+              :to="r.to ?? undefined"
+              class="flex w-full flex-col justify-end gap-2 rounded-[18px] p-5 text-center transition focus-visible:outline-2 focus-visible:outline-(--focus-ring)"
+              :class="[r.place === 1 ? 'bg-(--ui-primary) text-(--ui-on-primary)' : 'bg-muted', r.to ? 'hover:ring-2 hover:ring-(--ui-primary)' : '']"
+              :style="{ minHeight: podiumHeight[r.place] }"
+            >
+              <span class="text-5xl/none font-bold tabular-nums sm:text-6xl/none">{{ r.place }}</span>
+              <span class="font-semibold text-balance">{{ r.unit }}</span>
+              <span
+                class="text-sm tabular-nums"
+                :class="r.place === 1 ? 'opacity-90' : 'text-muted'"
+              >{{ r.text }}</span>
+            </component>
+          </li>
+        </ol>
+        <figcaption class="text-sm text-muted">
+          {{ t.podium.label(t.metrics[metric].label) }}
+        </figcaption>
+      </figure>
     </section>
 
     <section class="tile tile-parchment flex flex-col gap-10">

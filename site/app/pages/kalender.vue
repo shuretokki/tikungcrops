@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AREAS, formatDate, useAreaFile, useAreaRainMonths, useAreaSeasons, type Meta } from '~/composables/useArea'
+import { AREAS, useAreaFile, useAreaOutlines, useAreaRainMonths, useAreaSeasons, type Meta } from '~/composables/useArea'
 
 const t = COPY.landing
 const k = COPY.kalender
@@ -7,6 +7,7 @@ const area = AREAS.tikung
 const { data: meta } = await useAreaFile<Meta>(area, 'meta.json')
 const { data: seasons } = await useAreaSeasons(area)
 const { data: rainMonths } = await useAreaRainMonths(area)
+const { data: outlines } = await useAreaOutlines(area)
 
 const mm = (v: number) => Math.round(v).toLocaleString('id-ID')
 const units = computed(() => meta.value?.units ?? [])
@@ -33,6 +34,11 @@ const barStyle = (shift: number) => {
 
 const dayLabel = (d: number) => new Date(Date.UTC(2001, 0, 1 + d)).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', timeZone: 'UTC' })
 
+const SEP1 = dayOfYear('2001-09-01')
+// Days since 1 September, so planting in November and in January sort in the right order.
+const sinceSep = (d: number) => (d - SEP1 + 365) % 365
+const plantValues = computed(() => Object.fromEntries(schedule.value.map(s => [s.unit, sinceSep(s.plant)])))
+
 const months = computed(() => rainMonths.value ?? [])
 const lastMonth = computed(() => months.value.at(-1))
 const monthLabel = (m: RainMonth) => new Date(Date.UTC(m.year, m.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
@@ -51,15 +57,16 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
         <p class="max-w-xl text-lg text-muted">
           {{ k.description }}
         </p>
-        <DateStamp
-          :date="formatDate(meta?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })"
-        />
       </div>
-      <HeroPhoto
-        src="/images/sawah-ngimbang.jpg"
-        alt="Hamparan sawah di Kecamatan Ngimbang, Kabupaten Lamongan"
-        author="Indonesiagood"
-        source="https://commons.wikimedia.org/wiki/File:Area_Pesawahan_di_Lamongan-1.jpg"
+      <OutlineMap
+        :outlines="outlines"
+        :values="plantValues"
+        :format="v => dayLabel((v + SEP1) % 365)"
+        invert
+        :min-label="k.map.early"
+        :max-label="k.map.late"
+        :hint="k.map.hint"
+        :label="k.map.label"
       />
     </section>
 
@@ -186,27 +193,15 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
         :columns="[t.rain.columns.month, t.rain.columns.mm, t.rain.columns.normal, t.rain.columns.lo, t.rain.columns.hi]"
         :rows="months.map(m => [monthLabel(m), mm(m.mm), mm(rainBaseline(m)), m.lo === undefined ? '-' : mm(m.lo), m.hi === undefined ? '-' : mm(m.hi)])"
       />
-    </section>
-
-    <section class="tile tile-parchment flex flex-col gap-8">
-      <header class="flex max-w-2xl flex-col gap-3">
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
-          {{ k.notes.title }}
-        </h2>
-        <p class="text-muted">
-          {{ k.notes.body }}
-        </p>
-      </header>
-      <div class="tile-box flex flex-col gap-4">
-        <UAlert
-          v-for="item in k.notes.items"
-          :key="item"
-          color="warning"
-          variant="subtle"
-          icon="i-lucide-circle-alert"
-          :description="item"
-        />
-      </div>
+      <p class="text-sm text-muted">
+        {{ k.notesLink.text }}
+        <NuxtLink
+          to="/tentang#catatan"
+          class="font-semibold text-(--ui-primary) underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-(--focus-ring)"
+        >
+          {{ k.notesLink.link }}
+        </NuxtLink>
+      </p>
     </section>
   </div>
 </template>

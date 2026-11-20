@@ -10,8 +10,8 @@
 
 export const COPY = {
   site: {
-    title: 'Kalender Tanam Padi',
-    subtitle: 'Kecamatan Tikung, Kabupaten Lamongan',
+    title: 'Kalender Tanam Lamongan',
+    subtitle: 'Pemantauan musim tanam dari satelit',
     skip: 'Lewati ke Konten Utama',
     search: 'Cari Desa',
     download: {
@@ -28,29 +28,136 @@ export const COPY = {
       ]
     },
     updated: (generated: string, asOf: string) => `Diperbarui pada ${generated}. Data per ${asOf}.`,
-    asOf: (date: string) => `Per ${date}`,
-    photo: { prefix: 'Foto:', license: 'CC BY 4.0, melalui Wikimedia Commons' },
     footer: {
       pages: 'Halaman',
       data: 'Unduh Data',
-      sources: 'Sumber Data',
-      sourceList: [
-        'Copernicus Sentinel-1 dan Sentinel-2 (ESA)',
-        'CHIRPS, curah hujan',
-        'ESA WorldCover',
-        'Lahan Baku Sawah (BIG)',
-        'geoBoundaries (OCHA ROAP, BPS 2019)',
-        'OpenFreeMap, © OpenStreetMap'
+      info: 'Informasi',
+      infoLinks: [
+        { label: 'Tentang Situs', to: '/tentang' },
+        { label: 'Sumber Data', to: '/tentang#sumber' },
+        { label: 'Catatan Penggunaan Data', to: '/tentang#catatan' },
+        { label: 'Tanya Jawab (FAQ)', to: '/faq' }
       ],
-      disclaimer: 'Informasi ini diolah dari citra satelit dan bersifat perkiraan. Untuk keputusan tanam, tanyakan juga kepada penyuluh pertanian setempat.',
-      attribution: 'Batas wilayah: geoBoundaries, lisensi CC BY 3.0 IGO. Peta dasar: OpenFreeMap, © OpenStreetMap contributors.'
+      copyright: 'Copyright © 2026 Tri Rianto Utomo'
     }
   },
 
   nav: {
     beranda: 'Beranda',
     kalender: 'Kalender Tanam',
-    bandingkan: 'Perbandingan'
+    bandingkan: 'Perbandingan',
+    tentang: 'Tentang',
+    faq: 'FAQ'
+  },
+
+  // The pick lists follow the entry steps of the FAO Crop Calendar: choose the place, choose the crop, then search.
+  // Only rice in Kecamatan Tikung is finished. The other choices are listed so the site is ready for them.
+  // Crops follow KATAM Terpadu (padi, jagung, kedelai) and the five crops of ASEAN AFSIS (padi, jagung, tebu, kedelai, singkong).
+  scope: {
+    title: 'Pilih Wilayah dan Tanaman',
+    region: 'Wilayah',
+    crop: 'Tanaman',
+    soon: 'segera',
+    regions: [
+      { value: 'tikung', label: 'Kecamatan Tikung', ready: true },
+      { value: 'kecamatan', label: 'Kecamatan lain di Lamongan', ready: false },
+      { value: 'lamongan', label: 'Seluruh Kabupaten Lamongan', ready: false }
+    ],
+    crops: [
+      { value: 'padi', label: 'Padi', ready: true },
+      { value: 'jagung', label: 'Jagung', ready: false },
+      { value: 'kedelai', label: 'Kedelai', ready: false },
+      { value: 'tebu', label: 'Tebu', ready: false },
+      { value: 'singkong', label: 'Singkong', ready: false }
+    ],
+    note: 'Pilihan bertanda segera sedang disiapkan.',
+    go: 'Lihat Kalender Tanam'
+  },
+
+  tentang: {
+    seoTitle: 'Tentang Situs - Kalender Tanam Lamongan',
+    eyebrow: 'Tentang',
+    title: 'Untuk Apa Situs Ini?',
+    purpose: [
+      'Kalender Tanam Lamongan menampilkan kondisi sawah, jadwal tanam, dan perkiraan panen dari citra satelit, sampai tingkat desa. Informasi ini membantu petani, penyuluh pertanian, dan dinas merencanakan tanam, menyiapkan benih dan pupuk, serta memperkirakan kapan panen datang.',
+      'Situs ini hasil penelitian mahasiswa dan belum menggantikan layanan resmi, seperti Kalender Tanam Terpadu (KATAM) milik Kementerian Pertanian.'
+    ],
+    helps: {
+      title: 'Siapa yang Terbantu',
+      items: [
+        { icon: 'i-lucide-sprout', title: 'Petani', body: 'Melihat kapan desa mulai menanam dan kapan panen biasanya datang.' },
+        { icon: 'i-lucide-users', title: 'Penyuluh pertanian', body: 'Memantau kondisi dan awal tanam setiap desa binaan.' },
+        { icon: 'i-lucide-landmark', title: 'Dinas pertanian', body: 'Membandingkan desa dan kecamatan untuk perencanaan benih, pupuk, dan panen.' },
+        { icon: 'i-lucide-microscope', title: 'Peneliti', body: 'Mengunduh data dan memeriksa ketepatannya terhadap data BPS.' }
+      ]
+    },
+    how: {
+      title: 'Cara Memakai',
+      steps: [
+        'Pilih wilayah dan tanaman pada halaman Beranda.',
+        'Buka Kalender Tanam untuk melihat musim tanam utama, jadwal setiap desa, awal tanam, dan curah hujan.',
+        'Buka halaman desa untuk melihat kondisi, jadwal, riwayat musim, dan perkiraan panen desa tersebut.',
+        'Bandingkan desa atau kecamatan pada halaman Perbandingan.',
+        'Unduh data dalam bentuk JSON dari bagian bawah halaman.'
+      ]
+    },
+    coverage: {
+      title: 'Cakupan Saat Ini dan Rencana',
+      columns: { item: 'Cakupan', status: 'Status', note: 'Keterangan' },
+      ready: 'Tersedia',
+      planned: 'Disiapkan',
+      rows: [
+        { item: 'Padi di Kecamatan Tikung', ready: true, note: '13 desa, data citra sejak Oktober 2017.' },
+        { item: 'Padi di kecamatan lain di Lamongan', ready: false, note: 'Data 27 kecamatan sudah diolah dan baru tampil pada halaman Perbandingan.' },
+        { item: 'Jagung, kedelai, tebu, dan singkong', ready: false, note: 'Belum diolah. Aturan deteksi saat ini khusus padi.' }
+      ]
+    },
+    sources: {
+      title: 'Sumber Data',
+      items: [
+        { name: 'Copernicus Sentinel-1 (ESA)', href: 'https://sentiwiki.copernicus.eu/web/s1-mission' },
+        { name: 'Copernicus Sentinel-2 (ESA)', href: 'https://sentiwiki.copernicus.eu/web/s2-mission' },
+        { name: 'CHIRPS', href: 'https://www.chc.ucsb.edu/data/chirps' },
+        { name: 'ESA WorldCover', href: 'https://esa-worldcover.org' },
+        { name: 'Lahan Baku Sawah (BIG)', href: 'https://www.big.go.id' },
+        { name: 'BPS dan Dinas Pertanian Kabupaten Lamongan', href: 'https://lamongankab.bps.go.id' },
+        { name: 'geoBoundaries (OCHA ROAP, BPS 2019), CC BY 3.0 IGO', href: 'https://www.geoboundaries.org' },
+        { name: 'OpenFreeMap, © OpenStreetMap contributors', href: 'https://openfreemap.org' }
+      ]
+    },
+    notes: {
+      title: 'Catatan Penggunaan Data',
+      body: 'Jadwal merupakan perkiraan dari citra satelit dan bukan pengganti informasi dari penyuluh pertanian.',
+      items: [
+        'Tanggal tanam dan panen belum dicocokkan dengan catatan petani.',
+        'Pada musim hujan, awan sering menutupi awal musim sehingga perkiraan dapat meleset tiga sampai lima minggu. Pada musim kemarau, selisihnya sekitar satu sampai dua minggu.',
+        'Sejak tahun 2022, satelit radar lebih jarang melintas sehingga sebagian musim tanam padi tidak terdeteksi.'
+      ]
+    },
+    faqLink: 'Baca Tanya Jawab (FAQ)'
+  },
+
+  faq: {
+    seoTitle: 'Tanya Jawab - Kalender Tanam Lamongan',
+    title: 'Tanya Jawab',
+    description: 'Jawaban singkat untuk pertanyaan yang sering muncul tentang Kalender Tanam Lamongan.',
+    items: [
+      { q: 'Apa itu Kalender Tanam Lamongan?', a: ['Situs yang menampilkan kondisi sawah, jadwal tanam, dan perkiraan panen dari citra satelit Sentinel-1 dan Sentinel-2, sampai tingkat desa. Saat ini tersedia untuk padi di Kecamatan Tikung.'] },
+      { q: 'Untuk siapa situs ini?', a: ['Untuk petani, penyuluh pertanian, dinas pertanian, dan peneliti. Penjelasan lengkap ada pada halaman Tentang.'] },
+      { q: 'Wilayah dan tanaman apa yang tersedia?', a: ['Padi di 13 desa Kecamatan Tikung. Data kecamatan lain di Kabupaten Lamongan sudah diolah dan baru tampil pada halaman Perbandingan. Jagung, kedelai, tebu, dan singkong sedang disiapkan dan belum dapat dipilih.'] },
+      { q: 'Dari mana datanya?', a: ['Dari citra satelit Sentinel-1 dan Sentinel-2 milik Badan Antariksa Eropa, curah hujan CHIRPS, peta Lahan Baku Sawah dari Badan Informasi Geospasial, dan data panen pembanding dari BPS serta dinas pertanian. Daftar lengkap ada pada bagian Sumber Data di halaman Tentang.'] },
+      { q: 'Seberapa sering data diperbarui?', a: ['Pengambilan citra dijadwalkan setiap bulan. Tanggal citra terakhir tertera pada penanda tanggal di halaman dan pada bagian bawah setiap halaman.'] },
+      { q: 'Mengapa citra terakhir lebih lama dari hari ini?', a: ['Satelit melintas pada selang waktu tertentu, awan sering menutupi citra optik, dan pengolahan memerlukan waktu. Karena itu data selalu tertinggal dari hari ini.'] },
+      { q: 'Bagaimana tahap sedang ditanami, menjelang panen, dan bera ditentukan?', a: ['Radar Sentinel-1 mendeteksi genangan saat penanaman, dan citra optik Sentinel-2 mengukur kehijauan tanaman. Tanaman yang paling hijau berarti panen biasanya tinggal beberapa minggu lagi. Lahan tanpa tanaman setelah panen disebut bera.'] },
+      { q: 'Mengapa sebagian sawah tidak terbaca?', a: ['Awan menutupi lahan sehingga satelit optik tidak dapat membaca kondisinya. Luas yang tertutup awan tidak dihitung dalam persentase.'] },
+      { q: 'Seberapa tepat jadwal tanam dan panen?', a: ['Jadwal merupakan perkiraan dari pola musim tanam sejak tahun 2017. Pada musim hujan, awan dapat menggeser perkiraan tiga sampai lima minggu, dan pada musim kemarau sekitar satu sampai dua minggu. Tanggal belum dicocokkan dengan catatan petani.'] },
+      { q: 'Seberapa tepat luas sawah dan padi?', a: ['Di Kecamatan Tikung, luas padi dari satelit mendekati data BPS per desa. Hasilnya dapat dilihat pada bagian Ketepatan Data di halaman Perbandingan.', 'Untuk kecamatan lain, luas semua tanaman dari satelit berbeda sekitar 17 persen (median) dari luas panen menurut dinas pertanian pada tahun 2021. Penanda padi masih melewatkan sebagian padi tadah hujan dan padi tabur benih.'] },
+      { q: 'Apa arti awal tanam lebih lambat dari rata-rata?', a: ['Puncak tanam musim tanam 1 terakhir dibandingkan dengan rata-rata lima musim sebelumnya, dengan syarat minimal tiga musim. Selisih 14 hari atau lebih diberi tanda terlambat. Selisih dihitung dari radar sehingga dapat meleset beberapa minggu.'] },
+      { q: 'Mengapa frekuensi tanam tidak sama dengan jumlah panen padi?', a: ['Frekuensi tanam menghitung semua musim tanam yang terbaca pada peta sawah, tidak hanya padi. Cara ini dipilih karena penanda padi melewatkan sebagian padi di beberapa kecamatan.'] },
+      { q: 'Bolehkah data diunduh dan dipakai?', a: ['Berkas JSON dapat diunduh dari bagian bawah setiap halaman. Cantumkan sumber data saat memakainya. Lisensi setiap sumber berbeda, jadi periksa daftar pada halaman Tentang.'] },
+      { q: 'Apakah situs ini menggantikan penyuluh pertanian?', a: ['Tidak. Informasi di sini perkiraan dari citra satelit. Untuk keputusan tanam, tanyakan juga kepada penyuluh pertanian setempat.'] },
+      { q: 'Bagaimana menghubungi pengelola?', a: ['Informasi kontak akan dicantumkan saat situs diterbitkan.'] }
+    ]
   },
 
   stages: {
@@ -106,10 +213,10 @@ export const COPY = {
   },
 
   landing: {
-    seoTitle: 'Kalender Tanam Padi Kecamatan Tikung',
-    eyebrow: 'Kecamatan Tikung, Kabupaten Lamongan',
-    headline: 'Informasi Musim Tanam Padi di Kecamatan Tikung',
-    description: (units: number) => `Informasi kondisi sawah, jadwal tanam, dan perkiraan panen di ${units} desa Kecamatan Tikung berdasarkan pemantauan citra satelit.`,
+    seoTitle: 'Kalender Tanam Lamongan',
+    eyebrow: 'Kabupaten Lamongan',
+    headline: 'Informasi Musim Tanam di Kabupaten Lamongan',
+    description: (units: number) => `Saat ini tersedia untuk padi di Kecamatan Tikung, ${units} desa, dari pemantauan citra satelit. Kecamatan dan tanaman lain sedang disiapkan.`,
     primaryCta: 'Cari Desa',
     secondaryCta: 'Lihat Kalender Tanam',
     stats: {
@@ -123,7 +230,7 @@ export const COPY = {
     mapFailed: 'Peta tidak dapat ditampilkan pada perangkat ini. Seluruh angka tetap tersedia pada halaman ini.',
 
     snapshot: {
-      eyebrow: 'Ringkasan Singkat',
+      eyebrow: 'Ringkasan',
       title: 'Kondisi Kecamatan Tikung',
       labels: {
         seasonOutside: 'awal tanam berikutnya',
@@ -248,22 +355,14 @@ export const COPY = {
       early: 'Lebih awal',
       late: 'Lebih akhir'
     },
-    seoTitle: 'Jadwal Tanam dan Panen Desa - Kalender Tanam Padi',
+    seoTitle: 'Jadwal Tanam dan Panen Desa - Kalender Tanam Lamongan',
     title: 'Kalender Tanam',
-    description: 'Jadwal tanam dan panen setiap desa di Kecamatan Tikung, disertai curah hujan dan catatan penggunaan data.',
-    notes: {
-      title: 'Catatan Penggunaan Data',
-      body: 'Jadwal merupakan perkiraan dari citra satelit dan bukan pengganti informasi dari penyuluh pertanian.',
-      items: [
-        'Tanggal tanam dan panen belum dicocokkan dengan catatan petani.',
-        'Pada musim hujan, awan sering menutupi awal musim sehingga perkiraan dapat meleset tiga sampai lima minggu. Pada musim kemarau, selisihnya sekitar satu sampai dua minggu.',
-        'Sejak tahun 2022, satelit radar lebih jarang melintas sehingga sebagian musim tanam padi tidak terdeteksi.'
-      ]
-    }
+    description: 'Jadwal tanam dan panen setiap desa di Kecamatan Tikung, disertai awal tanam dan curah hujan.',
+    notesLink: { text: 'Jadwal merupakan perkiraan dari citra satelit.', link: 'Baca catatan penggunaan data' }
   },
 
   bandingkan: {
-    seoTitle: 'Perbandingan Wilayah - Kalender Tanam Padi',
+    seoTitle: 'Perbandingan Wilayah - Kalender Tanam Lamongan',
     title: 'Perbandingan Wilayah',
     description: 'Peringkat desa dan kecamatan menurut luas sawah, frekuensi tanam padi, dan lahan sawah yang sedang hijau.',
     levels: { desa: 'Desa di Kecamatan Tikung', kecamatan: 'Kecamatan di Kabupaten Lamongan' },
@@ -273,6 +372,7 @@ export const COPY = {
       low: 'Lebih rendah',
       high: 'Lebih tinggi'
     },
+    podium: { label: (metric: string) => `Tiga teratas menurut ${metric.toLowerCase()}` },
     metricLabel: 'Dibandingkan berdasarkan',
     metrics: {
       sawah: {
@@ -318,9 +418,11 @@ export const COPY = {
   },
 
   desa: {
-    seoTitle: (unit: string) => `Desa ${unit} - Kalender Tanam Padi`,
+    seoTitle: (unit: string) => `Desa ${unit} - Kalender Tanam Lamongan`,
     title: (unit: string) => `Desa ${unit}`,
-    description: (ha: string, asOf: string) => `Luas sawah sekitar ${ha}. Data terakhir: ${asOf}.`,
+    description: (ha: string) => `Luas sawah sekitar ${ha}.`,
+    groups: { conditions: 'Kondisi dan Jadwal', history: 'Riwayat dan Panen', context: 'Perbandingan dan Hujan' },
+    shape: { label: (unit: string) => `Letak Desa ${unit} di Kecamatan Tikung` },
     back: 'Daftar Desa',
     notFound: 'Desa tidak ditemukan.',
     now: {

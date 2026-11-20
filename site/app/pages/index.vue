@@ -143,20 +143,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
         <p class="text-lg text-muted">
           {{ t.description(units.length) }}
         </p>
-        <div class="flex flex-wrap gap-3">
-          <UButton
-            :label="t.primaryCta"
-            to="#desa"
-            icon="i-lucide-search"
-            size="lg"
-          />
-          <UButton
-            :label="t.secondaryCta"
-            to="/kalender"
-            variant="outline"
-            size="lg"
-          />
-        </div>
+        <ScopePicker />
         <dl class="mt-2 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-default pt-5">
           <div
             v-for="s in stats"
@@ -205,9 +192,6 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
         <h2 class="text-3xl/[1.1] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.snapshot.title }}
         </h2>
-        <DateStamp
-          :date="formatDate(meta?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })"
-        />
       </header>
       <ol class="tile-box flex flex-col gap-14">
         <li
