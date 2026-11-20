@@ -8,7 +8,7 @@ import type { CurrentRow, RainRow, SeasonRow, Stage } from '~/composables/useAre
 
 export interface ValidationUnit { unit: string, year: number, measure: string, reference_ha: number, satellite_ha: number }
 export interface Validation {
-  area: { year: number, measure: string, units: number, r: number, ratio: number }[]
+  area: { year: number, measure: string, units: number, r: number, ratio: number, median_abs_diff_pct?: number }[]
   area_units: ValidationUnit[]
 }
 

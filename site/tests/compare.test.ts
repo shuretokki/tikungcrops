@@ -12,9 +12,9 @@ const row = (over: Partial<IntensityRow>): IntensityRow => ({
 describe('latestIntensity', () => {
   it('uses the newest complete year and skips partial years', () => {
     const rows = [
-      row({ unit: 'A', year: 2023, ip_rice: 1.2 }),
-      row({ unit: 'A', year: 2024, ip_rice: 1.6 }),
-      row({ unit: 'A', year: 2025, ip_rice: 0.4, complete: false })
+      row({ unit: 'A', year: 2023, ip_all: 1.2 }),
+      row({ unit: 'A', year: 2024, ip_all: 1.6 }),
+      row({ unit: 'A', year: 2025, ip_all: 0.4, complete: false })
     ]
     expect(latestIntensity(rows)).toEqual({ year: 2024, entries: [{ unit: 'A', value: 1.6 }] })
   })
@@ -23,8 +23,13 @@ describe('latestIntensity', () => {
     expect(latestIntensity([row({ complete: false })])).toEqual({ year: null, entries: [] })
   })
 
-  it('skips a unit with no rice intensity', () => {
-    expect(latestIntensity([row({ ip_rice: null })]).entries).toEqual([])
+  it('skips a unit with no intensity', () => {
+    expect(latestIntensity([row({ ip_all: null })]).entries).toEqual([])
+  })
+
+  it('ignores the rice-only column, so a weak rice flag cannot lower a unit', () => {
+    const entries = latestIntensity([row({ ip_all: 1.8, ip_rice: 0.3 })]).entries
+    expect(entries).toEqual([{ unit: 'A', value: 1.8 }])
   })
 })
 

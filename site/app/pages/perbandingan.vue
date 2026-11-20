@@ -80,10 +80,12 @@ const heading = computed(() => {
   return metric.value === 'intensitas' ? t.metrics.intensitas.title(intensity.value.year) : (m.title as string)
 })
 
-const riceCheck = computed(() => validation.value?.area.find(a => a.measure === 'rice'))
+// The frequency ranking counts every season on the paddy map, so its check is the all-crops area and not the rice flag.
+const seasonCheck = computed(() => validation.value?.area.find(a => a.measure === 'all_crops'))
 const note = computed(() => {
-  if (level.value !== 'kecamatan' || !riceCheck.value) return null
-  return t.kecamatanNote(riceCheck.value.ratio.toLocaleString('id-ID', { style: 'percent', maximumFractionDigits: 0 }), riceCheck.value.year)
+  const c = seasonCheck.value
+  if (level.value !== 'kecamatan' || metric.value !== 'intensitas' || !c || c.median_abs_diff_pct === undefined) return null
+  return t.kecamatanNote(`${Math.round(c.median_abs_diff_pct)}%`, c.year)
 })
 
 const levelItems = [

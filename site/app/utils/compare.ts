@@ -7,12 +7,15 @@ import type { CurrentRow, IntensityRow } from '~/composables/useArea'
 
 export interface Entry { unit: string, value: number }
 
-// Rice cropping intensity of the newest year that has a full set of scenes.
+// Cropping intensity of the newest year that has a full set of scenes.
+// It counts every season on the paddy map and not only seasons flagged as rice.
+// The rice flag loses about 40 percent of the rice in some kecamatan, so ranking by it put those kecamatan too low.
+// In 2021 the all-season column tracked DKPP harvests per hectare better (Spearman 0.58 against 0.40).
 export function latestIntensity(rows: IntensityRow[]): { year: number | null, entries: Entry[] } {
-  const ok = rows.filter(r => r.complete && r.ip_rice !== null)
+  const ok = rows.filter(r => r.complete && r.ip_all !== null)
   if (!ok.length) return { year: null, entries: [] }
   const year = Math.max(...ok.map(r => r.year))
-  return { year, entries: ok.filter(r => r.year === year).map(r => ({ unit: r.unit, value: r.ip_rice! })) }
+  return { year, entries: ok.filter(r => r.year === year).map(r => ({ unit: r.unit, value: r.ip_all! })) }
 }
 
 // Share of the readable paddy that is planted or close to harvest.

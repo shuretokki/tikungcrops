@@ -263,8 +263,8 @@ export const COPY = {
       },
       intensitas: {
         label: 'Frekuensi Tanam',
-        title: (year: number | null) => `Peringkat Menurut Frekuensi Tanam Padi Tahun ${year ?? '-'}`,
-        body: 'Rata-rata frekuensi tanam padi dalam satu tahun. Angka 2 berarti sawah ditanami dua kali dalam setahun.',
+        title: (year: number | null) => `Peringkat Menurut Frekuensi Tanam Sawah Tahun ${year ?? '-'}`,
+        body: 'Rata-rata jumlah musim tanam yang terbaca satelit pada satu hektare sawah dalam setahun. Angka 2 berarti sawah ditanami dua kali. Semua tanaman dihitung, tidak hanya padi.',
         value: (v: number) => `${v.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kali`
       },
       tumbuh: {
@@ -277,7 +277,7 @@ export const COPY = {
     rank: (n: number) => `${n}.`,
     here: 'Tikung',
     tikungRank: (i: number, n: number) => `Kecamatan Tikung berada pada urutan ${i} dari ${n} kecamatan.`,
-    kecamatanNote: (ratio: string, year: number) => `Untuk kecamatan lain, satelit membaca sekitar ${ratio} dari luas padi menurut dinas pertanian pada tahun ${year}. Urutan masih dapat digunakan, tetapi angka belum dapat dijadikan acuan.`,
+    kecamatanNote: (diff: string, year: number) => `Frekuensi tanam kecamatan lain dihitung dari semua musim pada peta sawah. Pada tahun ${year}, luas dari satelit berbeda sekitar ${diff} (median) dari luas panen menurut dinas pertanian. Urutan dapat dipakai, tetapi angka belum pasti.`,
     empty: 'Data untuk perbandingan ini belum tersedia.',
 
     accuracy: {
