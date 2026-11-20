@@ -303,10 +303,10 @@ export default defineAppConfig({
     // Lets the left side shrink.
     // A long logo and menu pill otherwise widen the page,
     // and phones zoom out and leave a blank strip on the right.
-    // The bar is the frosted sub-nav of the Apple DESIGN.md: parchment at 80% with a blur.
+    // The bar is solid, with a hairline below it, so content never shows through.
     header: {
       slots: {
-        root: 'bg-muted/80 backdrop-blur-[20px] backdrop-saturate-[1.8] border-b border-default',
+        root: 'bg-default backdrop-blur-none border-b border-default',
         left: 'min-w-0',
         right: 'shrink-0 gap-1',
         title: 'text-base font-semibold'

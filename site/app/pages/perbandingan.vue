@@ -92,16 +92,22 @@ const levelItems = [
 ]
 const metricItems = (Object.keys(t.metrics) as Metric[]).map(k => ({ label: t.metrics[k].label, value: k }))
 
+definePageMeta({ layout: 'tiles' })
 useSeoMeta({ title: t.seoTitle, description: t.description })
 </script>
 
 <template>
-  <UPage>
-    <UPageHeader
-      :title="t.title"
-      :description="t.description"
-    />
-    <UPageBody class="flex flex-col gap-10">
+  <div>
+    <section class="tile flex flex-col gap-4 pb-12 sm:pb-16">
+      <h1 class="max-w-3xl text-4xl/[1.07] font-semibold text-balance sm:text-5xl/[1.07]">
+        {{ t.title }}
+      </h1>
+      <p class="max-w-2xl text-lg text-muted">
+        {{ t.description }}
+      </p>
+    </section>
+
+    <section class="tile tile-parchment flex flex-col gap-12">
       <div class="flex flex-col gap-4">
         <UTabs
           v-model="level"
@@ -124,8 +130,8 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
         </div>
       </div>
 
-      <section class="flex flex-col gap-4">
-        <header class="flex max-w-2xl flex-col gap-2">
+      <div class="flex flex-col gap-8">
+        <header class="flex max-w-2xl flex-col gap-3">
           <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
             {{ heading }}
           </h2>
@@ -142,7 +148,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
 
         <ol
           v-if="rows.length"
-          class="flex flex-col gap-1"
+          class="flex flex-col gap-2"
         >
           <li
             v-for="r in rows"
@@ -151,7 +157,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
             <component
               :is="r.to ? NuxtLink : 'div'"
               :to="r.to ?? undefined"
-              class="grid grid-cols-[2rem_7rem_1fr] items-center gap-x-3 gap-y-1 rounded-md px-2 py-1.5 sm:grid-cols-[2rem_9rem_1fr_6rem]"
+              class="grid grid-cols-[2rem_7rem_1fr] items-center gap-x-3 gap-y-1 rounded-md px-3 py-3 sm:grid-cols-[2rem_9rem_1fr_6rem]"
               :class="[r.to ? 'hover:bg-muted focus-visible:outline-2 focus-visible:outline-(--ui-primary)' : '', r.here ? 'bg-muted' : '']"
             >
               <span class="text-sm text-muted tabular-nums">{{ t.rank(r.place) }}</span>
@@ -186,47 +192,47 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
           :description="note"
           class="max-w-2xl"
         />
-      </section>
+      </div>
+    </section>
 
-      <section
-        v-if="summary.length && latestYear"
-        id="ketepatan"
-        data-figure="validasi-bps"
-        class="grid scroll-mt-20 gap-8 lg:grid-cols-[2fr_3fr]"
-      >
-        <div class="flex flex-col gap-4">
-          <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
-            {{ t.accuracy.title }}
-          </h2>
-          <p>{{ t.accuracy.body(years.join(' dan '), checkedUnits) }}</p>
-          <p class="text-muted">
-            {{ t.accuracy.crops }}
-          </p>
-          <UTable
-            :data="summary.map(a => ({ year: a.year, crop: t.accuracy.cropNames[a.measure] ?? a.measure, r: num(a.r), ratio: pctOf(a.ratio) }))"
-            :columns="[
-              { accessorKey: 'year', header: t.accuracy.summaryColumns.year },
-              { accessorKey: 'crop', header: t.accuracy.summaryColumns.crop },
-              { accessorKey: 'r', header: t.accuracy.summaryColumns.r },
-              { accessorKey: 'ratio', header: t.accuracy.summaryColumns.ratio }
-            ]"
-          />
-          <p class="text-sm text-muted">
-            {{ t.accuracy.rNote }}
-          </p>
-        </div>
-        <figure class="flex flex-col gap-3">
-          <figcaption class="text-sm text-muted">
-            {{ t.accuracy.scatterNote(latestYear) }}
-          </figcaption>
-          <ValidationScatter :points="points" />
-          <ChartTable
-            :caption="t.accuracy.title"
-            :columns="[t.accuracy.columns.unit, t.accuracy.columns.reference, t.accuracy.columns.satellite]"
-            :rows="points.map(p => [p.unit, Math.round(p.reference_ha), Math.round(p.satellite_ha)])"
-          />
-        </figure>
-      </section>
-    </UPageBody>
-  </UPage>
+    <section
+      v-if="summary.length && latestYear"
+      id="ketepatan"
+      data-figure="validasi-bps"
+      class="tile grid scroll-mt-20 gap-12 lg:grid-cols-[2fr_3fr]"
+    >
+      <div class="flex flex-col gap-4">
+        <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
+          {{ t.accuracy.title }}
+        </h2>
+        <p>{{ t.accuracy.body(years.join(' dan '), checkedUnits) }}</p>
+        <p class="text-muted">
+          {{ t.accuracy.crops }}
+        </p>
+        <UTable
+          :data="summary.map(a => ({ year: a.year, crop: t.accuracy.cropNames[a.measure] ?? a.measure, r: num(a.r), ratio: pctOf(a.ratio) }))"
+          :columns="[
+            { accessorKey: 'year', header: t.accuracy.summaryColumns.year },
+            { accessorKey: 'crop', header: t.accuracy.summaryColumns.crop },
+            { accessorKey: 'r', header: t.accuracy.summaryColumns.r },
+            { accessorKey: 'ratio', header: t.accuracy.summaryColumns.ratio }
+          ]"
+        />
+        <p class="text-sm text-muted">
+          {{ t.accuracy.rNote }}
+        </p>
+      </div>
+      <figure class="flex flex-col gap-3">
+        <figcaption class="text-sm text-muted">
+          {{ t.accuracy.scatterNote(latestYear) }}
+        </figcaption>
+        <ValidationScatter :points="points" />
+        <ChartTable
+          :caption="t.accuracy.title"
+          :columns="[t.accuracy.columns.unit, t.accuracy.columns.reference, t.accuracy.columns.satellite]"
+          :rows="points.map(p => [p.unit, Math.round(p.reference_ha), Math.round(p.satellite_ha)])"
+        />
+      </figure>
+    </section>
+  </div>
 </template>
