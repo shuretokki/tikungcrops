@@ -50,6 +50,10 @@
   }
 }
 
+.tile-slim {
+  padding-block: 3rem;
+}
+
 .tile-parchment {
   background: var(--ui-bg-muted);
 }

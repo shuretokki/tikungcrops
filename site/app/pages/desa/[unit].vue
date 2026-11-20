@@ -24,6 +24,8 @@ const day = (d: number) => new Date(Date.UTC(2001, 0, 1 + d)).toLocaleDateString
 const stages = computed(() => stageTotals((current.value ?? []).filter(r => r.unit === unit.value)))
 const mt1 = computed(() => mainSeasonDates((seasons.value ?? []).filter(s => s.unit === unit.value)))
 const schedule = computed(() => (mt1.value ? [{ unit: unit.value, plant: mt1.value.plant, harvest: mt1.value.harvest }] : []))
+const history = computed(() => seasonHistory((seasons.value ?? []).filter(s => s.unit === unit.value)))
+const historyRows = computed(() => history.value.map(h => ({ unit: unit.value, plant: h.plant, harvest: h.harvest, label: COPY.history.label(h.year) })))
 const onset = computed(() => onsetShift((seasons.value ?? []).filter(s => s.unit === unit.value)))
 
 // Same eight-week window as the Beranda page, so both pages agree.
@@ -133,7 +135,33 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         </template>
       </section>
 
-      <section class="tile tile-parchment flex flex-col gap-8">
+      <section
+        v-if="history.length"
+        class="tile tile-parchment flex flex-col gap-8"
+      >
+        <header class="flex max-w-2xl flex-col gap-3">
+          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+            {{ COPY.history.title }}
+          </h2>
+          <p class="text-muted">
+            {{ COPY.history.body }}
+          </p>
+        </header>
+        <DesaSchedule
+          :rows="historyRows"
+          :today="today"
+          :show-today="false"
+          ordered
+          :note="COPY.history.note"
+        />
+        <ChartTable
+          :caption="COPY.history.title"
+          :columns="[COPY.history.columns.season, COPY.history.columns.plant, COPY.history.columns.harvest, COPY.history.columns.ha]"
+          :rows="history.map(h => [COPY.history.label(h.year), day(h.plant), day(h.harvest), formatHa(h.ha)])"
+        />
+      </section>
+
+      <section class="tile flex flex-col gap-8">
         <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
           {{ t.harvest.title }}
         </h2>
@@ -169,7 +197,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
 
       <section
         v-if="places.length"
-        class="tile flex flex-col gap-8"
+        class="tile tile-parchment flex flex-col gap-8"
       >
         <header class="flex flex-col gap-2">
           <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
@@ -205,7 +233,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
 
       <section
         v-if="rainMonths?.length"
-        class="tile tile-parchment flex flex-col gap-8"
+        class="tile flex flex-col gap-8"
       >
         <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
           {{ COPY.landing.rain.title }}
@@ -218,7 +246,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         />
       </section>
 
-      <section class="tile flex flex-col gap-8">
+      <section class="tile tile-parchment flex flex-col gap-8">
         <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
           {{ t.map.title }}
         </h2>

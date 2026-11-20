@@ -28,7 +28,21 @@ export const COPY = {
       ]
     },
     updated: (generated: string, asOf: string) => `Diperbarui pada ${generated}. Citra satelit terakhir tanggal ${asOf}.`,
-    footer: 'Data diolah dari Copernicus Sentinel-1/2 (ESA), CHIRPS, ESA WorldCover, dan Lahan Baku Sawah (BIG). Batas wilayah: geoBoundaries (OCHA ROAP, BPS 2019), CC BY 3.0 IGO. Peta dasar: OpenFreeMap, © OpenStreetMap.'
+    footer: {
+      pages: 'Halaman',
+      data: 'Unduh Data',
+      sources: 'Sumber Data',
+      sourceList: [
+        'Copernicus Sentinel-1 dan Sentinel-2 (ESA)',
+        'CHIRPS, curah hujan',
+        'ESA WorldCover',
+        'Lahan Baku Sawah (BIG)',
+        'geoBoundaries (OCHA ROAP, BPS 2019)',
+        'OpenFreeMap, © OpenStreetMap'
+      ],
+      disclaimer: 'Informasi ini diolah dari citra satelit dan bersifat perkiraan. Untuk keputusan tanam, tanyakan juga kepada penyuluh pertanian setempat.',
+      attribution: 'Batas wilayah: geoBoundaries, lisensi CC BY 3.0 IGO. Peta dasar: OpenFreeMap, © OpenStreetMap contributors.'
+    }
   },
 
   nav: {
@@ -42,6 +56,14 @@ export const COPY = {
     peaked: 'Menjelang Panen',
     fallow: 'Bera',
     unknown: 'Tidak Terbaca (Tertutup Awan)'
+  },
+
+  history: {
+    title: 'Riwayat Musim Tanam 1',
+    body: 'Puncak tanam sampai puncak panen pada setiap musim tanam 1 yang terbaca sejak tahun 2017. Musim ditulis dengan tahun tanam dan tahun panen.',
+    label: (year: number) => `${year - 1}/${String(year).slice(2)}`,
+    note: 'Tanggal diperkirakan dari citra satelit.',
+    columns: { season: 'Musim', plant: 'Puncak Tanam', harvest: 'Puncak Panen', ha: 'Luas Padi' }
   },
 
   onset: {
@@ -103,21 +125,24 @@ export const COPY = {
       eyebrow: 'Ringkasan Singkat',
       title: 'Kondisi Kecamatan Tikung',
       reference: (date: string) => `Tanggal acuan: ${date}`,
+      age: (n: number) => `Data berumur ${n} hari`,
       season: {
-        before: 'Musim tanam 1 belum dimulai',
-        during: (pct: string) => `Musim tanam 1 telah berjalan ${pct}`,
-        beforeBody: (month: string) => `Awal tanam umumnya pada bulan ${month}.`,
-        duringBody: (to: string) => `Panen terakhir umumnya selesai pada bulan ${to}.`
+        outside: 'Saat ini di luar musim tanam 1',
+        during: (pct: string) => `Musim tanam 1 berada pada ${pct} dari rentang biasanya`,
+        outsideBody: (month: string) => `Menurut pola sejak tahun 2017, awal tanam berikutnya pada bulan ${month}.`,
+        duringBody: (to: string) => `Menurut pola sejak tahun 2017, panen terakhir selesai pada bulan ${to}. Ini posisi pada kalender, bukan pengamatan lapangan.`
       },
       fallow: {
-        title: (pct: string) => `${pct} sawah berstatus bera`,
-        body: (bera: string, total: string) => `Sebanyak ${bera} dari ${total} luas sawah belum ditanami kembali.`
+        title: (pct: string) => `${pct} sawah yang terbaca berstatus bera`,
+        body: (bera: string, readable: string, hidden: string) => `Sebanyak ${bera} dari ${readable} sawah yang terbaca belum ditanami kembali. Sawah seluas ${hidden} tertutup awan dan tidak dihitung.`
       },
       rain: {
-        title: (month: string, diff: string) => `Curah hujan ${month} ${diff}`,
+        title: (month: string, word: string) => `Curah hujan ${month} ${word}`,
         body: (mm: string, base: string) => `Tercatat ${mm} mm, sedangkan rata-rata 5 tahun ${base} mm.`,
         wetter: (p: string) => `${p} lebih basah dari rata-rata`,
         drier: (p: string) => `${p} lebih kering dari rata-rata`,
+        above: 'di atas rata-rata',
+        below: 'di bawah rata-rata',
         same: 'sama dengan rata-rata'
       }
     },

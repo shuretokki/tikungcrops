@@ -126,6 +126,30 @@ export function mainSeasonDates(rows: SeasonSlim[], minSeasons = 3): MainSeasonD
   }
 }
 
+export interface RainVerdict { kind: 'same' | 'wetter' | 'drier' | 'above' | 'below', pct: number }
+
+// A percent of a very small baseline exaggerates, so under minBase millimetres only the direction is reported.
+export function rainVerdict(mm: number, base: number, minBase = 20, tolerance = 0.05): RainVerdict {
+  if (base < minBase) {
+    const gap = mm - base
+    return { kind: Math.abs(gap) < 1 ? 'same' : gap > 0 ? 'above' : 'below', pct: 0 }
+  }
+  const diff = (mm - base) / base
+  if (Math.abs(diff) < tolerance) return { kind: 'same', pct: 0 }
+  return { kind: diff > 0 ? 'wetter' : 'drier', pct: Math.abs(diff) }
+}
+
+export interface SeasonYear { year: number, plant: number, harvest: number, ha: number }
+
+// The MT1 seasons of one desa, oldest first, with plant and harvest days counted in a non-leap year.
+export function seasonHistory(rows: SeasonSlim[]): SeasonYear[] {
+  const md = (iso: string) => dayOfYear(`2001-${iso.slice(5, 10)}`)
+  return rows
+    .filter(r => r.season === 'MT1' && r.rice_area_ha > 0 && r.flood_median && r.harvest_median && isReliable(r))
+    .sort((a, b) => a.year - b.year)
+    .map(r => ({ year: r.year, plant: md(r.flood_median!), harvest: md(r.harvest_median!), ha: r.rice_area_ha }))
+}
+
 export interface OnsetShift { year: number, plant: number, mean: number, shift: number, priorSeasons: number }
 
 // How much later or earlier the newest MT1 planting peak came than the mean of up to five earlier MT1 seasons.

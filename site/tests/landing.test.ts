@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, it } from 'vitest'
-import { dayOfYear, mainSeasonDates, onsetShift, rainBaseline, rainByMonth, seasonBands, seasonProgress, stageTotals } from '../app/utils/landing'
+import { dayOfYear, mainSeasonDates, onsetShift, rainBaseline, rainByMonth, rainVerdict, seasonBands, seasonHistory, seasonProgress, stageTotals } from '../app/utils/landing'
 import type { CurrentRow, RainRow, SeasonRow } from '../app/composables/useArea'
 
 function season(over: Partial<SeasonRow>): SeasonRow {
@@ -119,6 +119,35 @@ describe('onsetShift', () => {
   it('ignores seasons whose peak is outside the October to January window', () => {
     const rows = [peak(2020, '11-20'), peak(2021, '11-20'), peak(2022, '11-20'), peak(2023, '11-20'), season({ year: 2024, flood_median: '2024-03-10' })]
     expect(onsetShift(rows)!.year).toBe(2023)
+  })
+})
+
+describe('rainVerdict', () => {
+  it('gives a percent when the baseline is large enough', () => {
+    expect(rainVerdict(150, 100)).toEqual({ kind: 'wetter', pct: 0.5 })
+    expect(rainVerdict(50, 100)).toEqual({ kind: 'drier', pct: 0.5 })
+    expect(rainVerdict(102, 100).kind).toBe('same')
+  })
+
+  it('gives only a direction when the baseline is under 20 mm', () => {
+    expect(rainVerdict(0.1, 14)).toEqual({ kind: 'below', pct: 0 })
+    expect(rainVerdict(30, 14)).toEqual({ kind: 'above', pct: 0 })
+    expect(rainVerdict(14.5, 14).kind).toBe('same')
+  })
+})
+
+describe('seasonHistory', () => {
+  it('lists reliable MT1 seasons oldest first and counts days in a non-leap year', () => {
+    const rows = [
+      season({ year: 2024, flood_median: '2023-11-25', harvest_median: '2024-03-10' }),
+      season({ year: 2022, flood_median: '2021-11-25', harvest_median: '2022-03-10' }),
+      season({ year: 2023, flood_median: '2023-03-01' }),
+      season({ year: 2021, season: 'MT2' })
+    ]
+    const h = seasonHistory(rows)
+    expect(h.map(s => s.year)).toEqual([2022, 2024])
+    expect(h[1]!.plant).toBe(dayOfYear('2001-11-25'))
+    expect(h[1]!.harvest).toBe(dayOfYear('2001-03-10'))
   })
 })
 

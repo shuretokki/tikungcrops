@@ -5,6 +5,13 @@ const route = useRoute()
 const { data: meta } = await useAreaFile<Meta>(AREAS.tikung, 'meta.json')
 const long = { day: 'numeric', month: 'long', year: 'numeric' } as const
 
+const footerLinks = computed(() => [
+  { label: COPY.nav.beranda, to: '/' },
+  { label: COPY.nav.kalender, to: '/kalender' },
+  { label: COPY.nav.bandingkan, to: '/perbandingan' },
+  { label: COPY.site.search, to: '/#desa' }
+])
+
 const links = computed(() => [
   { label: COPY.nav.beranda, to: '/', icon: 'i-lucide-house', active: route.path === '/' },
   { label: COPY.nav.kalender, to: '/kalender', icon: 'i-lucide-calendar-days' },
@@ -51,27 +58,69 @@ const links = computed(() => [
         <NuxtPage />
       </NuxtLayout>
     </UMain>
-    <UFooter>
-      <template #left>
-        <div class="flex flex-col gap-1">
-          <p class="text-sm text-default">
+    <footer class="tile tile-parchment tile-slim border-t border-default">
+      <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+        <div class="flex flex-col gap-2">
+          <p class="font-semibold">
+            {{ COPY.site.title }}
+          </p>
+          <p class="text-sm text-muted">
+            {{ COPY.site.subtitle }}
+          </p>
+          <p class="mt-2 text-sm text-muted">
             {{ COPY.site.updated(formatDate(meta?.generated_at, long), formatDate(meta?.as_of, long)) }}
           </p>
-          <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-            <span class="font-semibold text-default">{{ COPY.site.download.label }}:</span>
-            <a
-              v-for="f in COPY.site.download.files"
-              :key="f.file"
-              :href="`/json/${AREAS.tikung.slug}/${f.file}`"
-              :download="f.file"
-              class="text-(--ui-primary) underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-(--focus-ring)"
-            >{{ f.label }}</a>
-          </p>
-          <p class="text-xs text-muted">
-            {{ COPY.site.footer }}
-          </p>
         </div>
-      </template>
-    </UFooter>
+        <nav
+          :aria-label="COPY.site.footer.pages"
+          class="flex flex-col"
+        >
+          <p class="mb-2 text-sm font-semibold">
+            {{ COPY.site.footer.pages }}
+          </p>
+          <NuxtLink
+            v-for="l in footerLinks"
+            :key="l.to"
+            :to="l.to"
+            class="rounded-sm py-1 text-sm text-muted hover:text-default focus-visible:outline-2 focus-visible:outline-(--focus-ring)"
+          >
+            {{ l.label }}
+          </NuxtLink>
+        </nav>
+        <nav
+          :aria-label="COPY.site.footer.data"
+          class="flex flex-col"
+        >
+          <p class="mb-2 text-sm font-semibold">
+            {{ COPY.site.footer.data }}
+          </p>
+          <a
+            v-for="f in COPY.site.download.files"
+            :key="f.file"
+            :href="`/json/${AREAS.tikung.slug}/${f.file}`"
+            :download="f.file"
+            class="rounded-sm py-1 text-sm text-muted hover:text-default focus-visible:outline-2 focus-visible:outline-(--focus-ring)"
+          >{{ f.label }}</a>
+        </nav>
+        <div class="flex flex-col">
+          <p class="mb-2 text-sm font-semibold">
+            {{ COPY.site.footer.sources }}
+          </p>
+          <ul class="flex flex-col">
+            <li
+              v-for="s in COPY.site.footer.sourceList"
+              :key="s"
+              class="py-1 text-sm text-muted"
+            >
+              {{ s }}
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-10 flex flex-col gap-1 border-t border-default pt-6 text-xs text-muted">
+        <p>{{ COPY.site.footer.disclaimer }}</p>
+        <p>{{ COPY.site.footer.attribution }}</p>
+      </div>
+    </footer>
   </UApp>
 </template>

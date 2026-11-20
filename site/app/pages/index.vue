@@ -97,22 +97,32 @@ const snapshot = computed(() => {
   const items: { title: string, body: string }[] = []
   if (main.value) {
     items.push(progress.value === null
-      ? { title: s.season.before, body: s.season.beforeBody(monthName(main.value.start)) }
+      ? { title: s.season.outside, body: s.season.outsideBody(monthName(main.value.start)) }
       : { title: s.season.during(pct(progress.value)), body: s.season.duringBody(monthName(main.value.end)) })
   }
-  if (stageSum.value) {
-    items.push({ title: s.fallow.title(pct(fallowShare.value)), body: s.fallow.body(formatHa(stages.value.fallow), formatHa(stageSum.value)) })
+  // Cloud-hidden land is left out of the share, because a cloudy wet season would otherwise look greener or barer than it is.
+  const hidden = stages.value.unknown
+  const readable = stageSum.value - hidden
+  if (readable > 0) {
+    items.push({ title: s.fallow.title(pct(stages.value.fallow / readable)), body: s.fallow.body(formatHa(stages.value.fallow), formatHa(readable), formatHa(hidden)) })
   }
   const last = rainMonths.value?.at(-1)
   if (last) {
     const base = rainBaseline(last)
-    const diff = base > 0 ? (last.mm - base) / base : 0
-    const p = signedPercent(Math.abs(diff)).replace('+', '')
-    const word = Math.abs(diff) < 0.05 ? s.rain.same : diff > 0 ? s.rain.wetter(p) : s.rain.drier(p)
+    const v = rainVerdict(last.mm, base)
+    const p = signedPercent(v.pct).replace('+', '')
+    const word = v.kind === 'wetter' ? s.rain.wetter(p) : v.kind === 'drier' ? s.rain.drier(p) : s.rain[v.kind]
     const month = new Date(Date.UTC(last.year, last.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
     items.push({ title: s.rain.title(month, word), body: s.rain.body(Math.round(last.mm).toLocaleString('id-ID'), Math.round(base).toLocaleString('id-ID')) })
   }
   return items
+})
+
+// The age is read in the browser, because the page is built once and the date of the visit is not known then.
+const STALE_DAYS = 35
+const age = ref<number | null>(null)
+onMounted(() => {
+  if (meta.value?.as_of) age.value = Math.floor((Date.now() - new Date(meta.value.as_of).getTime()) / 86_400_000)
 })
 
 definePageMeta({ layout: 'tiles' })
@@ -199,6 +209,13 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
         <p class="text-muted">
           {{ t.snapshot.reference(formatDate(meta?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })) }}
         </p>
+        <UBadge
+          v-if="age !== null && age > STALE_DAYS"
+          :label="t.snapshot.age(age)"
+          color="warning"
+          variant="subtle"
+          class="self-start"
+        />
       </header>
       <ol class="flex flex-col gap-6">
         <li
