@@ -4,8 +4,8 @@
 name: monthly-extract
 
 on:
-  # schedule:
-  #   - cron: "23 2 25 * *"
+  schedule:
+    - cron: "23 2 25 * *"
   workflow_dispatch:
     inputs:
       aoi:
