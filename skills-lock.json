@@ -1,107 +1,156 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
     "academic-pptx": {
       "source": "gabberflast/academic-pptx-skill",
       "sourceType": "github",
       "skillPath": "SKILL.md",
-      "computedHash": "1c779c705825f767a118b9b5e4082c8ba2953481b36f3727c45433a92ad0b1fb"
+      "computedHash": "cc7a2e2b1ed1e67357dd63c863f123b5c1c7eec5ab2c6098ee98aa8526bcfa79"
     },
     "analyzing-data": {
       "source": "legout/data-platform-agent-skills",
       "sourceType": "github",
       "skillPath": "skills/analyzing-data/SKILL.md",
-      "computedHash": "fe508fc7fef0463131cb159749e16514ba277a3b0a142b60e60bde4db863bad8"
+      "computedHash": "cd33aaf42bd1f5a08712dda00b8ea8d594e2728efe8af0f976d7f0e27d6a428e"
     },
     "building-data-apps": {
       "source": "legout/data-platform-agent-skills",
       "sourceType": "github",
       "skillPath": "skills/building-data-apps/SKILL.md",
-      "computedHash": "9d983effd9df76001b78981d80139a24e5b8522b067464d47384e8d70aec03d2"
+      "computedHash": "0391516a0dcf9cca057ea3fdce81087e0fd2c0f09381c44ca7a2a8613bd339bf"
     },
     "building-data-pipelines": {
       "source": "legout/data-platform-agent-skills",
       "sourceType": "github",
       "skillPath": "skills/building-data-pipelines/SKILL.md",
-      "computedHash": "6a5f08b3edec35d1df3afbb01a1cf7097b6cff9fc4286035e37151ef1850e53e"
+      "computedHash": "4a08988b576b60d78dd9c418b740ca472c9a4351cf46372c5d92e5a36e8618f2"
     },
     "data-visualization": {
       "source": "anthropics/knowledge-work-plugins",
       "sourceType": "github",
       "skillPath": "data/skills/data-visualization/SKILL.md",
-      "computedHash": "64055493de5ff4afed716cc871018cf6e020338b76d3e7ed5c2985707cb43cec"
+      "computedHash": "2d313aa0dc3624db43c11139b10cb2e3e7a264fae1a687ad097d3d0a2fad016b"
     },
     "designing-data-storage": {
       "source": "legout/data-platform-agent-skills",
       "sourceType": "github",
       "skillPath": "skills/designing-data-storage/SKILL.md",
-      "computedHash": "3e218048b0150db0df3d780dbda3b2de24e665ad4f358ab8a80ae95c4f5f7bfd"
+      "computedHash": "32ac115b2f733815716dd008609cf0a819c47e4d1dbb0db0cf5eb6978d5bd4e2"
     },
     "feature-engineering": {
       "source": "param087/agent-ml-skills",
       "sourceType": "github",
       "skillPath": "skills/feature-engineering/SKILL.md",
-      "computedHash": "95b7545fe900ddf98251d0828fc5671d657ddf2902e756eb9a9b97fa00e4ff34"
+      "computedHash": "f0b69704c4cb64b8b432658f501ed67307d851307c73052e03c01ccbc01a6ef4"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "83485963700bcf11d5bf78118facb301676b69d918fee2e45a95e7f1a2840f6c"
     },
     "machine-learning": {
       "source": "mindrally/skills",
       "sourceType": "github",
       "skillPath": "machine-learning/SKILL.md",
-      "computedHash": "b0fe8b1636aa174bda1bab2aa3e4d287adc1888d79011d938e1319aee8fc6763"
+      "computedHash": "376c21789faf85bd0eab125edfe06e6e1eb8f1d7ca07c6cb70a8798c02f9958a"
     },
     "model-evaluation": {
       "source": "param087/agent-ml-skills",
       "sourceType": "github",
       "skillPath": "skills/model-evaluation/SKILL.md",
-      "computedHash": "36c221c5b0a500abd549af21c44c7366d31ef19695a499205572d31b6026b50b"
+      "computedHash": "ad408ac0b24d4afe4eb93269672d9dd16cd2d43fd35c82f1c9bcbd73d7ace3ca"
+    },
+    "nuxt": {
+      "source": "onmax/nuxt-skills",
+      "commit": "db72bd04fdae7f404532a4c9904df3a21690853e",
+      "sourceType": "github",
+      "skillPath": "skills/nuxt/SKILL.md",
+      "computedHash": "e5a8ab37c060456a4922dcce4b0e76a08ea32f479dcaf177f9139b4720182353"
+    },
+    "nuxt-seo": {
+      "source": "onmax/nuxt-skills",
+      "commit": "db72bd04fdae7f404532a4c9904df3a21690853e",
+      "sourceType": "github",
+      "skillPath": "skills/nuxt-seo/SKILL.md",
+      "computedHash": "9c765ce6c1fafa93955a8f39541a7954143dcf5118a4727e0dab48843c72ebb8"
+    },
+    "nuxt-ui": {
+      "source": "ui.nuxt.com",
+      "sourceUrl": "https://ui.nuxt.com",
+      "sourceType": "well-known",
+      "computedHash": "89a36be1af44314309cc668fab6294b566393e282e2526fa03c6dbc9ca9f2779",
+      "wellKnownDigest": "sha256:9ae192161a1603d0dfb37d44d0a08f492c34db74b2a5ec512990c9d7f0628132"
     },
     "pptx": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/pptx/SKILL.md",
-      "computedHash": "82eaf5daede5a1779aa17ccf06597cb209a0c2bd41d3a2f18bd45e0301a387fb"
+      "computedHash": "f4113381a33ec4e215451fdfb322ef7f36f128b3864627bb3fc5ba2327261f00"
     },
     "senior-data-engineer": {
       "source": "alirezarezvani/claude-skills",
       "sourceType": "github",
       "skillPath": "engineering-team/skills/senior-data-engineer/SKILL.md",
-      "computedHash": "f5f6d4ffc53d96c6ebe871b71518743e2a4284a0ead3a7473c341bd88ca3fa54"
+      "computedHash": "e7d8f34c84acb09b72800c88a09f6555be9d960a13e77c17f139c321d976f6ac"
     },
     "sklearn-pipelines": {
       "source": "param087/agent-ml-skills",
       "sourceType": "github",
       "skillPath": "skills/sklearn-pipelines/SKILL.md",
-      "computedHash": "273f84b0e9687b735a5e1ad0d8d23af14fb85b88c599eb281701264897080bf6"
+      "computedHash": "cbd6128409076cfe42837a86cfed133c3e238642c0d05fc7f338d349402779ba"
     },
     "storytelling-with-data": {
       "source": "booklib-ai/booklib",
       "sourceType": "github",
       "skillPath": "skills/storytelling-with-data/SKILL.md",
-      "computedHash": "ca42914316ad44f0539c2eae14bc480cbaee2544fa6d3243c506b8bc6001051e"
+      "computedHash": "f01c32b10fefc34d5132ff57804acf483232570f46ad0b60cbd1c36d1cb78683"
     },
     "typst": {
       "source": "lucifer1004/claude-skill-typst",
       "sourceType": "github",
       "skillPath": "skills/typst/SKILL.md",
-      "computedHash": "74eb5b0481a869a49acad49a71f73d76f32ed80c1f2ca993607ac5348c6ae689"
+      "computedHash": "08cbf1ff981f6fabbc2c4ac08b9cbbb3e8b02f8b259b59a02a0c52311aa927f5"
     },
     "typst-slide": {
       "source": "noi1r/typst-slide",
       "sourceType": "github",
       "skillPath": "SKILL.md",
-      "computedHash": "d3d74b9da591cac5acc4c77ef1d9da1945479d319b3ccf4d6b3b2ac7f43db0a7"
+      "computedHash": "c680db76b6d016e82d0b70258e05bc81d6e14c54ca2f1e85be6b95796e3bb930"
     },
     "typst-touying": {
       "source": "statzhero/typst-touying-skill",
       "sourceType": "github",
       "skillPath": "SKILL.md",
-      "computedHash": "3d6de5e8d31f060c557df86e98eeec96ee39f4149d2447eddb46c68eb9447103"
+      "computedHash": "32560a16bca9b41c711165b242dc250d5c29ee500f625c9f757bc486292d5603"
     },
     "ux-writing": {
       "source": "content-designer/ux-writing-skill",
       "sourceType": "github",
       "skillPath": "SKILL.md",
-      "computedHash": "7a9be24c109c69070451aaa30f75417825cb6b85435c775ad58185c52449cbfc"
+      "computedHash": "6de71e9765142c33f55389eb1f4dd73cd08cb562b24167634878da1b5d2ad91c"
+    },
+    "vitest": {
+      "source": "antfu/skills",
+      "commit": "4a6bb39e7b45e26402eb215393c51ccf5df1ca4c",
+      "sourceType": "github",
+      "skillPath": "skills/vitest/SKILL.md",
+      "computedHash": "bd95e41d66d76da9008893c9bc48c30f0a68f352cd2b00017767f5e4c129501d"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "sourceType": "github",
+      "skillPath": "skills/web-design-guidelines/SKILL.md",
+      "computedHash": "4f68ae07187fb0d1fb78c88b503d089da4cf5a9d9625d1f2e425b1590bf96d92"
+    },
+    "workers-best-practices": {
+      "source": "cloudflare/skills",
+      "commit": "5108325ecceabc899c761e07aa617b09c02445ee",
+      "sourceType": "github",
+      "skillPath": "skills/workers-best-practices/SKILL.md",
+      "computedHash": "7f941bbc549454872a4c7c261bf75a1ef7aaa69666bc85cec91e97cf40c11cc6"
     }
   }
 }
