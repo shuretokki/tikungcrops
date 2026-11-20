@@ -66,7 +66,7 @@ Perubahan arah studi membuat sebagian target proposal disesuaikan. @tabel-target
     table.hline(stroke: 0.6pt),
     [Dashboard pencatatan panen, ternak, dan distribusi bibit], [Situs pemantauan tanam untuk tiga belas desa dengan pembaruan bulanan],
     [Model prediksi hasil panen dengan MAPE di bawah 20%], [Model prakiraan waktu panen dengan galat lebih kecil daripada perkiraan nilai tengah],
-    [Panduan operasional sistem], [Halaman Tentang Data di situs dan dokumentasi kode],
+    [Panduan operasional sistem], [Halaman Perbandingan di situs serta dokumentasi kode],
     [Kanal pelaporan WhatsApp], [Tidak dikerjakan],
     table.hline(stroke: 0.6pt),
   ),

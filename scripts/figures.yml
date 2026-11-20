@@ -26,24 +26,31 @@
   wait_for: document.querySelector('.maplibregl-canvas')
   wait: 4000
 
+# The charts draw in the browser after the page loads, so each waits for its own drawing.
 - <<: *shot
+  url: http://localhost:3017/kalender
   selector: '[data-figure="kalender-tanam"]'
   output: documents/laporan-akhir/gambar/kalender-tanam.png
+  wait_for: document.querySelector('[data-figure="kalender-tanam"] .vis-chart svg rect')
 
 - <<: *shot
+  url: http://localhost:3017/kalender
   selector: '[data-figure="hujan-bulanan"]'
   output: documents/laporan-akhir/gambar/hujan-bulanan.png
+  wait_for: document.querySelector('[data-figure="hujan-bulanan"] .vis-chart svg path')
 
 - <<: *shot
   selector: '[data-figure="cari-desamu"]'
   output: documents/laporan-akhir/gambar/cari-desamu.png
 
 - <<: *shot
-  url: http://localhost:3017/ringkasan
+  url: http://localhost:3017/kalender
   selector: '[data-figure="jadwal-per-desa"]'
   output: documents/laporan-akhir/gambar/jadwal-per-desa.png
+  wait_for: document.querySelector('[data-figure="jadwal-per-desa"] .vis-chart svg rect')
 
 - <<: *shot
-  url: http://localhost:3017/tentang
+  url: http://localhost:3017/perbandingan
   selector: '[data-figure="validasi-bps"]'
   output: documents/laporan-akhir/gambar/validasi-bps.png
+  wait_for: document.querySelector('[data-figure="validasi-bps"] .vis-chart svg path')

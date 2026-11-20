@@ -11,9 +11,9 @@ Bagian ini menyajikan hasil studi tanpa tafsiran. Tafsiran dan perbandingan deng
 
 === Luaran yang Dihasilkan
 
-Studi ini menghasilkan tiga luaran utama. Luaran pertama adalah situs web Tanam Padi Lamongan yang sudah berfungsi dengan empat jenis halaman, yaitu Beranda, Ringkasan, Tentang Data, dan halaman tiap desa. Luaran kedua adalah alur pengolahan data yang berjalan dari pengambilan citra sampai ekspor data per desa. Luaran ketiga adalah data musim tanam untuk tiga belas desa sejak Oktober 2017.
+Studi ini menghasilkan tiga luaran utama. Luaran pertama adalah situs web Tanam Padi Lamongan yang sudah berfungsi dengan empat jenis halaman, yaitu Beranda, Kalender Tanam, Perbandingan, dan halaman tiap desa. Luaran kedua adalah alur pengolahan data yang berjalan dari pengambilan citra sampai ekspor data per desa. Luaran ketiga adalah data musim tanam untuk tiga belas desa sejak Oktober 2017.
 
-Halaman Beranda menampilkan peta tahap tanam, kalender tanam, curah hujan, dan daftar desa. Halaman Ringkasan memuat kondisi sawah, jadwal tanam per desa, perkiraan panen delapan minggu ke depan, serta tabel semua desa. Setiap desa juga memiliki halaman sendiri yang berisi tahap tanam terkini, jadwal musim tanam 1, perkiraan panen, dan peta letak sawah. Adapun halaman Tentang Data menjelaskan sumber data, cara kerja, ketepatan hasil, dan keterbatasan. Situs tersebut belum dipublikasikan.
+Halaman Beranda menampilkan peta tahap tanam, kondisi sawah, perkiraan panen delapan minggu ke depan, dan daftar desa. Halaman Kalender Tanam memuat kalender musim tanam, jadwal tiap desa, curah hujan, dan catatan penggunaan data. Halaman Perbandingan mengurutkan desa di Tikung dan kecamatan di Lamongan menurut luas sawah, kali tanam, dan sawah yang sedang hijau. Setiap desa juga memiliki halaman sendiri yang berisi tahap tanam terkini, jadwal musim tanam 1, perkiraan panen, dan peta letak sawah. Halaman Perbandingan juga memuat ketepatan hasil terhadap data BPS. Situs tersebut belum dipublikasikan.
 
 #figure(
   bingkai-browser(image("gambar/peta-beranda.png"), width: 70%),
@@ -76,7 +76,7 @@ Sawah di Kecamatan Tikung tercatat ditanami 2,02 sampai 2,85 kali per tahun pada
 
 #figure(
   bingkai-browser(image("gambar/validasi-bps.png")),
-  caption: [Ringkasan validasi dan sebaran luas padi per desa tahun 2021 pada halaman Tentang Data],
+  caption: [Ringkasan validasi dan sebaran luas padi per desa tahun 2021 pada halaman Perbandingan],
 ) <gambar-validasi>
 
 Waktu panen satelit juga dibandingkan dengan luas panen bulanan Kabupaten Lamongan dari Survei Kerangka Sampel Area. Porsi panen pada Januari sampai Mei hanya berselisih 0,01 sampai 0,08 dari data resmi pada 2020 sampai 2023. Meskipun demikian, korelasi porsi bulanan turun dari 0,61 pada 2020 menjadi 0,05 pada 2023. Data resmi mencatat 20 sampai 29% panen tahunan pada Maret, sedangkan satelit hanya mencatat 1 sampai 11% pada Maret 2021 sampai 2023.
