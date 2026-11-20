@@ -21,13 +21,19 @@ trained only on seasons harvested before it, and the forecasts are compared with
 harvest the full series later detected for the same season (undetected harvests are left
 out rather than matched to the next season).
 
-Outputs: data/gold/sentinel/<aoi>_outlook_cells.parquet (per forecast cell) and
-<aoi>_outlook_weekly.parquet (unit, week start, expected ha, cells).
+Ranges: when `<aoi>_calibration.json` exists (written by `scripts/calibrate_forecast.py` from the
+replay), each cell range is the point forecast plus the calibrated offsets, and a desa summary is
+written with the median forecast date of its cells.
+
+Outputs: data/gold/sentinel/<aoi>_outlook_cells.parquet (per forecast cell),
+<aoi>_outlook_weekly.parquet (unit, week start, expected ha, cells) and
+<aoi>_outlook_desa.parquet (unit, forecast kind, cells, median forecast date and range).
 Usage: `python -m jotosanur_agri.pipeline.harvest_outlook [AOI] [--backtest DATE ...]`.
 """
 
 from __future__ import annotations
 
+import json
 import sys
 from datetime import date, timedelta
 from pathlib import Path
@@ -48,6 +54,12 @@ ANCHOR = {
 }
 PEAK_MATCH_DAYS = 30
 MAX_ISSUE_AGE_DAYS = 30
+# A peak older than this with still no harvest was usually a false or stale peak.
+# In 53 replay dates (2023 to 2026) such cells were forecast 14 days too early on average and
+# their mean error was 15 days against 9 to 12 days for younger peaks.
+MAX_PEAK_AGE_DAYS = 30
+# A desa summary needs enough cells for its median to mean something.
+MIN_DESA_CELLS = 10
 
 
 def forecast_rows(
@@ -83,6 +95,7 @@ def forecast_rows(
         "peak": base.filter(
             pl.col("stage") == "peaked",
             pl.col("peak_date").is_not_null(),
+            (pl.col("as_of") - pl.col("peak_date")).dt.total_days() <= MAX_PEAK_AGE_DAYS,
         ),
     }
 
@@ -136,6 +149,60 @@ def predict(
             .drop(*(f"{name}_days" for name in predicted))
         )
     return pl.concat(out) if out else pl.DataFrame()
+
+
+def load_calibration(path: Path) -> dict[str, Any]:
+    """Read the range offsets written by `scripts/calibrate_forecast.py`, or an empty dict when there is none."""
+    return json.loads(path.read_text()) if path.exists() else {}
+
+
+def apply_calibration(per_cell: pl.DataFrame, calibration: dict[str, Any]) -> pl.DataFrame:
+    """Replace each cell's harvest range with the point forecast plus the calibrated offsets.
+
+    The offsets are the 10 % and 90 % quantiles of actual minus forecast days found by replaying the
+    outlook, so the range covers the harvest about 80 % of the time instead of the 59 to 77 % that the
+    model's own range reached in real time. A forecast kind without offsets keeps its model range.
+    """
+    offsets = calibration.get("cell", {})
+    if per_cell.is_empty() or not offsets:
+        return per_cell
+    low = pl.col("harvest_low")
+    high = pl.col("harvest_high")
+    for kind, o in offsets.items():
+        is_kind = pl.col("forecast") == kind
+        low = pl.when(is_kind).then(pl.col("harvest") + pl.duration(days=int(o["low"]))).otherwise(low)
+        high = pl.when(is_kind).then(pl.col("harvest") + pl.duration(days=int(o["high"]))).otherwise(high)
+    return per_cell.with_columns(low.alias("harvest_low"), high.alias("harvest_high"))
+
+
+def desa_summary(per_cell: pl.DataFrame, calibration: dict[str, Any]) -> pl.DataFrame:
+    """One row per unit and forecast kind with the median forecast harvest date of its cells.
+
+    The median of a desa's cells was closer to the harvest the satellite later found than a single cell
+    (replay of 53 dates: 12.5 against 16.5 days for the peak forecast and 21.5 against 27.7 days for the
+    planting forecast in the 12-day radar era). Its range uses desa-level offsets when they exist.
+    """
+    if per_cell.is_empty():
+        return pl.DataFrame(schema={"unit": pl.String, "forecast": pl.String, "cells": pl.UInt32})
+    offsets = calibration.get("desa", {})
+    summary = (
+        per_cell.group_by("unit", "forecast")
+        .agg(
+            pl.len().alias("cells"),
+            pl.col("w").sum().alias("expected_ha"),
+            pl.col("harvest").cast(pl.Int32).median().round().cast(pl.Int32).alias("harvest_day"),
+        )
+        .filter(pl.col("cells") >= MIN_DESA_CELLS)
+        .with_columns(pl.col("harvest_day").cast(pl.Date).alias("harvest"))
+        .drop("harvest_day")
+    )
+    low = pl.col("harvest")
+    high = pl.col("harvest")
+    for kind, o in offsets.items():
+        is_kind = pl.col("forecast") == kind
+        low = pl.when(is_kind).then(pl.col("harvest") + pl.duration(days=int(o["low"]))).otherwise(low)
+        high = pl.when(is_kind).then(pl.col("harvest") + pl.duration(days=int(o["high"]))).otherwise(high)
+    return summary.with_columns(low.alias("harvest_low"), high.alias("harvest_high")).sort("unit", "forecast")
 
 
 def weekly(cells: pl.DataFrame) -> pl.DataFrame:
@@ -253,8 +320,13 @@ def run_outlook(
         forecast_rows(current, rain),
         units,
     )
+    calibration = load_calibration(gold_dir / f"{slug}_calibration.json")
+    desa = desa_summary(per_cell, calibration)
+    per_cell = apply_calibration(per_cell, calibration)
     week = weekly(per_cell) if not per_cell.is_empty() else pl.DataFrame()
     return {
+        "calibrated": bool(calibration),
+        "desa_path": save(desa, gold_dir / f"{slug}_outlook_desa.parquet"),
         "aoi": slug,
         "as_of": str(current["as_of"].max()),
         "cells_forecast": dict(
@@ -295,6 +367,124 @@ def _mean(
     )
 
 
+def _replay(
+    day: date,
+    silver: pl.DataFrame,
+    full: pl.DataFrame,
+    cells: pl.DataFrame,
+    rain: pl.DataFrame,
+    s1_dates: list[date],
+    units: list[str],
+) -> pl.DataFrame:
+    """Forecast as issued on `day` from the series cut at that day, joined with the harvest found later."""
+    past, current = build_gold(
+        silver.filter(pl.col("date") <= day),
+        [d for d in s1_dates if d <= day],
+    )
+    train = training_table(
+        past.join(
+            cells,
+            on="cell_id",
+            how="left",
+        ),
+        rain,
+    ).filter(
+        pl.col("harvest_date") <= day,
+    )
+    per_cell = predict(
+        train,
+        forecast_rows(
+            current.join(
+                cells,
+                on="cell_id",
+                how="left",
+            ),
+            rain,
+        ),
+        units,
+    )
+    # the harvest of the same season in the full series, the season whose peak
+    # matches or the first peak after the issue date.
+    # Undetected harvests stay null rather than borrowing the next season's.
+    later = full.filter(
+        pl.col("peak_date") >= day - timedelta(days=PEAK_MATCH_DAYS),
+    ).sort("peak_date")
+    first_after = (
+        later.group_by("cell_id")
+        .first()
+        .select(
+            "cell_id",
+            pl.col("harvest_date").alias(
+                "next_harvest",
+            ),
+        )
+    )
+    same_peak = (
+        per_cell.filter(pl.col("forecast") == "peak")
+        .select(
+            "cell_id",
+            "anchor_date",
+        )
+        .join(
+            full.select(
+                "cell_id",
+                "peak_date",
+                "harvest_date",
+            ),
+            on="cell_id",
+        )
+        .filter(
+            (
+                pl.col("peak_date")
+                - pl.col(
+                    "anchor_date",
+                )
+            )
+            .dt.total_days()
+            .abs()
+            <= PEAK_MATCH_DAYS,
+        )
+        .group_by("cell_id")
+        .first()
+        .select("cell_id", pl.col("harvest_date").alias("peak_harvest"))
+    )
+    scored = (
+        per_cell.join(
+            first_after,
+            on="cell_id",
+            how="left",
+        )
+        .join(
+            same_peak,
+            on="cell_id",
+            how="left",
+        )
+        .with_columns(
+            pl.when(pl.col("forecast") == "peak")
+            .then(pl.col("peak_harvest"))
+            .otherwise(pl.col("next_harvest"))
+            .alias("actual")
+        )
+    ).with_columns(
+        (
+            pl.col("harvest")
+            - pl.col(
+                "actual",
+            )
+        )
+        .dt.total_days()
+        .abs()
+        .alias("err"),
+        pl.col("actual")
+        .is_between(
+            "harvest_low",
+            "harvest_high",
+        )
+        .alias("inside"),
+    )
+    return scored
+
+
 def backtest(
     aoi_spec: str,
     as_of: list[date],
@@ -317,111 +507,7 @@ def backtest(
     units = sorted(cells["unit"].unique().to_list())
     rows = []
     for day in as_of:
-        past, current = build_gold(
-            silver.filter(pl.col("date") <= day),
-            [d for d in s1_dates if d <= day],
-        )
-        train = training_table(
-            past.join(
-                cells,
-                on="cell_id",
-                how="left",
-            ),
-            rain,
-        ).filter(
-            pl.col("harvest_date") <= day,
-        )
-        per_cell = predict(
-            train,
-            forecast_rows(
-                current.join(
-                    cells,
-                    on="cell_id",
-                    how="left",
-                ),
-                rain,
-            ),
-            units,
-        )
-        # the harvest of the same season in the full series, the season whose peak
-        # matches or the first peak after the issue date.
-        # Undetected harvests stay null rather than borrowing the next season's.
-        later = full.filter(
-            pl.col("peak_date") >= day - timedelta(days=PEAK_MATCH_DAYS),
-        ).sort("peak_date")
-        first_after = (
-            later.group_by("cell_id")
-            .first()
-            .select(
-                "cell_id",
-                pl.col("harvest_date").alias(
-                    "next_harvest",
-                ),
-            )
-        )
-        same_peak = (
-            per_cell.filter(pl.col("forecast") == "peak")
-            .select(
-                "cell_id",
-                "anchor_date",
-            )
-            .join(
-                full.select(
-                    "cell_id",
-                    "peak_date",
-                    "harvest_date",
-                ),
-                on="cell_id",
-            )
-            .filter(
-                (
-                    pl.col("peak_date")
-                    - pl.col(
-                        "anchor_date",
-                    )
-                )
-                .dt.total_days()
-                .abs()
-                <= PEAK_MATCH_DAYS,
-            )
-            .group_by("cell_id")
-            .first()
-            .select("cell_id", pl.col("harvest_date").alias("peak_harvest"))
-        )
-        scored = (
-            per_cell.join(
-                first_after,
-                on="cell_id",
-                how="left",
-            )
-            .join(
-                same_peak,
-                on="cell_id",
-                how="left",
-            )
-            .with_columns(
-                pl.when(pl.col("forecast") == "peak")
-                .then(pl.col("peak_harvest"))
-                .otherwise(pl.col("next_harvest"))
-                .alias("actual")
-            )
-        ).with_columns(
-            (
-                pl.col("harvest")
-                - pl.col(
-                    "actual",
-                )
-            )
-            .dt.total_days()
-            .abs()
-            .alias("err"),
-            pl.col("actual")
-            .is_between(
-                "harvest_low",
-                "harvest_high",
-            )
-            .alias("inside"),
-        )
+        scored = _replay(day, silver, full, cells, rain, s1_dates, units)
         for (forecast,), g in scored.group_by("forecast"):
             found = g.filter(
                 pl.col("actual").is_not_null(),
@@ -471,6 +557,28 @@ def backtest(
                 }
             )
     return pl.DataFrame(rows)
+
+
+def backtest_cells(
+    aoi_spec: str,
+    as_of: list[date],
+    data_dir: str | Path = "data",
+) -> pl.DataFrame:
+    """Replay the outlook on past dates and return one scored row per forecast cell.
+
+    The columns are those of `predict` plus `actual` (the harvest the full series found for the
+    same season, null when none), `err` (absolute days) and `inside` (actual within the range).
+    """
+    data = Path(data_dir)
+    slug = resolve(aoi_spec).slug
+    cells, rain, s1_dates = _inputs(data, slug)
+    silver = pl.read_parquet(data / "silver" / "sentinel" / f"{slug}.parquet")
+    full = pl.read_parquet(data / "gold" / "sentinel" / f"{slug}_seasons.parquet").drop(
+        "unit", "paddy_frac", strict=False
+    )
+    units = sorted(cells["unit"].unique().to_list())
+    frames = [_replay(day, silver, full, cells, rain, s1_dates, units) for day in as_of]
+    return pl.concat([f for f in frames if not f.is_empty()], how="diagonal_relaxed")
 
 
 if __name__ == "__main__":

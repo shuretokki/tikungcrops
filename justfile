@@ -85,6 +85,12 @@ gold aoi=aoi:
 outlook aoi=aoi:
     {{ py }}.pipeline.harvest_outlook "{{ aoi }}"
 
+# Replay the outlook on past dates (several minutes), then fit its range offsets for `just outlook`
+[group("pipeline")]
+calibrate first="2025-06-01" last="2026-08-15" step="14":
+    uv run python scripts/backtest_forecast.py {{ first }} {{ last }} {{ step }}
+    uv run python scripts/calibrate_forecast.py
+
 # Compare season areas with the area's reference statistics (data/reference/<aoi>/), if any
 [group("pipeline")]
 validate aoi=aoi:

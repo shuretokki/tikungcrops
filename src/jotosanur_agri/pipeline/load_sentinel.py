@@ -345,7 +345,7 @@ def _mosaic(
             break
         if not _overlaps(item, block.bounds):
             continue
-        resampling = Resampling.nearest if first == "scl" else Resampling.bilinear
+        resampling = Resampling.nearest if first in ("scl", "qa_pixel") else Resampling.bilinear
         base = read_to_grid(href(item, first), block.grid, resampling)
         take = need & np.isfinite(base)
         if not take.any():

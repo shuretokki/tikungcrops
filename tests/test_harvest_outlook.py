@@ -10,7 +10,15 @@ from datetime import date, timedelta
 import polars as pl
 
 from jotosanur_agri.pipeline.forecast_harvest import ISSUE_AFTER_GREENUP_DAYS
-from jotosanur_agri.pipeline.harvest_outlook import MAX_ISSUE_AGE_DAYS, forecast_rows, weekly
+from jotosanur_agri.pipeline.harvest_outlook import (
+    MAX_ISSUE_AGE_DAYS,
+    MAX_PEAK_AGE_DAYS,
+    MIN_DESA_CELLS,
+    apply_calibration,
+    desa_summary,
+    forecast_rows,
+    weekly,
+)
 
 AS_OF = date(2026, 1, 15)
 
@@ -80,7 +88,7 @@ def test_planting_needs_a_flood_date_and_the_planted_stage() -> None:
     assert rows["planting"]["cell_id"].to_list() == [3]
 
 
-def test_peak_forecast_takes_peaked_cells_with_a_peak_date_at_any_age() -> None:
+def test_peak_forecast_takes_peaked_cells_with_a_recent_peak_date() -> None:
     cells = [
         {"cell_id": 1, "stage": "peaked", "peak_date": date(2026, 1, 5), "greenup_date": greenup(90)},
         {"cell_id": 2, "stage": "peaked", "peak_date": None, "greenup_date": greenup(90)},
@@ -88,6 +96,24 @@ def test_peak_forecast_takes_peaked_cells_with_a_peak_date_at_any_age() -> None:
     rows = forecast_rows(current(cells), RAIN)
     assert rows["peak"]["cell_id"].to_list() == [1]
     assert rows["planting"].is_empty()
+
+
+def test_peak_forecast_drops_a_peak_older_than_the_cap() -> None:
+    cells = [
+        {
+            "cell_id": 1,
+            "stage": "peaked",
+            "peak_date": AS_OF - timedelta(days=MAX_PEAK_AGE_DAYS),
+            "greenup_date": greenup(90),
+        },
+        {
+            "cell_id": 2,
+            "stage": "peaked",
+            "peak_date": AS_OF - timedelta(days=MAX_PEAK_AGE_DAYS + 1),
+            "greenup_date": greenup(90),
+        },
+    ]
+    assert forecast_rows(current(cells), RAIN)["peak"]["cell_id"].to_list() == [1]
 
 
 def test_rain_comes_from_the_month_of_flooding() -> None:
@@ -136,3 +162,42 @@ def test_units_stay_apart_and_cells_in_one_week_add_up() -> None:
         {"unit": "A", "expected_ha": 4.0, "cells": 2},
         {"unit": "B", "expected_ha": 4.0, "cells": 1},
     ]
+
+
+def forecast_cells(n: int, kind: str = "planting", harvest: date = date(2026, 3, 1)) -> pl.DataFrame:
+    return pl.DataFrame(
+        {
+            "cell_id": list(range(n)),
+            "unit": ["A"] * n,
+            "forecast": [kind] * n,
+            "w": [1.0] * n,
+            "harvest": [harvest + timedelta(days=i) for i in range(n)],
+            "harvest_low": [harvest + timedelta(days=i - 5) for i in range(n)],
+            "harvest_high": [harvest + timedelta(days=i + 5) for i in range(n)],
+        }
+    )
+
+
+def test_calibration_replaces_the_range_of_the_kind_it_names() -> None:
+    cells = pl.concat([forecast_cells(2, "planting"), forecast_cells(2, "peak").with_columns(pl.col("cell_id") + 10)])
+    out = apply_calibration(cells, {"cell": {"planting": {"low": -25, "high": 30}}})
+    planting = out.filter(pl.col("forecast") == "planting").row(0, named=True)
+    assert planting["harvest_low"] == planting["harvest"] - timedelta(days=25)
+    assert planting["harvest_high"] == planting["harvest"] + timedelta(days=30)
+    assert out.filter(pl.col("forecast") == "peak").equals(cells.filter(pl.col("forecast") == "peak"))
+
+
+def test_no_calibration_keeps_the_model_range() -> None:
+    cells = forecast_cells(3)
+    assert apply_calibration(cells, {}).equals(cells)
+
+
+def test_a_desa_summary_is_the_median_cell_and_needs_enough_cells() -> None:
+    few = forecast_cells(MIN_DESA_CELLS - 1)
+    assert desa_summary(few, {}).is_empty()
+    enough = forecast_cells(MIN_DESA_CELLS + 1)
+    row = desa_summary(enough, {"desa": {"planting": {"low": -10, "high": 20}}}).row(0, named=True)
+    assert row["harvest"] == date(2026, 3, 1) + timedelta(days=(MIN_DESA_CELLS) // 2)
+    assert row["harvest_low"] == row["harvest"] - timedelta(days=10)
+    assert row["harvest_high"] == row["harvest"] + timedelta(days=20)
+    assert row["cells"] == MIN_DESA_CELLS + 1
