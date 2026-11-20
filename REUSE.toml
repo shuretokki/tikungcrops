@@ -47,3 +47,9 @@ path = [
 precedence = "override"
 SPDX-FileCopyrightText = "2025 Nuxt UI Templates"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["site/public/images/sawah-ngimbang.jpg", "site/public/images/sawah-lamongan.jpg"]
+precedence = "override"
+SPDX-FileCopyrightText = "Indonesiagood, via Wikimedia Commons (File:Area Pesawahan di Lamongan-1.jpg and -2.jpg)"
+SPDX-License-Identifier = "CC-BY-4.0"

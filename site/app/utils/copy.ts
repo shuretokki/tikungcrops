@@ -27,7 +27,9 @@ export const COPY = {
         { label: 'Batas desa', file: 'boundaries.geojson' }
       ]
     },
-    updated: (generated: string, asOf: string) => `Diperbarui pada ${generated}. Citra satelit terakhir tanggal ${asOf}.`,
+    updated: (generated: string, asOf: string) => `Diperbarui pada ${generated}. Data per ${asOf}.`,
+    asOf: (date: string) => `Per ${date}`,
+    photo: { prefix: 'Foto:', license: 'CC BY 4.0, melalui Wikimedia Commons' },
     footer: {
       pages: 'Halaman',
       data: 'Unduh Data',
@@ -113,8 +115,7 @@ export const COPY = {
     stats: {
       paddy: 'Luas Sawah',
       units: 'Jumlah Desa',
-      season: 'Awal Musim Tanam 1',
-      asOf: 'Tanggal Acuan'
+      season: 'Awal Musim Tanam 1'
     },
     tableToggle: 'Tampilkan Tabel',
     mapLoading: 'Memuat peta…',
@@ -124,8 +125,13 @@ export const COPY = {
     snapshot: {
       eyebrow: 'Ringkasan Singkat',
       title: 'Kondisi Kecamatan Tikung',
-      reference: (date: string) => `Tanggal acuan: ${date}`,
-      ago: (n: number) => `${n} hari yang lalu`,
+      labels: {
+        seasonOutside: 'awal tanam berikutnya',
+        seasonDuring: 'dari musim tanam 1',
+        fallow: 'bera dari sawah yang terbaca',
+        rainPct: 'dibanding rata-rata 5 tahun',
+        rainMm: (base: string) => `rata-rata 5 tahun ${base} mm`
+      },
       season: {
         outside: 'Saat ini di luar musim tanam 1',
         during: (pct: string) => `Musim tanam 1 berada pada ${pct} dari rentang biasanya`,
@@ -213,7 +219,9 @@ export const COPY = {
       title: 'Perkiraan Panen 8 Minggu ke Depan',
       body: 'Desa dengan perkiraan panen paling awal berada di urutan teratas.',
       row: (week: string, ha: string) => `Panen terbanyak minggu ${week}, total sekitar ${ha}`,
-      empty: (month: string) => `Belum terdapat panen besar dalam 8 minggu ke depan. Panen musim berikutnya umumnya mencapai puncak pada bulan ${month}.`
+      empty: (month: string) => `Belum terdapat panen besar dalam 8 minggu ke depan. Panen musim berikutnya umumnya mencapai puncak pada bulan ${month}.`,
+      emptyTitle: 'Belum ada panen besar dalam 8 minggu ke depan',
+      emptyBody: (month: string) => `Panen musim berikutnya umumnya mencapai puncak pada bulan ${month}.`
     },
 
     desa: {
@@ -234,6 +242,12 @@ export const COPY = {
   },
 
   kalender: {
+    map: {
+      label: 'Peta desa di Kecamatan Tikung menurut waktu puncak tanam',
+      hint: 'Arahkan kursor ke desa untuk melihat tanggal puncak tanam.',
+      early: 'Lebih awal',
+      late: 'Lebih akhir'
+    },
     seoTitle: 'Jadwal Tanam dan Panen Desa - Kalender Tanam Padi',
     title: 'Kalender Tanam',
     description: 'Jadwal tanam dan panen setiap desa di Kecamatan Tikung, disertai curah hujan dan catatan penggunaan data.',
@@ -253,6 +267,12 @@ export const COPY = {
     title: 'Perbandingan Wilayah',
     description: 'Peringkat desa dan kecamatan menurut luas sawah, frekuensi tanam padi, dan lahan sawah yang sedang hijau.',
     levels: { desa: 'Desa di Kecamatan Tikung', kecamatan: 'Kecamatan di Kabupaten Lamongan' },
+    map: {
+      label: (level: string, metric: string) => `Peta ${level} menurut ${metric}`,
+      hint: 'Arahkan kursor ke wilayah untuk melihat nilainya.',
+      low: 'Lebih rendah',
+      high: 'Lebih tinggi'
+    },
     metricLabel: 'Dibandingkan berdasarkan',
     metrics: {
       sawah: {

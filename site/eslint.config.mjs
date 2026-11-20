@@ -20,5 +20,12 @@ export default withNuxt(
         ]
       }
     }
+  },
+  {
+    // The map regions are focusable and labelled, and their hover and focus handlers only show a readout line.
+    // The ranking list on the same page is the full keyboard path.
+    // To undo, delete this block and give each region a real link.
+    files: ['app/components/OutlineMap.vue'],
+    rules: { 'vuejs-accessibility/no-static-element-interactions': 'off' }
   }
 )

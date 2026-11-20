@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AREAS, useAreaFile, type CurrentRow, type IntensityRow, type Meta } from '~/composables/useArea'
+import { AREAS, useAreaFile, useAreaOutlines, type CurrentRow, type IntensityRow, type Meta } from '~/composables/useArea'
 
 type Level = 'desa' | 'kecamatan'
 type Metric = 'sawah' | 'intensitas' | 'tumbuh'
@@ -63,7 +63,10 @@ const entries = computed<Entry[]>(() => {
   return growingShare(d.current.value ?? [])
 })
 
+const outlines = { desa: (await useAreaOutlines(AREAS.tikung)).data, kecamatan: (await useAreaOutlines(AREAS.lamongan)).data }
+
 const ranked = computed(() => rank(entries.value))
+const values = computed(() => Object.fromEntries(ranked.value.map(e => [e.unit, e.value])))
 const top = computed(() => Math.max(1e-9, ...ranked.value.map(e => e.value)))
 
 const rows = computed(() => ranked.value.map((e, i) => ({
@@ -100,17 +103,14 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
 
 <template>
   <div>
-    <section class="tile flex flex-col gap-4 pb-12 sm:pb-16">
-      <h1 class="max-w-3xl text-4xl/[1.07] font-semibold text-balance sm:text-5xl/[1.07]">
-        {{ t.title }}
-      </h1>
-      <p class="max-w-2xl text-lg text-muted">
-        {{ t.description }}
-      </p>
-    </section>
-
-    <section class="tile tile-parchment flex flex-col gap-12">
-      <div class="tile-box flex flex-col gap-12">
+    <section class="tile grid items-center gap-10 lg:grid-cols-[1fr_1fr]">
+      <div class="flex flex-col gap-6">
+        <h1 class="text-4xl/[1.07] font-semibold text-balance sm:text-5xl/[1.07] lg:text-[3.5rem]/[1.07]">
+          {{ t.title }}
+        </h1>
+        <p class="max-w-xl text-lg text-muted">
+          {{ t.description }}
+        </p>
         <div class="flex flex-col gap-4">
           <UTabs
             v-model="level"
@@ -132,23 +132,32 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
             />
           </div>
         </div>
+        <p
+          v-if="tikung"
+          class="text-2xl/[1.2] font-semibold text-balance text-(--ui-primary)"
+        >
+          {{ t.tikungRank(tikung.place, rows.length) }}
+        </p>
+      </div>
+      <HeroPhoto
+        src="/images/sawah-lamongan.jpg"
+        alt="Hamparan sawah di Kabupaten Lamongan"
+        author="Indonesiagood"
+        source="https://commons.wikimedia.org/wiki/File:Area_Pesawahan_di_Lamongan-2.jpg"
+      />
+    </section>
 
+    <section class="tile tile-parchment flex flex-col gap-10">
+      <header class="flex max-w-2xl flex-col gap-3">
+        <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.5rem]/[1.1] text-balance">
+          {{ heading }}
+        </h2>
+        <p class="text-muted">
+          {{ t.metrics[metric].body }}
+        </p>
+      </header>
+      <div class="tile-box grid gap-10 lg:grid-cols-[3fr_2fr]">
         <div class="flex flex-col gap-8">
-          <header class="flex max-w-2xl flex-col gap-3">
-            <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
-              {{ heading }}
-            </h2>
-            <p class="text-muted">
-              {{ t.metrics[metric].body }}
-            </p>
-            <p
-              v-if="tikung"
-              class="font-semibold text-(--ui-primary)"
-            >
-              {{ t.tikungRank(tikung.place, rows.length) }}
-            </p>
-          </header>
-
           <ol
             v-if="rows.length"
             class="flex flex-col gap-2"
@@ -196,6 +205,17 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
             class="max-w-2xl"
           />
         </div>
+        <OutlineMap
+          :outlines="outlines[level].value"
+          :values="values"
+          :format="v => t.metrics[metric].value(v)"
+          :highlight="level === 'kecamatan' ? 'Tikung' : undefined"
+          :min-label="t.map.low"
+          :max-label="t.map.high"
+          :hint="t.map.hint"
+          :label="t.map.label(t.levels[level], t.metrics[metric].label)"
+          class="self-start lg:sticky lg:top-24"
+        />
       </div>
     </section>
 
@@ -206,7 +226,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
       class="tile grid scroll-mt-20 gap-12 lg:grid-cols-[2fr_3fr]"
     >
       <div class="flex flex-col gap-4">
-        <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
+        <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.5rem]/[1.1] text-balance">
           {{ t.accuracy.title }}
         </h2>
         <p>{{ t.accuracy.body(years.join(' dan '), checkedUnits) }}</p>

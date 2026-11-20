@@ -88,19 +88,21 @@ const stats = computed(() => [
 ])
 
 // Three headlines in the shape of a FAO GIEWS country brief: season, land, rain.
+// Each has one large figure, so the tile reads at a glance.
 const snapshot = computed(() => {
   const s = t.snapshot
-  const items: { key: 'season' | 'fallow' | 'rain', title: string, body: string }[] = []
+  const items: { key: 'season' | 'fallow' | 'rain', value: string, valueLabel: string, title: string, body: string }[] = []
   if (main.value) {
     items.push(progress.value === null
-      ? { key: 'season', title: s.season.outside, body: s.season.outsideBody(monthName(main.value.start)) }
-      : { key: 'season', title: s.season.during(pct(progress.value)), body: s.season.duringBody(monthName(main.value.end)) })
+      ? { key: 'season', value: monthName(main.value.start, 'short'), valueLabel: s.labels.seasonOutside, title: s.season.outside, body: s.season.outsideBody(monthName(main.value.start)) }
+      : { key: 'season', value: pct(progress.value), valueLabel: s.labels.seasonDuring, title: s.season.during(pct(progress.value)), body: s.season.duringBody(monthName(main.value.end)) })
   }
   // Cloud-hidden land is left out of the share, because a cloudy wet season would otherwise look greener or barer than it is.
   const hidden = stages.value.unknown
   const readable = stageSum.value - hidden
   if (readable > 0) {
-    items.push({ key: 'fallow', title: s.fallow.title(pct(stages.value.fallow / readable)), body: s.fallow.body(formatHa(stages.value.fallow), formatHa(readable), formatHa(hidden)) })
+    const share = pct(stages.value.fallow / readable)
+    items.push({ key: 'fallow', value: share, valueLabel: s.labels.fallow, title: s.fallow.title(share), body: s.fallow.body(formatHa(stages.value.fallow), formatHa(readable), formatHa(hidden)) })
   }
   const last = rainMonths.value?.at(-1)
   if (last) {
@@ -109,16 +111,18 @@ const snapshot = computed(() => {
     const p = signedPercent(v.pct).replace('+', '')
     const word = v.kind === 'wetter' ? s.rain.wetter(p) : v.kind === 'drier' ? s.rain.drier(p) : s.rain[v.kind]
     const month = new Date(Date.UTC(last.year, last.month - 1, 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' })
-    items.push({ key: 'rain', title: s.rain.title(month, word), body: s.rain.body(Math.round(last.mm).toLocaleString('id-ID'), Math.round(base).toLocaleString('id-ID')) })
+    const mm = Math.round(last.mm).toLocaleString('id-ID')
+    const baseText = Math.round(base).toLocaleString('id-ID')
+    const hasPct = v.kind === 'wetter' || v.kind === 'drier'
+    items.push({
+      key: 'rain',
+      value: hasPct ? `${v.kind === 'drier' ? '-' : '+'}${p}` : `${mm} mm`,
+      valueLabel: hasPct ? s.labels.rainPct : s.labels.rainMm(baseText),
+      title: s.rain.title(month, word),
+      body: s.rain.body(mm, baseText)
+    })
   }
   return items
-})
-
-// The age is read in the browser, because the page is built once and the date of the visit is not known then.
-const STALE_DAYS = 35
-const age = ref<number | null>(null)
-onMounted(() => {
-  if (meta.value?.as_of) age.value = Math.floor((Date.now() - new Date(meta.value.as_of).getTime()) / 86_400_000)
 })
 
 definePageMeta({ layout: 'tiles' })
@@ -191,36 +195,39 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
     </section>
 
     <section
-      class="tile tile-parchment grid gap-10 lg:grid-cols-[2fr_3fr]"
+      class="tile tile-parchment grid gap-10 lg:grid-cols-[1fr_2fr]"
       data-figure="ringkasan-singkat"
     >
-      <header class="flex flex-col gap-3">
+      <header class="flex flex-col gap-5">
         <p class="text-sm font-semibold text-(--ui-primary)">
           {{ t.snapshot.eyebrow }}
         </p>
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.1] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.snapshot.title }}
         </h2>
-        <p class="text-muted">
-          {{ t.snapshot.reference(formatDate(meta?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })) }}
-          <span
-            v-if="age !== null && age > 0"
-            :class="age > STALE_DAYS ? 'text-(--ui-warning)' : ''"
-          >({{ t.snapshot.ago(age) }})</span>
-        </p>
+        <DateStamp
+          :date="formatDate(meta?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })"
+        />
       </header>
-      <ol class="tile-box flex flex-col gap-12">
+      <ol class="tile-box flex flex-col gap-14">
         <li
-          v-for="(item, i) in snapshot"
+          v-for="item in snapshot"
           :key="item.key"
-          class="grid grid-cols-[2.5rem_1fr] items-start gap-4"
+          class="grid items-start gap-x-10 gap-y-4 sm:grid-cols-[13rem_1fr]"
         >
-          <span class="flex size-10 items-center justify-center rounded-full bg-(--ui-primary) font-semibold text-(--ui-on-primary) tabular-nums">{{ i + 1 }}</span>
+          <div class="flex flex-col gap-2">
+            <p class="text-6xl/none font-bold tracking-tight text-(--ui-primary) tabular-nums sm:text-7xl/none">
+              {{ item.value }}
+            </p>
+            <p class="text-sm text-muted">
+              {{ item.valueLabel }}
+            </p>
+          </div>
           <div class="flex min-w-0 flex-col gap-3">
-            <p class="text-xl/[1.3] font-semibold text-balance">
+            <p class="text-2xl/[1.25] font-semibold text-balance">
               {{ item.title }}
             </p>
-            <p class="text-muted">
+            <p class="text-lg text-muted">
               {{ item.body }}
             </p>
             <UProgress
@@ -253,7 +260,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
             <p class="text-7xl/none font-bold tracking-tight text-(--ui-primary) sm:text-8xl/none">
               {{ t.pride.rank }}
             </p>
-            <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
+            <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.5rem]/[1.1] text-balance">
               {{ t.pride.title }}
             </h2>
             <p class="opacity-90">
@@ -309,7 +316,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
 
     <section class="tile tile-parchment flex flex-col gap-8">
       <header class="flex max-w-2xl flex-col gap-2">
-        <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
+        <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.5rem]/[1.1] text-balance">
           {{ t.harvest.title }}
         </h2>
         <p
@@ -343,16 +350,21 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
             </NuxtLink>
           </li>
         </ul>
-        <p
+        <div
           v-else
-          class="flex items-center gap-3 rounded-md bg-muted p-4 text-sm"
+          class="flex flex-col items-start gap-5 py-10"
         >
           <UIcon
             name="i-lucide-calendar-clock"
-            class="size-5 shrink-0 text-(--ui-primary)"
+            class="size-14 text-(--ui-primary)"
           />
-          {{ t.harvest.empty(main ? monthName(main.harvest) : '-') }}
-        </p>
+          <p class="text-3xl/[1.2] font-semibold text-balance sm:text-4xl/[1.15]">
+            {{ t.harvest.emptyTitle }}
+          </p>
+          <p class="text-xl text-muted">
+            {{ t.harvest.emptyBody(main ? monthName(main.harvest) : '-') }}
+          </p>
+        </div>
       </div>
     </section>
 
@@ -363,7 +375,7 @@ useSeoMeta({ title: t.seoTitle, description: () => t.description(units.value.len
     >
       <header class="flex flex-wrap items-end justify-between gap-4">
         <div class="flex flex-col gap-2">
-          <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15]">
+          <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.5rem]/[1.1]">
             {{ t.desa.title }}
           </h2>
           <p class="text-muted">

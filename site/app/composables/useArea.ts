@@ -3,6 +3,8 @@
 
 // Areas the site shows, and loaders for the JSON that `just web` exports per area, copied to public/json.
 
+import type { FeatureCollection } from 'geojson'
+
 export interface Area {
   slug: string
   name: string
@@ -63,6 +65,14 @@ export function useAreaSeasons(area: Area) {
   return useAsyncData(`${area.slug}/seasons.slim`, async () => {
     const rows = await $fetch<SeasonRow[]>(`/api/area/${area.slug}/seasons.json`).catch(() => null)
     return rows ? slimSeasons(rows) : null
+  })
+}
+
+// The outlines are SVG paths in one shared frame, which is far smaller than the boundary file they come from.
+export function useAreaOutlines(area: Area) {
+  return useAsyncData(`${area.slug}/outlines`, async () => {
+    const fc = await $fetch<FeatureCollection>(`/api/area/${area.slug}/boundaries.geojson`).catch(() => null)
+    return desaOutlines(fc)
   })
 }
 

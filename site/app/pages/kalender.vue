@@ -43,16 +43,24 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
 
 <template>
   <div>
-    <section class="tile flex flex-col gap-4 pb-12 sm:pb-16">
-      <h1 class="max-w-3xl text-4xl/[1.07] font-semibold text-balance sm:text-5xl/[1.07]">
-        {{ k.title }}
-      </h1>
-      <p class="max-w-2xl text-lg text-muted">
-        {{ k.description }}
-      </p>
-      <p class="text-sm text-muted">
-        {{ t.stats.asOf }}: {{ formatDate(meta?.as_of) }}
-      </p>
+    <section class="tile grid items-center gap-10 lg:grid-cols-[1fr_1fr]">
+      <div class="flex flex-col gap-5">
+        <h1 class="text-4xl/[1.07] font-semibold text-balance sm:text-5xl/[1.07] lg:text-[3.5rem]/[1.07]">
+          {{ k.title }}
+        </h1>
+        <p class="max-w-xl text-lg text-muted">
+          {{ k.description }}
+        </p>
+        <DateStamp
+          :date="formatDate(meta?.as_of, { day: 'numeric', month: 'long', year: 'numeric' })"
+        />
+      </div>
+      <HeroPhoto
+        src="/images/sawah-ngimbang.jpg"
+        alt="Hamparan sawah di Kecamatan Ngimbang, Kabupaten Lamongan"
+        author="Indonesiagood"
+        source="https://commons.wikimedia.org/wiki/File:Area_Pesawahan_di_Lamongan-1.jpg"
+      />
     </section>
 
     <section
@@ -61,7 +69,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
       class="tile tile-parchment flex flex-col gap-10"
     >
       <header class="flex max-w-2xl flex-col gap-3">
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.calendar.title(monthName(main.start)) }}
         </h2>
         <p class="text-muted">
@@ -87,7 +95,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
       class="tile flex flex-col gap-10"
     >
       <header class="flex max-w-2xl flex-col gap-3">
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.schedule.title }}
         </h2>
         <p class="text-muted">
@@ -110,7 +118,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
       class="tile tile-parchment flex flex-col gap-10"
     >
       <header class="flex max-w-2xl flex-col gap-3">
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ COPY.onset.title }}
         </h2>
         <p class="text-muted">
@@ -165,7 +173,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
       class="tile flex flex-col gap-10"
     >
       <header class="flex max-w-2xl flex-col gap-3">
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.rain.title }}
         </h2>
         <p class="text-muted">
@@ -182,7 +190,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
 
     <section class="tile tile-parchment flex flex-col gap-8">
       <header class="flex max-w-2xl flex-col gap-3">
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ k.notes.title }}
         </h2>
         <p class="text-muted">

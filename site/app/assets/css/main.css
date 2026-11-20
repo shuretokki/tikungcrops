@@ -11,18 +11,18 @@
 @import "./theme.css";
 @import "./density.css";
 
-/* Open Runde is self-hosted through Fontsource, so no request leaves the site. */
+/* Lexend is self-hosted through Fontsource, so no request leaves the site. */
 /* Only the weights that the theme below uses are loaded. */
-@import "@fontsource/open-runde/500.css";
-@import "@fontsource/open-runde/600.css";
-@import "@fontsource/open-runde/700.css";
+@import "@fontsource/lexend/500.css";
+@import "@fontsource/lexend/600.css";
+@import "@fontsource/lexend/700.css";
 
 @font-face { font-family: "Lilex"; font-weight: 400; font-display: swap; src: url("/fonts/Lilex-Regular.ttf") format("truetype"); }
 
-/* Each Tailwind weight step is moved one step up, because Open Runde reads thin at body size. */
+/* Each Tailwind weight step is moved one step up, because Lexend reads thin at body size. */
 /* To undo, delete the four --font-weight lines and the 500 import is no longer needed. */
 @theme {
-  --font-sans: "Open Runde", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Lexend", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Lilex", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
   --font-weight-normal: 500;
   --font-weight-medium: 600;
@@ -83,13 +83,13 @@
 /* Apple tracks body text tighter by 0.374px at 17px, and headlines tighter still. */
 body {
   font-weight: var(--font-weight-normal);
-  letter-spacing: -0.022em;
+  letter-spacing: -0.01em;
 }
 
 h1,
 h2,
 h3 {
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
 }
 
 /* No radius setting is needed. */

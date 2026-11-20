@@ -83,7 +83,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
     </section>
     <template v-if="info">
       <section class="tile tile-parchment flex flex-col gap-8">
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.now.title }}
         </h2>
         <div class="tile-box">
@@ -93,7 +93,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
 
       <section class="tile flex flex-col gap-8">
         <header class="flex flex-col gap-3">
-          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
             {{ t.schedule.title }}
           </h2>
           <p class="text-muted">
@@ -142,7 +142,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         class="tile tile-parchment flex flex-col gap-8"
       >
         <header class="flex max-w-2xl flex-col gap-3">
-          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
             {{ COPY.history.title }}
           </h2>
           <p class="text-muted">
@@ -166,7 +166,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
       </section>
 
       <section class="tile flex flex-col gap-8">
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.harvest.title }}
         </h2>
         <ul
@@ -204,7 +204,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         class="tile tile-parchment flex flex-col gap-8"
       >
         <header class="flex flex-col gap-2">
-          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+          <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
             {{ t.compare.title }}
           </h2>
           <p class="text-muted">
@@ -221,7 +221,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
               <dt class="text-sm text-muted">
                 {{ p.label }}: {{ p.text }}
               </dt>
-              <dd class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] tabular-nums">
+              <dd class="text-3xl/[1.15] font-semibold sm:text-[2.5rem]/[1.1] tabular-nums">
                 {{ t.compare.place(p.place, p.total) }}
               </dd>
             </div>
@@ -241,7 +241,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         v-if="rainMonths?.length"
         class="tile flex flex-col gap-8"
       >
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ COPY.landing.rain.title }}
         </h2>
         <RainBars :months="rainMonths" />
@@ -253,7 +253,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
       </section>
 
       <section class="tile tile-parchment flex flex-col gap-8">
-        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
+        <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.5rem]/[1.1]">
           {{ t.map.title }}
         </h2>
         <div class="h-[26rem] overflow-hidden rounded-[18px]">
