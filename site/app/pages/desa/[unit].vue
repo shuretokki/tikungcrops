@@ -86,7 +86,9 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
           {{ t.now.title }}
         </h2>
-        <StageBar :totals="stages" />
+        <div class="tile-box">
+          <StageBar :totals="stages" />
+        </div>
       </section>
 
       <section class="tile flex flex-col gap-8">
@@ -147,18 +149,20 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
             {{ COPY.history.body }}
           </p>
         </header>
-        <DesaSchedule
-          :rows="historyRows"
-          :today="today"
-          :show-today="false"
-          ordered
-          :note="COPY.history.note"
-        />
-        <ChartTable
-          :caption="COPY.history.title"
-          :columns="[COPY.history.columns.season, COPY.history.columns.plant, COPY.history.columns.harvest, COPY.history.columns.ha]"
-          :rows="history.map(h => [COPY.history.label(h.year), day(h.plant), day(h.harvest), formatHa(h.ha)])"
-        />
+        <div class="tile-box flex flex-col gap-8">
+          <DesaSchedule
+            :rows="historyRows"
+            :today="today"
+            :show-today="false"
+            ordered
+            :note="COPY.history.note"
+          />
+          <ChartTable
+            :caption="COPY.history.title"
+            :columns="[COPY.history.columns.season, COPY.history.columns.plant, COPY.history.columns.harvest, COPY.history.columns.ha]"
+            :rows="history.map(h => [COPY.history.label(h.year), day(h.plant), day(h.harvest), formatHa(h.ha)])"
+          />
+        </div>
       </section>
 
       <section class="tile flex flex-col gap-8">
@@ -207,27 +211,29 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
             {{ t.compare.body }}
           </p>
         </header>
-        <dl class="grid gap-4 sm:grid-cols-3">
-          <div
-            v-for="p in places"
-            :key="p.key"
-            class="flex flex-col-reverse gap-1 rounded-lg bg-muted p-4"
-          >
-            <dt class="text-sm text-muted">
-              {{ p.label }}: {{ p.text }}
-            </dt>
-            <dd class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] tabular-nums">
-              {{ t.compare.place(p.place, p.total) }}
-            </dd>
+        <div class="tile-box flex flex-col gap-8">
+          <dl class="grid gap-4 sm:grid-cols-3">
+            <div
+              v-for="p in places"
+              :key="p.key"
+              class="flex flex-col-reverse gap-1 rounded-lg bg-muted p-4"
+            >
+              <dt class="text-sm text-muted">
+                {{ p.label }}: {{ p.text }}
+              </dt>
+              <dd class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] tabular-nums">
+                {{ t.compare.place(p.place, p.total) }}
+              </dd>
+            </div>
+          </dl>
+          <div>
+            <UButton
+              :label="t.compare.link"
+              to="/perbandingan"
+              trailing-icon="i-lucide-arrow-right"
+              variant="outline"
+            />
           </div>
-        </dl>
-        <div>
-          <UButton
-            :label="t.compare.link"
-            to="/perbandingan"
-            trailing-icon="i-lucide-arrow-right"
-            variant="outline"
-          />
         </div>
       </section>
 
@@ -250,7 +256,7 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
         <h2 class="text-3xl/[1.15] font-semibold text-balance sm:text-[2.125rem]/[1.15]">
           {{ t.map.title }}
         </h2>
-        <div class="h-[26rem]">
+        <div class="h-[26rem] overflow-hidden rounded-[18px]">
           <ClientOnly>
             <AreaMap
               :outer="kecamatan"

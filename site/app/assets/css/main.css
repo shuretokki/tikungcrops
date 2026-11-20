@@ -36,11 +36,18 @@
   --radius-lg: 18px;
 }
 
-/* A tile is a full-width band. */
+/* A tile is a full-width band that is at least one screen tall, as on the Apple pages. */
 /* Its padding keeps the content in line with the 80rem container, so only the color runs edge to edge. */
+/* Content is centered in the screen, and a taller tile simply grows. */
 .tile {
+  min-height: calc(100svh - var(--ui-header-height));
+  align-content: center;
   padding-block: 4rem;
   padding-inline: max(1rem, calc((100% - 80rem) / 2 + 1rem));
+}
+
+.tile.flex-col {
+  justify-content: center;
 }
 
 @media (min-width: 640px) {
@@ -51,16 +58,26 @@
 }
 
 .tile-slim {
+  min-height: 0;
   padding-block: 3rem;
 }
 
+/* The one alternate color. Plain tiles are white. */
 .tile-parchment {
   background: var(--ui-bg-muted);
 }
 
-.tile-dark {
-  background: var(--tile-dark);
-  color: #fff;
+/* On an alternate tile, data sits in a white box that the tile padding frames, as the utility cards on the Apple store pages. */
+.tile-box {
+  padding: 1.5rem;
+  border-radius: 18px;
+  background: var(--ui-bg);
+}
+
+@media (min-width: 640px) {
+  .tile-box {
+    padding: 2.5rem;
+  }
 }
 
 /* Apple tracks body text tighter by 0.374px at 17px, and headlines tighter still. */

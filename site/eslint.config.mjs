@@ -9,7 +9,7 @@ export default withNuxt(
   ...vuejsAccessibility.configs['flat/recommended'],
   {
     rules: {
-      'better-tailwindcss/no-unknown-classes': ['error', { ignore: ['^vis-chart$', '^tile(-dark|-parchment|-slim)?$'] }]
+      'better-tailwindcss/no-unknown-classes': ['error', { ignore: ['^vis-chart$', '^tile(-parchment|-slim|-box)?$'] }]
     },
     settings: {
       'better-tailwindcss': {

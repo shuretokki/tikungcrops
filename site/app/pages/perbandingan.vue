@@ -110,90 +110,92 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
     </section>
 
     <section class="tile tile-parchment flex flex-col gap-12">
-      <div class="flex flex-col gap-4">
-        <UTabs
-          v-model="level"
-          :items="levelItems"
-          :content="false"
-          class="w-full max-w-md"
-        />
-        <div class="flex flex-col gap-2">
-          <p class="text-sm text-muted">
-            {{ t.metricLabel }}
-          </p>
+      <div class="tile-box flex flex-col gap-12">
+        <div class="flex flex-col gap-4">
           <UTabs
-            v-model="metric"
-            :items="metricItems"
+            v-model="level"
+            :items="levelItems"
             :content="false"
-            size="sm"
-            variant="link"
             class="w-full max-w-md"
           />
+          <div class="flex flex-col gap-2">
+            <p class="text-sm text-muted">
+              {{ t.metricLabel }}
+            </p>
+            <UTabs
+              v-model="metric"
+              :items="metricItems"
+              :content="false"
+              size="sm"
+              variant="link"
+              class="w-full max-w-md"
+            />
+          </div>
         </div>
-      </div>
 
-      <div class="flex flex-col gap-8">
-        <header class="flex max-w-2xl flex-col gap-3">
-          <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
-            {{ heading }}
-          </h2>
-          <p class="text-muted">
-            {{ t.metrics[metric].body }}
-          </p>
-          <p
-            v-if="tikung"
-            class="font-semibold text-(--ui-primary)"
-          >
-            {{ t.tikungRank(tikung.place, rows.length) }}
-          </p>
-        </header>
-
-        <ol
-          v-if="rows.length"
-          class="flex flex-col gap-2"
-        >
-          <li
-            v-for="r in rows"
-            :key="r.unit"
-          >
-            <component
-              :is="r.to ? NuxtLink : 'div'"
-              :to="r.to ?? undefined"
-              class="grid grid-cols-[2rem_7rem_1fr] items-center gap-x-3 gap-y-1 rounded-md px-3 py-3 sm:grid-cols-[2rem_9rem_1fr_6rem]"
-              :class="[r.to ? 'hover:bg-muted focus-visible:outline-2 focus-visible:outline-(--ui-primary)' : '', r.here ? 'bg-muted' : '']"
+        <div class="flex flex-col gap-8">
+          <header class="flex max-w-2xl flex-col gap-3">
+            <h2 class="text-3xl/[1.15] font-semibold sm:text-[2.125rem]/[1.15] text-balance">
+              {{ heading }}
+            </h2>
+            <p class="text-muted">
+              {{ t.metrics[metric].body }}
+            </p>
+            <p
+              v-if="tikung"
+              class="font-semibold text-(--ui-primary)"
             >
-              <span class="text-sm text-muted tabular-nums">{{ t.rank(r.place) }}</span>
-              <span
-                class="truncate"
-                :class="r.here ? 'font-semibold text-(--ui-primary)' : 'font-semibold'"
-              >{{ r.unit }}</span>
-              <UProgress
-                :model-value="r.value"
-                :max="top"
-                :color="r.here ? 'primary' : 'neutral'"
-                size="md"
-                :aria-label="`${r.unit}: ${r.text}`"
-                class="col-span-2 col-start-2 sm:col-span-1 sm:col-start-auto"
-              />
-              <span class="col-start-3 text-sm text-muted tabular-nums sm:col-start-auto sm:text-right">{{ r.text }}</span>
-            </component>
-          </li>
-        </ol>
-        <p
-          v-else
-          class="rounded-md bg-muted p-4 text-sm"
-        >
-          {{ t.empty }}
-        </p>
+              {{ t.tikungRank(tikung.place, rows.length) }}
+            </p>
+          </header>
 
-        <UAlert
-          v-if="note"
-          color="warning"
-          variant="subtle"
-          icon="i-lucide-circle-alert"
-          :description="note"
-          class="max-w-2xl"
-        />
+          <ol
+            v-if="rows.length"
+            class="flex flex-col gap-2"
+          >
+            <li
+              v-for="r in rows"
+              :key="r.unit"
+            >
+              <component
+                :is="r.to ? NuxtLink : 'div'"
+                :to="r.to ?? undefined"
+                class="grid grid-cols-[2rem_7rem_1fr] items-center gap-x-3 gap-y-1 rounded-md px-3 py-3 sm:grid-cols-[2rem_9rem_1fr_6rem]"
+                :class="[r.to ? 'hover:bg-muted focus-visible:outline-2 focus-visible:outline-(--ui-primary)' : '', r.here ? 'bg-muted' : '']"
+              >
+                <span class="text-sm text-muted tabular-nums">{{ t.rank(r.place) }}</span>
+                <span
+                  class="truncate"
+                  :class="r.here ? 'font-semibold text-(--ui-primary)' : 'font-semibold'"
+                >{{ r.unit }}</span>
+                <UProgress
+                  :model-value="r.value"
+                  :max="top"
+                  :color="r.here ? 'primary' : 'neutral'"
+                  size="md"
+                  :aria-label="`${r.unit}: ${r.text}`"
+                  class="col-span-2 col-start-2 sm:col-span-1 sm:col-start-auto"
+                />
+                <span class="col-start-3 text-sm text-muted tabular-nums sm:col-start-auto sm:text-right">{{ r.text }}</span>
+              </component>
+            </li>
+          </ol>
+          <p
+            v-else
+            class="rounded-md bg-muted p-4 text-sm"
+          >
+            {{ t.empty }}
+          </p>
+
+          <UAlert
+            v-if="note"
+            color="warning"
+            variant="subtle"
+            icon="i-lucide-circle-alert"
+            :description="note"
+            class="max-w-2xl"
+          />
+        </div>
       </div>
     </section>
 

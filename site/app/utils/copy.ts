@@ -125,7 +125,7 @@ export const COPY = {
       eyebrow: 'Ringkasan Singkat',
       title: 'Kondisi Kecamatan Tikung',
       reference: (date: string) => `Tanggal acuan: ${date}`,
-      age: (n: number) => `Data berumur ${n} hari`,
+      ago: (n: number) => `${n} hari yang lalu`,
       season: {
         outside: 'Saat ini di luar musim tanam 1',
         during: (pct: string) => `Musim tanam 1 berada pada ${pct} dari rentang biasanya`,

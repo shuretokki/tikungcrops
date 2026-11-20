@@ -68,15 +68,17 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
           {{ t.calendar.body }}
         </p>
       </header>
-      <SeasonCalendar
-        :bands="bands"
-        :today="today"
-      />
-      <ChartTable
-        :caption="t.calendar.title(monthName(main.start))"
-        :columns="[t.calendar.columns.season, t.calendar.columns.start, t.calendar.columns.plant, t.calendar.columns.harvest, t.calendar.columns.end]"
-        :rows="bands.map(b => [t.calendar.seasons[b.season], monthName(b.start), monthName(b.plant), monthName(b.harvest), monthName(b.end)])"
-      />
+      <div class="tile-box flex flex-col gap-8">
+        <SeasonCalendar
+          :bands="bands"
+          :today="today"
+        />
+        <ChartTable
+          :caption="t.calendar.title(monthName(main.start))"
+          :columns="[t.calendar.columns.season, t.calendar.columns.start, t.calendar.columns.plant, t.calendar.columns.harvest, t.calendar.columns.end]"
+          :rows="bands.map(b => [t.calendar.seasons[b.season], monthName(b.start), monthName(b.plant), monthName(b.harvest), monthName(b.end)])"
+        />
+      </div>
     </section>
 
     <section
@@ -115,44 +117,46 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
           {{ COPY.onset.body(onsets[0]!.year, onsets[0]!.priorSeasons) }}
         </p>
       </header>
-      <ul class="flex flex-col gap-2">
-        <li
-          v-for="o in onsets"
-          :key="o.unit"
-          class="grid grid-cols-[6.5rem_1fr] items-center gap-x-4 gap-y-1 sm:grid-cols-[8rem_1fr_13rem]"
-        >
-          <span class="font-semibold">{{ o.unit }}</span>
-          <span
-            class="relative h-3 rounded-full bg-default"
-            aria-hidden="true"
+      <div class="tile-box flex flex-col gap-8">
+        <ul class="flex flex-col gap-2">
+          <li
+            v-for="o in onsets"
+            :key="o.unit"
+            class="grid grid-cols-[6.5rem_1fr] items-center gap-x-4 gap-y-1 sm:grid-cols-[8rem_1fr_13rem]"
           >
-            <span class="absolute inset-y-0 left-1/2 w-px bg-(--ui-border-accented)" />
+            <span class="font-semibold">{{ o.unit }}</span>
             <span
-              class="absolute inset-y-0 rounded-full"
-              :class="o.shift > 0 ? 'bg-(--viz-2)' : 'bg-(--viz-3)'"
-              :style="barStyle(o.shift)"
-            />
-          </span>
-          <span class="col-span-2 flex items-center gap-2 text-sm text-muted tabular-nums sm:col-span-1">
-            {{ COPY.onset.value(o.shift) }}
-            <UBadge
-              v-if="o.shift >= COPY.onset.lateAfter"
-              :label="COPY.onset.late"
-              color="warning"
-              variant="subtle"
-              size="xs"
-            />
-          </span>
-        </li>
-      </ul>
-      <p class="max-w-2xl text-sm text-muted">
-        {{ COPY.onset.note }}
-      </p>
-      <ChartTable
-        :caption="COPY.onset.title"
-        :columns="[COPY.onset.columns.unit, COPY.onset.columns.plant, COPY.onset.columns.mean, COPY.onset.columns.shift]"
-        :rows="onsets.map(o => [o.unit, dayLabel(o.plant), dayLabel(o.mean), o.shift])"
-      />
+              class="relative h-3 rounded-full bg-default"
+              aria-hidden="true"
+            >
+              <span class="absolute inset-y-0 left-1/2 w-px bg-(--ui-border-accented)" />
+              <span
+                class="absolute inset-y-0 rounded-full"
+                :class="o.shift > 0 ? 'bg-(--viz-2)' : 'bg-(--viz-3)'"
+                :style="barStyle(o.shift)"
+              />
+            </span>
+            <span class="col-span-2 flex items-center gap-2 text-sm text-muted tabular-nums sm:col-span-1">
+              {{ COPY.onset.value(o.shift) }}
+              <UBadge
+                v-if="o.shift >= COPY.onset.lateAfter"
+                :label="COPY.onset.late"
+                color="warning"
+                variant="subtle"
+                size="xs"
+              />
+            </span>
+          </li>
+        </ul>
+        <p class="max-w-2xl text-sm text-muted">
+          {{ COPY.onset.note }}
+        </p>
+        <ChartTable
+          :caption="COPY.onset.title"
+          :columns="[COPY.onset.columns.unit, COPY.onset.columns.plant, COPY.onset.columns.mean, COPY.onset.columns.shift]"
+          :rows="onsets.map(o => [o.unit, dayLabel(o.plant), dayLabel(o.mean), o.shift])"
+        />
+      </div>
     </section>
 
     <section
@@ -185,7 +189,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
           {{ k.notes.body }}
         </p>
       </header>
-      <div class="flex max-w-2xl flex-col gap-4">
+      <div class="tile-box flex flex-col gap-4">
         <UAlert
           v-for="item in k.notes.items"
           :key="item"
