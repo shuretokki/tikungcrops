@@ -111,15 +111,16 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
 <template>
   <div>
     <section class="tile relative isolate grid items-center gap-10 overflow-hidden text-white lg:grid-cols-[1fr_1fr]">
-      <img
+      <NuxtImg
         v-if="photo"
         :src="photo.file"
-        :width="photo.width"
-        :height="photo.height"
+        format="webp"
+        :width="960"
+        :height="Math.round(960 * photo.height / photo.width)"
         alt=""
         fetchpriority="high"
         class="absolute inset-0 -z-20 size-full scale-110 object-cover blur-2xl"
-      >
+      />
       <div
         class="absolute inset-0 -z-10 bg-black/60"
         aria-hidden="true"

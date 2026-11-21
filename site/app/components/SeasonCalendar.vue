@@ -48,6 +48,16 @@ const items = computed<Item[]>(() => {
   return out
 })
 
+const narrow = ref(false)
+onMounted(() => {
+  const query = window.matchMedia('(max-width: 639px)')
+  narrow.value = query.matches
+  query.addEventListener('change', (e) => {
+    narrow.value = e.matches
+  })
+})
+const ticks = computed(() => narrow.value ? MONTH_STARTS.filter((_, m) => m % 3 === 0) : MONTH_STARTS)
+
 const ROW = 40
 const height = computed(() => (props.bands.length + (props.today === null ? 0 : 1)) * ROW + 36)
 const tick = (v: number | Date) => monthName(Number(v), 'short')
@@ -79,11 +89,11 @@ const legend = [
           :row-height="ROW"
           :line-width="16"
           :show-row-labels="true"
-          :row-label-width="140"
+          :row-label-width="narrow ? 104 : 140"
         />
         <VisAxis
           type="x"
-          :tick-values="MONTH_STARTS"
+          :tick-values="ticks"
           :tick-format="tick"
           :grid-line="true"
         />

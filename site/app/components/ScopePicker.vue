@@ -52,15 +52,17 @@ const { crop } = useScope()
         :class="crop === o.value ? 'ring-4 ring-(--ui-primary)' : ''"
         @click="crop = o.value"
       >
-        <img
+        <NuxtImg
           :src="o.image"
+          format="webp"
+          sizes="160px sm:240px lg:320px"
           alt=""
           width="320"
           height="400"
           loading="lazy"
           class="absolute inset-0 -z-20 size-full object-cover transition duration-300 group-enabled:group-hover:scale-105"
           :class="o.ready ? '' : 'grayscale'"
-        >
+        />
         <span
           class="absolute inset-0 -z-10 bg-linear-to-t from-black/85 via-black/35 to-black/5"
           aria-hidden="true"

@@ -190,16 +190,16 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
             v-else
             class="overflow-x-auto"
           >
-            <table class="w-full min-w-[34rem] text-left">
+            <table class="w-full text-left sm:min-w-[34rem]">
               <caption class="sr-only">
                 {{ t.tableTitle }}
               </caption>
               <thead>
-                <tr class="border-b border-default text-sm">
+                <tr class="border-b border-default text-xs sm:text-sm">
                   <th
                     scope="col"
                     :aria-sort="ariaSort('unit')"
-                    class="py-2 pr-4 font-semibold"
+                    class="py-2 pr-2 sm:pr-4 font-semibold"
                   >
                     <button
                       type="button"
@@ -209,7 +209,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
                       {{ t.tableUnit }}
                       <UIcon
                         :name="sortIcon('unit')"
-                        class="size-4 text-muted"
+                        class="size-3 shrink-0 text-muted sm:size-4"
                       />
                     </button>
                   </th>
@@ -218,7 +218,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
                     :key="m"
                     scope="col"
                     :aria-sort="ariaSort(m)"
-                    class="px-2 py-2 text-right font-semibold"
+                    class="px-1 sm:px-2 py-2 text-right font-semibold"
                   >
                     <button
                       type="button"
@@ -228,7 +228,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
                       {{ t.metrics[m].label }}
                       <UIcon
                         :name="sortIcon(m)"
-                        class="size-4 text-muted"
+                        class="size-3 shrink-0 text-muted sm:size-4"
                       />
                     </button>
                   </th>
@@ -242,7 +242,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
                 >
                   <th
                     scope="row"
-                    class="py-3 pr-4 font-semibold"
+                    class="py-3 pr-2 sm:pr-4 font-semibold"
                   >
                     <NuxtLink
                       :to="`/desa/${encodeURIComponent(r.unit)}`"
@@ -254,7 +254,7 @@ useSeoMeta({ title: t.seoTitle, description: t.description })
                   <td
                     v-for="m in metricKeys"
                     :key="m"
-                    class="px-2 py-3 text-right tabular-nums"
+                    class="px-1 sm:px-2 py-3 text-right tabular-nums"
                   >
                     <template v-if="r[m] !== undefined">
                       {{ t.metrics[m].value(r[m]) }}

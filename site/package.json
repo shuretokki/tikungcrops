@@ -19,6 +19,7 @@
     "@fontsource/open-runde": "^5.3.0",
     "@iconify-json/lucide": "^1.2.145",
     "@iconify-json/simple-icons": "^1.2.100",
+    "@nuxt/image": "2.2.1",
     "@nuxt/ui": "^4.12.0",
     "@unovis/ts": "^1.8.1",
     "@unovis/vue": "^1.8.1",

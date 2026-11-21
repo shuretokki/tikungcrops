@@ -21,7 +21,7 @@ defineProps<{
     />
     <template #body>
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm tabular-nums">
+        <table class="w-full text-left text-xs tabular-nums sm:text-sm">
           <caption class="sr-only">
             {{ caption }}
           </caption>
@@ -31,7 +31,7 @@ defineProps<{
                 v-for="c in columns"
                 :key="c"
                 scope="col"
-                class="py-1 pr-4 font-normal"
+                class="py-1 pr-3 font-normal sm:pr-4"
               >
                 {{ c }}
               </th>
@@ -46,7 +46,7 @@ defineProps<{
               <td
                 v-for="(v, j) in r"
                 :key="j"
-                class="py-1 pr-4"
+                class="py-1 pr-3 sm:pr-4"
               >
                 {{ v }}
               </td>

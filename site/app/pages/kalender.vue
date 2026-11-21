@@ -191,7 +191,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
             v-else
             class="overflow-x-auto"
           >
-            <table class="w-full min-w-[34rem] text-left">
+            <table class="w-full text-left sm:min-w-[34rem]">
               <caption class="sr-only">
                 {{ k.tableTitle }}
               </caption>
@@ -302,11 +302,11 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
         </p>
       </header>
       <div class="flex flex-col gap-8">
-        <ul class="flex flex-col gap-2">
+        <ul class="flex flex-col gap-4 sm:gap-2">
           <li
             v-for="o in onsets"
             :key="o.unit"
-            class="grid grid-cols-[6.5rem_1fr] items-center gap-x-4 gap-y-1 sm:grid-cols-[8rem_1fr_13rem]"
+            class="grid items-center gap-x-4 gap-y-1.5 sm:grid-cols-[8rem_1fr_13rem]"
           >
             <span class="font-semibold">{{ o.unit }}</span>
             <span
@@ -321,7 +321,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
               />
             </span>
             <span
-              class="col-span-2 flex items-center gap-1.5 text-sm tabular-nums sm:col-span-1"
+              class="flex items-center gap-1.5 text-sm tabular-nums"
               :class="o.shift >= COPY.onset.lateAfter ? 'font-semibold text-(--ui-warning)' : 'text-muted'"
             >
               <UIcon

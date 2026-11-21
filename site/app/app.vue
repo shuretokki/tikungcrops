@@ -27,13 +27,14 @@ const links = computed(() => [
     <UHeader to="/">
       <template #title>
         <span class="flex items-center gap-3">
-          <img
+          <NuxtImg
             src="/logo.png"
+            format="webp"
             alt=""
             width="234"
             height="192"
             class="h-9 w-auto dark:invert"
-          >
+          />
           <span class="flex flex-col leading-tight">
             <span class="font-brand text-xl/none">{{ COPY.site.title }}</span>
             <span class="text-xs font-normal text-muted">{{ COPY.site.subtitle }}</span>
@@ -73,14 +74,15 @@ const links = computed(() => [
     <footer class="tile tile-parchment tile-slim border-t border-default">
       <div class="grid gap-10 text-center sm:text-left sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
         <div class="flex flex-col items-center gap-2 sm:items-start">
-          <img
+          <NuxtImg
             src="/logo.png"
+            format="webp"
             alt=""
             width="234"
             height="192"
             loading="lazy"
             class="mb-2 h-12 w-auto dark:invert"
-          >
+          />
           <p class="font-brand text-2xl/none">
             {{ COPY.site.title }}
           </p>

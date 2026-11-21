@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url'
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@nuxt/image'
   ],
 
   devtools: {
@@ -57,5 +58,10 @@ export default defineNuxtConfig({
   },
 
   // inline SVG icons let CSS set the stroke width
-  icon: { mode: 'svg' }
+  icon: { mode: 'svg' },
+
+  image: {
+    format: ['webp'],
+    quality: 75
+  }
 })
