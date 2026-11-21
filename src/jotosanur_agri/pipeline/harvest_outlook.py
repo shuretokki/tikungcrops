@@ -403,6 +403,9 @@ def _replay(
         ),
         units,
     )
+    # A day with no ready cell gives a frame without columns, and the backtest skips empty frames.
+    if per_cell.is_empty():
+        return per_cell
     # the harvest of the same season in the full series, the season whose peak
     # matches or the first peak after the issue date.
     # Undetected harvests stay null rather than borrowing the next season's.
