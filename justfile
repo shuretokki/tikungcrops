@@ -205,3 +205,32 @@ figures *args:
     PLAYWRIGHT_NODEJS_PATH=$(command -v node)
     export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
     uvx --from shot-scraper==1.12 --with "playwright==$version" shot-scraper multi scripts/figures.yml --retina --auth scripts/figures-light.json {{ args }}
+
+# Run the site checks: lint, typecheck, tests, knip and a static build (inside the nix shell)
+[group("checks")]
+[working-directory("site")]
+site-check:
+    nix develop {{ justfile_directory() }} -c bash -c 'pnpm lint && pnpm typecheck && pnpm test && pnpm knip && pnpm generate'
+
+# Log in to Cloudflare, needed once and again when the token expires
+[group("deploy")]
+[working-directory("site")]
+cf-login:
+    nix develop {{ justfile_directory() }} -c pnpm wrangler login
+
+# Show which Cloudflare account Wrangler is using
+[group("deploy")]
+[working-directory("site")]
+cf-whoami:
+    nix develop {{ justfile_directory() }} -c pnpm wrangler whoami
+
+# Build the site and publish it to Cloudflare Workers as tikungcrops, needs a Cloudflare login
+[group("deploy")]
+[working-directory("site")]
+deploy: _site-data
+    nix develop {{ justfile_directory() }} -c pnpm deploy
+
+# Push the current branch to GitHub, without the library path the nix shell leaks into git
+[group("deploy")]
+push *args:
+    env -u LD_LIBRARY_PATH git push {{ args }}
