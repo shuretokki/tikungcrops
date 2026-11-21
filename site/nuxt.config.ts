@@ -8,7 +8,11 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
-    '@nuxt/image'
+    '@nuxt/image',
+    '@nuxtjs/sitemap',
+    '@nuxtjs/robots',
+    'nuxt-schema-org',
+    'nuxt-seo-utils'
   ],
 
   devtools: {
@@ -19,11 +23,18 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: { lang: 'id' },
       title: 'Pemantauan Tanam Padi Lamongan',
+      // Each page title already ends with the site name, so the SEO module must not add it again.
+      // To undo, remove this line.
+      titleTemplate: '%s',
       meta: [
         {
           name: 'description',
           content: 'Musim tanam, intensitas tanam, dan perkiraan panen padi per desa dari citra satelit Sentinel-1 dan Sentinel-2.'
-        }
+        },
+        { property: 'og:image', content: '/og.png' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { name: 'twitter:card', content: 'summary_large_image' }
       ],
       link: [
         { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
@@ -34,6 +45,15 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/main.css', '~/assets/css/viz.css', 'maplibre-gl/dist/maplibre-gl.css'],
+
+  // The SEO modules build absolute links, the sitemap and the share data from this address.
+  // It is the Workers address for now. Change the url when the site gets a custom domain.
+  site: {
+    url: 'https://tikungcrops.tri-r-utomo.workers.dev',
+    name: 'tikungcrops',
+    description: 'Kalender tanam padi per desa di Kecamatan Tikung, dari citra satelit.',
+    defaultLocale: 'id'
+  },
 
   // Light is the default on every device, so the system theme is not followed.
   // To undo, set preference to 'system'.

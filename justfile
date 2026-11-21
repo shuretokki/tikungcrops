@@ -235,16 +235,20 @@ deploy: _site-data
 push *args:
     env -u LD_LIBRARY_PATH git push {{ args }}
 
-# Build the site icons from site/public/logo.png: the logo in white on the brand blue
+# Build the site icons and the share image from site/public/logo.png: the logo in white on the brand blue
 [group("web")]
 [working-directory("site/public")]
 icons:
     #!/usr/bin/env bash
     set -euo pipefail
+    tmp=$(mktemp -d)
     im() { nix run nixpkgs#imagemagick -- "$@"; }
-    im logo.png -channel RGB -fill white -colorize 100 -resize 330x330 -background none -gravity center -extent 512x512 /tmp/icon-logo.png
-    im -size 512x512 xc:none -fill '#0066cc' -draw 'roundrectangle 0,0 511,511 112,112' /tmp/icon-bg.png
-    im /tmp/icon-bg.png /tmp/icon-logo.png -gravity center -composite icon-512.png
+    im logo.png -channel RGB -fill white -colorize 100 -resize 330x330 -background none -gravity center -extent 512x512 "$tmp"/icon-logo.png
+    im -size 512x512 xc:none -fill '#0066cc' -draw 'roundrectangle 0,0 511,511 112,112' "$tmp"/icon-bg.png
+    im "$tmp"/icon-bg.png "$tmp"/icon-logo.png -gravity center -composite icon-512.png
     im icon-512.png -resize 192x192 icon-192.png
     im icon-512.png -resize 180x180 apple-touch-icon.png
     im icon-512.png -define icon:auto-resize=48,32,16 favicon.ico
+    im -size 1200x630 xc:'#0066cc' "$tmp"/og-bg.png
+    im "$tmp"/icon-logo.png -resize 380x380 "$tmp"/og-logo.png
+    im "$tmp"/og-bg.png "$tmp"/og-logo.png -gravity center -composite og.png
