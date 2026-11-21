@@ -200,7 +200,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
                   <th
                     scope="col"
                     :aria-sort="ariaSort('unit')"
-                    class="py-2 pr-4 font-semibold"
+                    class="sticky left-0 z-10 bg-default py-2 pr-4 font-semibold"
                   >
                     <button
                       type="button"
@@ -249,7 +249,7 @@ useSeoMeta({ title: k.seoTitle, description: k.description })
                 >
                   <th
                     scope="row"
-                    class="py-3 pr-4 font-semibold"
+                    class="sticky left-0 z-10 bg-default py-3 pr-4 font-semibold"
                   >
                     <NuxtLink
                       :to="`/desa/${encodeURIComponent(r.unit)}`"

@@ -24,6 +24,11 @@ export default defineNuxtConfig({
           name: 'description',
           content: 'Musim tanam, intensitas tanam, dan perkiraan panen padi per desa dari citra satelit Sentinel-1 dan Sentinel-2.'
         }
+      ],
+      link: [
+        { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
+        { rel: 'icon', type: 'image/png', href: '/icon-192.png', sizes: '192x192' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }
       ]
     }
   },
