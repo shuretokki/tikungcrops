@@ -2,7 +2,6 @@
 
 Each date rebuilds the seasons from the series cut at that date and trains the forecast only on
 seasons harvested before it, so the replay is honest about what was known at that time.
-The result feeds `scripts/analyze_forecast.py`.
 
 Output: data/gold/sentinel/<aoi>_backtest_cells.parquet.
 Run from the project root (it takes several minutes):
