@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
+# The workflow passes only the Markdown files.
+# The site, data and documents folders hold generated or draft pages, so they are skipped.
+exclude_path = ["data", "site", "documents", ".venv", "node_modules"]
+exclude = ["^https?://localhost", "^https?://127\\.0\\.0\\.1"]
+accept = ["200..=299", "429"]
+max_retries = 2
+timeout = 20

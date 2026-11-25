@@ -230,6 +230,22 @@ cf-whoami:
 deploy: _site-data
     nix develop {{ justfile_directory() }} -c pnpm deploy
 
+# Pin the workflow actions to commit hashes and audit them for security problems
+[group("check")]
+lint-actions:
+    {{ require("pinact") }} run
+    {{ require("zizmor") }} --gh-token $( {{ require("gh") }} auth token) .github/workflows/ --fix
+
+# Spell check the repository
+[group("check")]
+typos:
+    git ls-files -z | xargs -0 {{ require("typos") }} --force-exclude
+
+# Check the links in the Markdown files
+[group("check")]
+links:
+    git ls-files -z '*.md' | xargs -0 {{ require("lychee") }} --config lychee.toml --no-progress
+
 # Push the current branch to GitHub, without the library path the nix shell leaks into git
 [group("deploy")]
 push *args:
