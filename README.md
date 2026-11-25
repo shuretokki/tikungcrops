@@ -5,7 +5,8 @@
 - [Nix](https://nixos.org/download/) and [devenv](https://devenv.sh/getting-started/), optionally [direnv](https://direnv.net/) (`.envrc` runs `use devenv`).
   Its shell provides `uv`, `just`, `typst`, `mongosh`, `sqlite`, `ruff`, `basedpyright`, `reuse`, `pnpm`, `typos`, `lychee` and `zizmor`.
 - Docker Engine ≥ 24 with Compose v2: https://docs.docker.com/engine/install/
-- `cp .env.example .env` and set `MONGO_ROOT_PASSWORD` (and the same password in `MONGO_URI`).
+- An unlocked Bitwarden session (`BW_SESSION`), because SecretSpec reads the database settings from it.
+  Run `secretspec set MONGO_ROOT_PASSWORD` and `secretspec set MONGO_URI` once, using the same password in both.
 
 ## Usage
 

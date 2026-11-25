@@ -25,13 +25,11 @@ from __future__ import annotations
 
 import os
 from datetime import UTC, date, datetime
-from pathlib import Path
 from typing import Any
 
 from pymongo import ASCENDING, MongoClient
 from pymongo.database import Database
 
-ENV_FILE = Path(".env")
 SCHEMA_VERSION = 2
 
 _LOCATION_SCHEMA = {
@@ -155,17 +153,6 @@ INDEXES = {
 }
 
 
-def load_env(path: Path = ENV_FILE) -> None:
-    """Load KEY=VALUE lines from `path` into `os.environ` without overriding set variables."""
-    if not path.exists():
-        return
-    for line in path.read_text().splitlines():
-        if not line or line.startswith("#"):
-            continue
-        key, _, value = line.partition("=")
-        os.environ.setdefault(key.strip(), value.strip())
-
-
 def connect(timeout_ms: int = 5000) -> Database:
     """Open the project database from `MONGO_URI` and `MONGO_DB`.
 
@@ -176,9 +163,8 @@ def connect(timeout_ms: int = 5000) -> Database:
         The `jotosanur` database (or whatever `MONGO_DB` names).
 
     Raises:
-        KeyError: If `MONGO_URI` is not set in the environment or `.env`.
+        KeyError: If `MONGO_URI` is not set, so run the command through `secretspec run`.
     """
-    load_env()
     client = MongoClient(os.environ["MONGO_URI"], serverSelectionTimeoutMS=timeout_ms)
     return client[os.environ.get("MONGO_DB", "jotosanur")]
 
