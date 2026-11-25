@@ -5,14 +5,7 @@
   "packages": {
     ".": {
       "release-type": "python",
-      "package-name": "tikungcrops",
-      "extra-files": [
-        {
-          "type": "toml",
-          "path": "uv.lock",
-          "jsonpath": "$.package[?(@.name=='tikungcrops')].version"
-        }
-      ]
+      "package-name": "tikungcrops"
     }
   }
 }
