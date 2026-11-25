@@ -43,7 +43,7 @@ Locally, `just monthly` runs this same job.
 
 ## Data and credits
 
-This pipeline reads public data that keeps its own licence. Every page of the web site shows these credits in its footer.
+This pipeline reads public data that keeps its own licence. These credits appear in the web site footer.
 
 | Data | Licence | Credit |
 |---|---|---|
