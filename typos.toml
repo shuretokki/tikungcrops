@@ -6,7 +6,7 @@
 [files]
 extend-exclude = [
   "uv.lock",
-  "flake.lock",
+  "devenv.lock",
   "site/pnpm-lock.yaml",
   "data/",
   "documents/",
