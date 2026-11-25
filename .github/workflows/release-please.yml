@@ -18,10 +18,6 @@ jobs:
   release-please:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    env:
-      # Release Please always uses this branch, and one run left its pr output empty although prs_created was true.
-      # To undo it, read the branch name from steps.release.outputs.prs instead.
-      BRANCH: release-please--branches--master--components--tikungcrops
     steps:
       - id: app-token
         uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc  # v3.4.0
@@ -38,19 +34,28 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
       # Release Please cannot edit an array table in uv.lock, so the lockfile keeps the old version and CI fails on --locked.
-      # This step runs uv lock on the release branch and pushes the result.
-      # To undo it, delete the three steps below and run uv lock by hand on the release pull request.
-      - if: steps.release.outputs.prs_created == 'true'
+      # The steps below run uv lock on the open release branch and push the result.
+      # They look the branch up with gh, since the pr output of the action is empty when the release pull request did not change.
+      # To undo it, delete the four steps below and run uv lock by hand on the release pull request.
+      - id: release-branch
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          branch=$(gh pr list --repo "$REPO" --state open --label "autorelease: pending" --json headRefName --jq '.[0].headRefName // empty')
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+      - if: steps.release-branch.outputs.branch != ''
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: ${{ env.BRANCH }}
+          ref: ${{ steps.release-branch.outputs.branch }}
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: false
-      - if: steps.release.outputs.prs_created == 'true'
+      - if: steps.release-branch.outputs.branch != ''
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d  # v10.4.0
-      - if: steps.release.outputs.prs_created == 'true'
+      - if: steps.release-branch.outputs.branch != ''
         env:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: ${{ steps.release-branch.outputs.branch }}
           REPO: ${{ github.repository }}
         run: |
           uv lock
