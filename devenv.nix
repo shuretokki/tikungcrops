@@ -8,7 +8,6 @@
 
 {
   # https://devenv.sh/basics/
-  env.SECRETSPEC_PROVIDER = "bw://";
   env.TYPST_FONT_PATHS = "${pkgs.source-sans}/share/fonts";
   env.LD_LIBRARY_PATH = lib.makeLibraryPath [
     pkgs.stdenv.cc.cc.lib
