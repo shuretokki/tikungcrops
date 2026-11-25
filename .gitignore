@@ -10,6 +10,8 @@ data/reference/*/sources/*.md
 /site/public/json/
 /web/
 documents/local/
+/.devenv/
+/.pre-commit-config.yaml
 *.pdf
 .env
 
