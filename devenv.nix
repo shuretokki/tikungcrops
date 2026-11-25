@@ -74,7 +74,7 @@
   # https://devenv.sh/git-hooks/
   git-hooks.hooks.typos.enable = true;
   git-hooks.hooks.lychee.enable = true;
-  git-hooks.hooks.lychee.files = "\\.md$";
+  git-hooks.hooks.lychee.files = "\\.(md|typ)$";
   git-hooks.hooks.lychee.settings.configPath = "lychee.toml";
   git-hooks.hooks.reuse.enable = true;
 
