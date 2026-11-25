@@ -21,7 +21,7 @@ just dekit up   # dev tasks from dekit.yaml: site on :3017, then just dekit star
 
 Data layout: `data/README.md`. Reference statistics and their provenance: `data/reference/README.md`.
 
-## Checks
+Checks run with these commands:
 
 ```sh
 just test            # Python tests
@@ -33,8 +33,6 @@ cd site && pnpm test && pnpm lint && pnpm typecheck && pnpm knip
 
 Run these inside `devenv shell`, because it sets the library path that the Python wheels need.
 It also keeps the pnpm store on the home drive, since native Node modules cannot load from an NTFS mount.
-
-## Scheduled extraction
 
 `.github/workflows/monthly.yml` runs on the 25th of each month. It fetches CHIRPS plus the previous month's Sentinel-1 and Sentinel-2 scenes.
 Scenes are uploaded as a workflow artifact that is kept for 90 days.
@@ -57,8 +55,6 @@ This pipeline reads public data that keeps its own licence. These credits appear
 | Lahan Baku Sawah | licence not stated, check before publishing more than the paddy share | Badan Informasi Geospasial |
 | BPS and DKPP figures | the source is cited in `data/reference/README.md` | Badan Pusat Statistik and Pemerintah Kabupaten Lamongan |
 | OpenFreeMap basemap | OpenStreetMap data under ODbL | © OpenStreetMap contributors, OpenFreeMap |
-
-## License
 
 Code is Apache-2.0, and the transcribed reference figures are CC BY 4.0.
 Fonts, the UNESA logo and the palette colors keep their own licences, as `REUSE.toml` lists file by file.
