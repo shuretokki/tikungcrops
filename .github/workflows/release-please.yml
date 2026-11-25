@@ -27,8 +27,34 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
           permission-issues: write
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5.0.0
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5.0.0
         with:
           token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+      # Release Please cannot edit an array table in uv.lock, so the lockfile keeps the old version and CI fails on --locked.
+      # This step runs uv lock on the release branch and pushes the result.
+      # To undo it, delete the three steps below and run uv lock by hand on the release pull request.
+      - if: steps.release.outputs.prs_created == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+      - if: steps.release.outputs.prs_created == 'true'
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d  # v10.4.0
+      - if: steps.release.outputs.prs_created == 'true'
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          REPO: ${{ github.repository }}
+        run: |
+          uv lock
+          if git diff --quiet uv.lock; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: update uv.lock" uv.lock
+          git push "https://x-access-token:${APP_TOKEN}@github.com/${REPO}.git" "HEAD:${BRANCH}"
