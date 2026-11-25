@@ -35,14 +35,15 @@ jobs:
           manifest-file: .release-please-manifest.json
       # Release Please cannot edit an array table in uv.lock, so the lockfile keeps the old version and CI fails on --locked.
       # The steps below run uv lock on the open release branch and push the result.
-      # They look the branch up with gh, since the pr output of the action is empty when the release pull request did not change.
+      # They look the branch up by its fixed name with gh, since the pr output of the action is empty when the release pull request did not change.
+      # A label filter does not work here, because the search index lags a second behind the label that the action adds.
       # To undo it, delete the four steps below and run uv lock by hand on the release pull request.
       - id: release-branch
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           REPO: ${{ github.repository }}
         run: |
-          branch=$(gh pr list --repo "$REPO" --state open --label "autorelease: pending" --json headRefName --jq '.[0].headRefName // empty')
+          branch=$(gh pr list --repo "$REPO" --state open --head "release-please--branches--master--components--tikungcrops" --json headRefName --jq '.[0].headRefName // empty')
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
       - if: steps.release-branch.outputs.branch != ''
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
