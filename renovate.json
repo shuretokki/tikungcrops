@@ -5,6 +5,7 @@
   "schedule": ["before 6am on monday"],
   "nix": { "enabled": true },
   "lockFileMaintenance": { "enabled": true },
+  "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
