@@ -75,10 +75,10 @@ from typing import Any
 import numpy as np
 import polars as pl
 
-from jotosanur_agri.pipeline import save
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
-from jotosanur_agri.pipeline.silver_sentinel import BATCH_CELLS, cell_batches
+from tikungcrops.pipeline import save
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.silver_sentinel import BATCH_CELLS, cell_batches
 
 PEAK_MIN = 0.6
 MIN_SEASON_GAP_DAYS = 60

@@ -11,8 +11,8 @@ from pathlib import Path
 import polars as pl
 import pytest
 
-from jotosanur_agri.pipeline.load_sentinel import month_range
-from jotosanur_agri.pipeline.validate_reference import compare, covered_years, summarize
+from tikungcrops.pipeline.load_sentinel import month_range
+from tikungcrops.pipeline.validate_reference import compare, covered_years, summarize
 
 
 def units(rows: list[tuple[str, int, float, float]]) -> pl.DataFrame:

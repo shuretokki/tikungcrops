@@ -17,8 +17,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from jotosanur_agri.pipeline import gold_sentinel as g
-from jotosanur_agri.pipeline.gold_sentinel import current_season, seasons_for_cell
+from tikungcrops.pipeline import gold_sentinel as g
+from tikungcrops.pipeline.gold_sentinel import current_season, seasons_for_cell
 
 START = date(2019, 9, 1)
 N = 110  # 5-day steps, Sep 2019 to Mar 2021

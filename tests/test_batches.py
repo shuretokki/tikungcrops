@@ -12,9 +12,9 @@ import polars as pl
 import pytest
 from polars.testing import assert_frame_equal
 
-from jotosanur_agri.pipeline import gold_sentinel, silver_sentinel
-from jotosanur_agri.pipeline.gold_sentinel import run_gold_sentinel
-from jotosanur_agri.pipeline.silver_sentinel import cell_batches, run_silver_sentinel
+from tikungcrops.pipeline import gold_sentinel, silver_sentinel
+from tikungcrops.pipeline.gold_sentinel import run_gold_sentinel
+from tikungcrops.pipeline.silver_sentinel import cell_batches, run_silver_sentinel
 
 
 def test_cell_batches_cover_every_cell_once_in_order():

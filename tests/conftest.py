@@ -10,7 +10,7 @@ from datetime import date, timedelta
 import numpy as np
 import pytest
 
-from jotosanur_agri.pipeline.aoi import Aoi
+from tikungcrops.pipeline.aoi import Aoi
 
 SQUARE = {
     "type": "MultiPolygon",

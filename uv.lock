@@ -674,67 +674,6 @@ wheels = [
 ]
 
 [[package]]
-name = "jotosanur-agri"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "catboost" },
-    { name = "lightgbm" },
-    { name = "numpy" },
-    { name = "optuna" },
-    { name = "pandas" },
-    { name = "plotly" },
-    { name = "polars" },
-    { name = "pyarrow" },
-    { name = "pymongo" },
-    { name = "rasterio" },
-    { name = "scikit-learn" },
-    { name = "skrub" },
-    { name = "streamlit" },
-    { name = "xgboost-cpu" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "basedpyright" },
-    { name = "dekit-cli" },
-    { name = "hypothesis" },
-    { name = "pandas-stubs" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "catboost", specifier = ">=1.2.10" },
-    { name = "lightgbm", specifier = ">=4.7.0" },
-    { name = "numpy", specifier = ">=2.5.3" },
-    { name = "optuna", specifier = ">=5.0.0" },
-    { name = "pandas", specifier = ">=3.0.6" },
-    { name = "plotly", specifier = ">=7.1.0" },
-    { name = "polars", specifier = ">=1.44.2" },
-    { name = "pyarrow", specifier = ">=25.0.1" },
-    { name = "pymongo", specifier = ">=4.18.1" },
-    { name = "rasterio", specifier = ">=1.5.1" },
-    { name = "scikit-learn", specifier = ">=1.9.1" },
-    { name = "skrub", specifier = ">=0.11.0" },
-    { name = "streamlit", specifier = ">=1.64.0" },
-    { name = "xgboost-cpu", specifier = ">=3.4.1" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "basedpyright", specifier = ">=1.40.1" },
-    { name = "dekit-cli", specifier = ">=0.10.2" },
-    { name = "hypothesis", specifier = ">=6.170.5" },
-    { name = "pandas-stubs", specifier = ">=3.0.5.260914" },
-    { name = "pytest", specifier = ">=9.1.1" },
-    { name = "pytest-cov", specifier = ">=7.1.0" },
-    { name = "ruff", specifier = ">=0.16.8" },
-]
-
-[[package]]
 name = "jsonschema"
 version = "4.26.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1930,6 +1869,67 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/00/dc/6c58154c1c65f758ea979e7139cb76993a9cfc662d14e9be3c4a667cfb77/threadpoolctl-3.7.0.tar.gz", hash = "sha256:61348cfb77d53b9242e0017029244b559b810c142ced65b4e21eeca1843959a7", size = 31961, upload-time = "2026-09-15T15:46:20.263Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/43/3f/f88a53f60a472b46f4023f56d204dd7de33d34c5d2acbfa0d70a674e639e/threadpoolctl-3.7.0-py3-none-any.whl", hash = "sha256:cd8b60b5641b45c67bbf73c64c843235fc2d8a480c87389f52f5dbee893b86be", size = 26362, upload-time = "2026-09-15T15:46:19.168Z" },
+]
+
+[[package]]
+name = "tikungcrops"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "catboost" },
+    { name = "lightgbm" },
+    { name = "numpy" },
+    { name = "optuna" },
+    { name = "pandas" },
+    { name = "plotly" },
+    { name = "polars" },
+    { name = "pyarrow" },
+    { name = "pymongo" },
+    { name = "rasterio" },
+    { name = "scikit-learn" },
+    { name = "skrub" },
+    { name = "streamlit" },
+    { name = "xgboost-cpu" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "basedpyright" },
+    { name = "dekit-cli" },
+    { name = "hypothesis" },
+    { name = "pandas-stubs" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "catboost", specifier = ">=1.2.10" },
+    { name = "lightgbm", specifier = ">=4.7.0" },
+    { name = "numpy", specifier = ">=2.5.3" },
+    { name = "optuna", specifier = ">=5.0.0" },
+    { name = "pandas", specifier = ">=3.0.6" },
+    { name = "plotly", specifier = ">=7.1.0" },
+    { name = "polars", specifier = ">=1.44.2" },
+    { name = "pyarrow", specifier = ">=25.0.1" },
+    { name = "pymongo", specifier = ">=4.18.1" },
+    { name = "rasterio", specifier = ">=1.5.1" },
+    { name = "scikit-learn", specifier = ">=1.9.1" },
+    { name = "skrub", specifier = ">=0.11.0" },
+    { name = "streamlit", specifier = ">=1.64.0" },
+    { name = "xgboost-cpu", specifier = ">=3.4.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "basedpyright", specifier = ">=1.40.1" },
+    { name = "dekit-cli", specifier = ">=0.10.2" },
+    { name = "hypothesis", specifier = ">=6.170.5" },
+    { name = "pandas-stubs", specifier = ">=3.0.5.260914" },
+    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest-cov", specifier = ">=7.1.0" },
+    { name = "ruff", specifier = ">=0.16.8" },
 ]
 
 [[package]]

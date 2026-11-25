@@ -11,7 +11,7 @@ from datetime import date
 import polars as pl
 import pytest
 
-from jotosanur_agri.pipeline.export_web import run_export_web
+from tikungcrops.pipeline.export_web import run_export_web
 
 
 @pytest.fixture

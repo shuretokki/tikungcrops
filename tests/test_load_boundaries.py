@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import json
 
-from jotosanur_agri.pipeline.aoi import Aoi
-from jotosanur_agri.pipeline.load_boundaries import contains, match, run_load_boundaries
+from tikungcrops.pipeline.aoi import Aoi
+from tikungcrops.pipeline.load_boundaries import contains, match, run_load_boundaries
 
 
 def square(x0: float, y0: float, size: float = 1.0) -> dict:

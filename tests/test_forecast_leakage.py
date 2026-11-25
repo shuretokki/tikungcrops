@@ -14,8 +14,8 @@ from datetime import date, timedelta
 import polars as pl
 import pytest
 
-from jotosanur_agri.pipeline.forecast_harvest import FEATURES, training_table
-from jotosanur_agri.pipeline.harvest_outlook import weekly
+from tikungcrops.pipeline.forecast_harvest import FEATURES, training_table
+from tikungcrops.pipeline.harvest_outlook import weekly
 
 
 @pytest.fixture

@@ -29,7 +29,7 @@ error in days, and the share of seasons whose true harvest falls inside the pred
 compared with the median detected one.
 
 Output: data/gold/sentinel/<aoi>_forecast_eval.csv.
-Usage: `python -m jotosanur_agri.pipeline.forecast_harvest [AOI]`.
+Usage: `python -m tikungcrops.pipeline.forecast_harvest [AOI]`.
 """
 
 from __future__ import annotations
@@ -43,8 +43,8 @@ import numpy as np
 import polars as pl
 from sklearn.ensemble import HistGradientBoostingRegressor
 
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
 
 ISSUE_AFTER_GREENUP_DAYS = 20
 QUANTILES = (0.1, 0.9)

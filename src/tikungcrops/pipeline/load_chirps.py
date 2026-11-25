@@ -21,7 +21,7 @@ Outputs:
     - data/silver/chirps/<aoi-slug>_monthly.parquet: plus days in month, mm/day, the
       1991-2020 normal and anomaly.
     - data/silver/chirps/<aoi-slug>_annual.parquet: yearly totals (complete years only).
-Usage: `python -m jotosanur_agri.pipeline.load_chirps [AOI] [--refresh]`.
+Usage: `python -m tikungcrops.pipeline.load_chirps [AOI] [--refresh]`.
 """
 
 from __future__ import annotations
@@ -42,9 +42,9 @@ from rasterio.errors import RasterioIOError
 from rasterio.transform import rowcol
 from rasterio.windows import from_bounds
 
-from jotosanur_agri.pipeline import save
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI, GDAL_ENV
+from tikungcrops.pipeline import save
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI, GDAL_ENV
 
 BASE_URL = "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/cogs"
 FILE_RE = re.compile(r"chirps-v3\.0\.(\d{4})\.(\d{2})\.cog")

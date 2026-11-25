@@ -13,9 +13,9 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.harvest_outlook import backtest_cells
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.harvest_outlook import backtest_cells
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / (sys.argv[4] if len(sys.argv) > 4 else "data")

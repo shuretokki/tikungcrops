@@ -13,7 +13,7 @@ not stated by the service).
 
 Output: data/bronze/sentinel/<aoi-slug>/paddy.parquet with `cell_id` and `paddy_frac`
 (share of the cell's pixels inside LBS paddy), for every cell in cells.parquet.
-Usage: `python -m jotosanur_agri.pipeline.load_paddy [AOI]`.
+Usage: `python -m tikungcrops.pipeline.load_paddy [AOI]`.
 """
 
 from __future__ import annotations
@@ -33,9 +33,9 @@ import polars as pl
 from rasterio.features import rasterize
 from rasterio.warp import transform_geom
 
-from jotosanur_agri.pipeline import save
-from jotosanur_agri.pipeline.aoi import Aoi, resolve
-from jotosanur_agri.pipeline.load_sentinel import CELL_PX, DEFAULT_AOI, cell_ids, make_grid, unit_raster
+from tikungcrops.pipeline import save
+from tikungcrops.pipeline.aoi import Aoi, resolve
+from tikungcrops.pipeline.load_sentinel import CELL_PX, DEFAULT_AOI, cell_ids, make_grid, unit_raster
 
 LBS_URL = (
     "https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/SUMBER_DAYA_ALAM_DAN_LINGKUNGAN/MapServer/36/query"

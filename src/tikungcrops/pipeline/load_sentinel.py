@@ -33,7 +33,7 @@ The grid is processed in blocks of at most `BLOCK_PX` x `BLOCK_PX` pixels, so me
 stays bounded for large areas. Cell ids are global across blocks.
 
 Output: data/bronze/sentinel/<aoi-slug>/<YYYY-MM>.parquet plus cells.parquet.
-Usage: `python -m jotosanur_agri.pipeline.load_sentinel [AOI] [START_MONTH] [END_MONTH]`,
+Usage: `python -m tikungcrops.pipeline.load_sentinel [AOI] [START_MONTH] [END_MONTH]`,
 e.g. `Lamongan/Tikung 2020-01 2020-12`. Without months it defaults to the previous
 calendar month.
 """
@@ -59,8 +59,8 @@ from rasterio.errors import RasterioError
 from rasterio.features import rasterize
 from rasterio.warp import Resampling, reproject, transform, transform_bounds, transform_geom
 
-from jotosanur_agri.pipeline import save
-from jotosanur_agri.pipeline.aoi import Aoi, resolve
+from tikungcrops.pipeline import save
+from tikungcrops.pipeline.aoi import Aoi, resolve
 
 DEFAULT_AOI = "Lamongan/Tikung"
 EARTH_SEARCH = "https://earth-search.aws.element84.com/v1/search"

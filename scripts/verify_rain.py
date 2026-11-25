@@ -19,8 +19,8 @@ import numpy as np
 import polars as pl
 import rasterio
 
-from jotosanur_agri.pipeline.load_chirps import BASE_URL, list_months
-from jotosanur_agri.pipeline.load_sentinel import GDAL_ENV
+from tikungcrops.pipeline.load_chirps import BASE_URL, list_months
+from tikungcrops.pipeline.load_sentinel import GDAL_ENV
 
 ROOT = Path(__file__).resolve().parent.parent
 CACHE = ROOT / "data" / "external" / "ghcn"

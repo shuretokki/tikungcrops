@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from jotosanur_agri.pipeline.reference import ReferenceDataError, read_reference, reference_path
+from tikungcrops.pipeline.reference import ReferenceDataError, read_reference, reference_path
 
 HEADER = "unit,year,crop,harvested_area_ha,production_ton,source\n"
 

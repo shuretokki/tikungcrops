@@ -31,8 +31,8 @@ from typing import Any
 
 import polars as pl
 
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
 
 STEP_DAYS = 5
 MAX_GAP_DAYS = 30

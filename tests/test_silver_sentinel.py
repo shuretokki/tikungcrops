@@ -10,8 +10,8 @@ from datetime import date, timedelta
 import polars as pl
 import pytest
 
-from jotosanur_agri.pipeline import silver_sentinel as s
-from jotosanur_agri.pipeline.silver_sentinel import build_silver, clean_s1, clean_s2, interpolate, time_grid
+from tikungcrops.pipeline import silver_sentinel as s
+from tikungcrops.pipeline.silver_sentinel import build_silver, clean_s1, clean_s2, interpolate, time_grid
 
 D0 = date(2020, 1, 1)
 

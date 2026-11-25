@@ -13,8 +13,8 @@ from email.message import Message
 
 import pytest
 
-from jotosanur_agri.pipeline import load_paddy
-from jotosanur_agri.pipeline.aoi import Aoi
+from tikungcrops.pipeline import load_paddy
+from tikungcrops.pipeline.aoi import Aoi
 
 
 def rect(x0: float, y0: float, w: float, h: float) -> dict:
