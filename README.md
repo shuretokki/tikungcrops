@@ -5,8 +5,9 @@
 - [Nix](https://nixos.org/download/) and [devenv](https://devenv.sh/getting-started/), optionally [direnv](https://direnv.net/) (`.envrc` runs `use devenv`).
   Its shell provides `uv`, `just`, `typst`, `mongosh`, `sqlite`, `ruff`, `basedpyright`, `reuse`, `pnpm`, `typos`, `lychee` and `zizmor`.
 - Docker Engine ≥ 24 with Compose v2: https://docs.docker.com/engine/install/
-- An unlocked Bitwarden session (`BW_SESSION`), because SecretSpec reads the database settings from it.
-  Run `secretspec set MONGO_ROOT_PASSWORD` and `secretspec set MONGO_URI` once, using the same password in both.
+- A [SecretSpec](https://secretspec.dev) provider of your choice, such as your system keyring, 1Password or Bitwarden. `secretspec.toml` lists the names and each person picks where the values live.
+  Run `secretspec config global init` once to choose it, then `secretspec set MONGO_ROOT_PASSWORD` and `secretspec set MONGO_URI`, using the same password in both.
+  Its shell includes the Bitwarden CLI for anyone who picks `bw://`, which needs an unlocked `BW_SESSION`.
 
 ## Usage
 
