@@ -5,11 +5,13 @@
 # or GeoJSON files, see src/tikungcrops/pipeline/aoi.py.
 
 set default-list := true
-set dotenv-load := true
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 # https://docs.astral.sh/uv
 uv := require("uv")
+
+# Recipes that reach MongoDB run behind this prefix, so SecretSpec supplies the MONGO_ variables.
+secrets := require("secretspec") + ' run --reason "run the project database" --'
 
 aoi := "Lamongan/Tikung"
 py := "uv run python -m tikungcrops"
@@ -33,22 +35,22 @@ docker-check:
 # Start MongoDB and wait until healthy
 [group("db")]
 up: docker-check
-    docker compose up -d --wait
+    {{ secrets }} docker compose up -d --wait
 
 # Stop MongoDB
 [group("db")]
 down: docker-check
-    docker compose down
+    {{ secrets }} docker compose down
 
 # Open a Mongo shell on the project db
 [group("db")]
 mongosh:
-    {{ require("mongosh") }} "$MONGO_URI" --eval 'db = db.getSiblingDB("'"$MONGO_DB"'")' --shell
+    {{ secrets }} bash -c '{{ require("mongosh") }} "$MONGO_URI" --eval "db = db.getSiblingDB(\"$MONGO_DB\")" --shell'
 
 # Print aggregation results and query plans (IXSCAN vs COLLSCAN)
 [group("db")]
 agg: up
-    {{ py }}.mongo_agg
+    {{ secrets }} {{ py }}.mongo_agg
 
 # Sentinel-1/2 bronze for an area and month range, e.g. `just sentinel Lamongan/Tikung 2020-01 2020-12`, defaults previous month
 [group("pipeline")]
@@ -99,7 +101,7 @@ validate aoi=aoi:
 # Sync the area's reference statistics and season summaries into MongoDB
 [group("pipeline")]
 mongo aoi=aoi: up
-    {{ py }}.pipeline.load_mongo "{{ aoi }}"
+    {{ secrets }} {{ py }}.pipeline.load_mongo "{{ aoi }}"
 
 # Publishable unit outlines (geoBoundaries) for the web map in data/web/<aoi>/
 [group("pipeline")]
@@ -156,7 +158,7 @@ site-dev: _site-data
 # Run the Streamlit dashboard with the input forms
 [group("web")]
 app:
-    uv run streamlit run app.py
+    {{ secrets }} uv run streamlit run app.py
 
 # Lint and check types
 [group("checks")]
