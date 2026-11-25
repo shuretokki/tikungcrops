@@ -2,15 +2,15 @@
 
 ## Prerequisites
 
-- [Nix](https://nixos.org/download/) with flakes, optionally [direnv](https://direnv.net/) (`.envrc` runs `use flake`).
-  Its devshell provides `uv`, `just`, `typst`, `mongosh`, `sqlite`, `ruff`, `basedpyright`, `reuse` and `pnpm`.
+- [Nix](https://nixos.org/download/) and [devenv](https://devenv.sh/getting-started/), optionally [direnv](https://direnv.net/) (`.envrc` runs `use devenv`).
+  Its shell provides `uv`, `just`, `typst`, `mongosh`, `sqlite`, `ruff`, `basedpyright`, `reuse`, `pnpm`, `typos`, `lychee` and `zizmor`.
 - Docker Engine ≥ 24 with Compose v2: https://docs.docker.com/engine/install/
 - `cp .env.example .env` and set `MONGO_ROOT_PASSWORD` (and the same password in `MONGO_URI`).
 
 ## Usage
 
 ```sh
-nix develop     # or: direnv allow
+devenv shell    # or: direnv allow
 just            # list recipes
 just up         # start MongoDB
 just setup      # full batch pipeline, after a first `just sentinel` run
@@ -30,7 +30,7 @@ just site            # build the static site into site/.output/public
 cd site && pnpm test && pnpm lint && pnpm typecheck && pnpm knip
 ```
 
-Run these inside `nix develop`, because the devshell sets the library path that the Python wheels need.
+Run these inside `devenv shell`, because it sets the library path that the Python wheels need.
 It also keeps the pnpm store on the home drive, since native Node modules cannot load from an NTFS mount.
 
 ## Scheduled extraction

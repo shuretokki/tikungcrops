@@ -5,7 +5,7 @@ seasons harvested before it, so the replay is honest about what was known at tha
 
 Output: data/gold/sentinel/<aoi>_backtest_cells.parquet.
 Run from the project root (it takes several minutes):
-    nix develop -c uv run --no-sync python scripts/backtest_forecast.py [FIRST] [LAST] [STEP_DAYS] [DATA_DIR]
+    uv run --no-sync python scripts/backtest_forecast.py [FIRST] [LAST] [STEP_DAYS] [DATA_DIR]
 """
 
 import sys

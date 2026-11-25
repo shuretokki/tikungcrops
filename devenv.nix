@@ -28,6 +28,7 @@
     sqlite
     ruff
     basedpyright
+    nodejs_24
     pnpm
     wrangler
     bitwarden-cli

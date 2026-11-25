@@ -5,7 +5,7 @@ The outline of the desa is saved as an SVG path in picture pixels, so the page c
 Output: site/public/desa/<slug>.jpg and site/app/data/desa-images.json.
 
 Run from the project root:
-    nix shell nixpkgs#imagemagick -c nix develop -c uv run --no-sync python scripts/desa_images.py
+    nix shell nixpkgs#imagemagick -c uv run --no-sync python scripts/desa_images.py
 Needs the network, and ImageMagick (`magick`) on the PATH for the JPEG step.
 """
 

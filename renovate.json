@@ -3,18 +3,19 @@
   "extends": ["config:recommended", "helpers:pinGitHubActionDigestsToSemver"],
   "timezone": "Asia/Jakarta",
   "schedule": ["before 6am on monday"],
-  "nix": { "enabled": true },
-  "lockFileMaintenance": { "enabled": true },
+  "lockFileMaintenance": { "enabled": true, "automerge": true },
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
-      "groupName": "github actions"
+      "groupName": "github actions",
+      "automerge": true
     },
     {
       "matchUpdateTypes": ["minor", "patch"],
       "matchManagers": ["pep621", "npm"],
-      "groupName": "minor and patch dependencies"
+      "groupName": "minor and patch dependencies",
+      "automerge": true
     }
   ]
 }

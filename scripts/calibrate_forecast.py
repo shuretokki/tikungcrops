@@ -10,7 +10,7 @@ file is written from all dates.
 
 Output: data/gold/sentinel/<aoi>_calibration.json, read by `harvest_outlook.run_outlook`.
 Run from the project root:
-    nix develop -c uv run --no-sync python scripts/calibrate_forecast.py [DATA_DIR]
+    uv run --no-sync python scripts/calibrate_forecast.py [DATA_DIR]
 """
 
 import json
