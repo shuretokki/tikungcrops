@@ -7,7 +7,7 @@
 - Docker Engine ≥ 24 with Compose v2: https://docs.docker.com/engine/install/
 - A [SecretSpec](https://secretspec.dev) provider of your choice, such as your system keyring, 1Password or Bitwarden. `secretspec.toml` lists the names and each person picks where the values live.
   Run `secretspec config global init` once to choose it, then `secretspec set MONGO_ROOT_PASSWORD` and `secretspec set MONGO_URI`, using the same password in both.
-  The devenv shell includes the Bitwarden CLI for anyone who picks `bw://`, which needs an unlocked `BW_SESSION`.
+  Its shell includes the Bitwarden CLI for anyone who picks `bw://`, which needs an unlocked `BW_SESSION`.
 
 ## Usage
 
