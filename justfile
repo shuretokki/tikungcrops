@@ -181,10 +181,6 @@ alias t := test
 @coverage:
     uv run pytest --cov=jotosanur_agri --cov-report=term-missing
 
-# Add license headers from the REUSE.toml rules: just annotate --dry-run, --replace to rewrite, or limit it to a path
-[group("maintenance")]
-@annotate *args:
-    uv run python scripts/annotate_from_reuse.py --exclude "**/*.vue" --exclude "**/*.md" --exclude "**/*.json" --exclude "**/*.csv" --exclude "documents/**" --exclude "**/*.lock" --exclude "**/*.yaml" {{ args }}
 
 # Compile a typst document as PDF, e.g. `just pdf laporan-akhir/main` or `just pdf paparan-akhir/main`
 [group("docs")]
