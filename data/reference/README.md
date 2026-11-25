@@ -66,9 +66,6 @@ Harvested area per calendar month for the whole AOI, used to check harvest timin
   so they cannot validate per desa. Note DKPP's 2021 kecamatan rice area (7,042 ha) differs
   from the BPS desa table (7,402 ha). Do not mix the two series.
 
-Earlier source notes (livestock, fisheries, CIMMYT, news figures on the program) are
-kept in `archives/sumber-data/`.
-
 ### idn-jawatimur-lamongan (Kabupaten Lamongan)
 
 | `source` | Publication | Tables | Data year |

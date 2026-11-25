@@ -50,7 +50,7 @@ dev = [
 line-length = 120
 target-version = "py313"
 # scripts/annotate_from_reuse.py is copied unchanged from shirabe-profiling, keep it in sync there
-extend-exclude = ["typings", "archives", "scripts/annotate_from_reuse.py"]
+extend-exclude = ["typings", "scripts/annotate_from_reuse.py"]
 
 [tool.ruff.lint]
 select = [

@@ -9,11 +9,11 @@ SPDX-FileCopyrightText = "2026 Tri Rianto Utomo"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = ["data/reference/**/*.csv", "archives/sumber-data/*.csv"]
+path = "data/reference/**/*.csv"
 precedence = "override"
 SPDX-FileCopyrightText = [
   "2026 Tri Rianto Utomo (transcription)",
-  "Source figures: Badan Pusat Statistik Kabupaten Lamongan, and Dinas Ketahanan Pangan dan Pertanian and Dinas Perikanan Kabupaten Lamongan, as cited in data/reference/README.md and archives/sumber-data/README.md",
+  "Source figures: Badan Pusat Statistik Kabupaten Lamongan, and Dinas Ketahanan Pangan dan Pertanian and Dinas Perikanan Kabupaten Lamongan, as cited in data/reference/README.md",
 ]
 SPDX-License-Identifier = "CC-BY-4.0"
 
