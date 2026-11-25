@@ -8,7 +8,6 @@ Run with `just app` (or `uv run streamlit run app.py`).
 Shows satellite planting seasons and cropping intensity per desa (MongoDB `planting_seasons`,
 `cropping_intensity`) and the mitra input forms: harvests go to MongoDB, distribution records
 to SQLite (see `jotosanur_agri.store`). Database names are English, everything on screen is Indonesian.
-The earlier version with synthetic data and yield predictors is kept in archives/app.py.
 """
 
 from __future__ import annotations

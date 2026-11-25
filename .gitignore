@@ -15,8 +15,6 @@ wheels/
 !/data/reference/
 !/data/README.md
 /models/
-/archives/data/
-/archives/models/
 .direnv/
 .claude/
 .agents/
@@ -33,5 +31,4 @@ data/reference/*/sources/*.md
 
 /site/public/json/
 .coverage
-archives/sumber-data/*-parsed.md
 /web/
