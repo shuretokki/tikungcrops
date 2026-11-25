@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
+# SPDX-License-Identifier: Apache-2.0
+
+# The site text and the reports are Indonesian, and typos checks English words.
+# These paths and lock files are skipped so that Indonesian words do not count as typos.
+[files]
+extend-exclude = [
+  "uv.lock",
+  "flake.lock",
+  "site/pnpm-lock.yaml",
+  "data/",
+  "documents/",
+  "LICENSES/",
+  "site/app/utils/copy.ts",
+  "*.bib",
+]
+
+[default.extend-words]
+tabel = "tabel"
+grup = "grup"
+sistem = "sistem"
+mis = "mis"
+nin = "nin"
