@@ -55,16 +55,15 @@ Harvested area per calendar month for the whole AOI, used to check harvest timin
 | `bps_tikung_2022` | BPS Kabupaten Lamongan, *Kecamatan Tikung Dalam Angka 2022*, released 26 Sep 2022 | 5.3 (rice), 5.4 (maize), pp. 120-121 | 2021 |
 
 - 2013: rice only. 2020 and 2021: rice and hybrid maize (`jagung_hibrida`).
-- 2021 rows: every row's production divided by area matches the printed productivity, and the
-  areas sum to the printed totals (rice 7,402 ha, maize 1,255 ha). The printed production totals
-  (53,220 t rice, 9,513 t maize) are 36 t and 83 t below the sums of the rows, an inconsistency in
-  the source. The rows are kept as printed.
+- 2021 rows: production divided by area matches the printed productivity for every row.
+  Areas sum to the printed totals (rice 7,402 ha, maize 1,255 ha).
+  Printed production totals (53,220 t rice, 9,513 t maize) are 36 t and 83 t below the row sums, which is an inconsistency in the source.
+  Rows stay as printed.
 - All three years predate Kampung Pandu Sakti (started ~2025), so they are a pre-program
   baseline. 2021 is the first year the rice thresholds were not tuned on (they come from 2020).
-- Editions 2023-2026 (downloaded 2026-10-28) give food crops only for the whole kecamatan,
-  sourced from DKPP (rice area 7,042 ha in 2021, 7,659 in 2022, 7,658 in 2023, 5,830 in 2024),
-  so they cannot validate per desa. Note DKPP's 2021 kecamatan rice area (7,042 ha) differs
-  from the BPS desa table (7,402 ha). Do not mix the two series.
+- Editions 2023-2026 (downloaded 2026-10-28) give food crops only for the whole kecamatan, sourced from DKPP.
+  Rice area is 7,042 ha in 2021, 7,659 in 2022, 7,658 in 2023 and 5,830 in 2024, so these editions cannot validate per desa.
+  DKPP's 2021 kecamatan rice area (7,042 ha) differs from the BPS desa table (7,402 ha), so do not mix the two series.
 
 ### idn-jawatimur-lamongan (Kabupaten Lamongan)
 
