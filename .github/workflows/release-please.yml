@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
-      # Release Please always uses this branch, and its pr output seems to be empty when it only updates the pull request.
+      # Release Please always uses this branch, and one run left its pr output empty although prs_created was true.
       # To undo it, read the branch name from steps.release.outputs.prs instead.
       BRANCH: release-please--branches--master--components--tikungcrops
     steps:
