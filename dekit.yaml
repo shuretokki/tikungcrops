@@ -9,14 +9,14 @@ tasks:
     autostart: true
 
   mongo:
-    cmd: ["docker", "compose", "up"]
+    cmd: ["secretspec", "run", "--reason", "run the project database", "--", "docker", "compose", "up"]
     ready: {tcp: 27017, timeout: 60s}
     # compose exits by itself once its containers stop
-    stop: {cmd: ["docker", "compose", "stop"]}
+    stop: {cmd: ["secretspec", "run", "--reason", "run the project database", "--", "docker", "compose", "stop"]}
     tags: [db]
 
   app:
-    cmd: ["uv", "run", "streamlit", "run", "app.py", "--server.headless", "true"]
+    cmd: ["secretspec", "run", "--reason", "run the project database", "--", "uv", "run", "streamlit", "run", "app.py", "--server.headless", "true"]
     deps: [mongo]
     ready: {http: "http://localhost:8501"}
     tags: [web]
