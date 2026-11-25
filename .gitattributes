@@ -2,7 +2,6 @@
 
 uv.lock linguist-generated=true
 devenv.lock linguist-generated=true
-devenv.lock linguist-generated=true
 site/pnpm-lock.yaml linguist-generated=true
 
 *.parquet binary
