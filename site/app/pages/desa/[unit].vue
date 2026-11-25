@@ -86,6 +86,18 @@ const weeks = computed(() => {
 })
 const weekMax = computed(() => Math.max(1, ...weeks.value.map(w => w.expected_ha)))
 
+// The range comes from the calibrated weekly curve. A desa with fewer than three forecast cells shows no sentence, because the range would be too thin to trust.
+const MIN_CELLS = 3
+const harvestLine = computed(() => {
+  const w = weeks.value
+  const first = w[0]
+  const last = w.at(-1)
+  if (!first || !last || Math.max(...w.map(x => x.cells)) < MIN_CELLS) return null
+  const peak = w.reduce((a, b) => (b.expected_ha > a.expected_ha ? b : a))
+  const label = (d: string) => formatDate(d, { day: 'numeric', month: 'long' })
+  return t.harvest.summary(label(peak.week), label(first.week), label(last.week))
+})
+
 // The place of this desa among the desa of Tikung, for the same three measures as the comparison page.
 const places = computed(() => {
   const sets: Record<'intensitas' | 'tumbuh', Entry[]> = {
@@ -297,6 +309,12 @@ useSeoMeta({ title: () => t.seoTitle(unit.value) })
             <h3 class="text-xl font-semibold">
               {{ t.harvest.title }}
             </h3>
+            <p
+              v-if="harvestLine"
+              class="font-semibold"
+            >
+              {{ harvestLine }}
+            </p>
             <ul
               v-if="weeks.length"
               class="flex flex-col gap-3"

@@ -753,6 +753,8 @@ export const COPY = {
     harvest: {
       title: "Perkiraan Panen 8 Minggu ke Depan",
       row: (week: string, ha: string) => `Minggu ${week}: sekitar ${ha}`,
+      summary: (peak: string, first: string, last: string) =>
+        `Panen paling banyak diperkirakan pada minggu ${peak}. Panen berlangsung kira-kira dari minggu ${first} sampai minggu ${last}.`,
       empty: (date: string | null) =>
         date
           ? `Belum terdapat perkiraan panen dalam 8 minggu ke depan. Panen musim tanam utama umumnya paling banyak sekitar ${date}.`
