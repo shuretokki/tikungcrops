@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/shuretokki/tikungcrops/compare/v0.1.1...v0.1.2) (2026-11-25)
+
+
+### Documentation
+
+* rebuild the documentation ([#65](https://github.com/shuretokki/tikungcrops/issues/65)) ([da2da8d](https://github.com/shuretokki/tikungcrops/commit/da2da8d848ed0033b53788075e7209df4f546bc9))
+
 ## [0.1.1](https://github.com/shuretokki/mini-project/compare/v0.1.0...v0.1.1) (2026-11-25)
 
 
