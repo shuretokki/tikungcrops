@@ -9,8 +9,8 @@ from datetime import date, timedelta
 
 import polars as pl
 
-from jotosanur_agri.pipeline.forecast_harvest import ISSUE_AFTER_GREENUP_DAYS
-from jotosanur_agri.pipeline.harvest_outlook import (
+from tikungcrops.pipeline.forecast_harvest import ISSUE_AFTER_GREENUP_DAYS
+from tikungcrops.pipeline.harvest_outlook import (
     MAX_ISSUE_AGE_DAYS,
     MAX_PEAK_AGE_DAYS,
     MIN_DESA_CELLS,

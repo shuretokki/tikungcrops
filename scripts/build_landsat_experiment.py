@@ -13,10 +13,10 @@ from pathlib import Path
 
 import polars as pl
 
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.gold_sentinel import run_gold_sentinel
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
-from jotosanur_agri.pipeline.silver_sentinel import run_silver_sentinel
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.gold_sentinel import run_gold_sentinel
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.silver_sentinel import run_silver_sentinel
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "data"

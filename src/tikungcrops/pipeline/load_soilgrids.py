@@ -15,7 +15,7 @@ its cells.
 
 Outputs: data/silver/soilgrids/<aoi-slug>_cells.parquet (cell_id plus one column per
 property and depth, e.g. `clay_0_5cm`) and <aoi-slug>_units.parquet (median per unit).
-Usage: `python -m jotosanur_agri.pipeline.load_soilgrids [AOI]`.
+Usage: `python -m tikungcrops.pipeline.load_soilgrids [AOI]`.
 """
 
 from __future__ import annotations
@@ -29,9 +29,9 @@ import numpy as np
 import polars as pl
 from rasterio.warp import Resampling
 
-from jotosanur_agri.pipeline import save
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI, monitored_blocks, read_to_grid
+from tikungcrops.pipeline import save
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI, monitored_blocks, read_to_grid
 
 VRT_URL = "/vsicurl/https://files.isric.org/soilgrids/latest/data/{prop}/{prop}_{depth}_mean.vrt"
 

@@ -55,11 +55,11 @@ jobs:
         run: uv sync --locked --no-dev
 
       - name: Sentinel-1/2 bronze
-        run: uv run --no-sync python -m jotosanur_agri.pipeline.load_sentinel "$AOI" "$START" "$END"
+        run: uv run --no-sync python -m tikungcrops.pipeline.load_sentinel "$AOI" "$START" "$END"
 
       # needs the cells table written by the Sentinel step
       - name: CHIRPS monthly rainfall
-        run: uv run --no-sync python -m jotosanur_agri.pipeline.load_chirps "$AOI"
+        run: uv run --no-sync python -m tikungcrops.pipeline.load_chirps "$AOI"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:

@@ -7,7 +7,7 @@ Run with `just app` (or `uv run streamlit run app.py`).
 
 Shows satellite planting seasons and cropping intensity per desa (MongoDB `planting_seasons`,
 `cropping_intensity`) and the mitra input forms: harvests go to MongoDB, distribution records
-to SQLite (see `jotosanur_agri.store`). Database names are English, everything on screen is Indonesian.
+to SQLite (see `tikungcrops.store`). Database names are English, everything on screen is Indonesian.
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError, PyMongoError, WriteError
 
-from jotosanur_agri import mongo, store
+from tikungcrops import mongo, store
 
 st.set_page_config(page_title="Kampung Pandu Sakti", page_icon="🌾", layout="wide")
 

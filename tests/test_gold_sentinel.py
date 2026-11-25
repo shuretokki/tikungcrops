@@ -11,7 +11,7 @@ import numpy as np
 import polars as pl
 import pytest
 
-from jotosanur_agri.pipeline.gold_sentinel import find_peaks, intensity_units, seasons_for_cell
+from tikungcrops.pipeline.gold_sentinel import find_peaks, intensity_units, seasons_for_cell
 
 
 def test_find_peaks_keeps_higher_of_two_close_peaks():

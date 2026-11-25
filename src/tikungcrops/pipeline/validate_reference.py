@@ -24,7 +24,7 @@ unvalidated for that area.
 
 Outputs: data/gold/sentinel/<aoi>_validation.csv (per year and measure) and
 <aoi>_validation_units.csv (per unit, for charts).
-Usage: `python -m jotosanur_agri.pipeline.validate_reference [AOI]`.
+Usage: `python -m tikungcrops.pipeline.validate_reference [AOI]`.
 """
 
 from __future__ import annotations
@@ -36,9 +36,9 @@ from typing import Any
 import numpy as np
 import polars as pl
 
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI, month_range
-from jotosanur_agri.pipeline.reference import ReferenceDataError, read_reference, reference_path
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI, month_range
+from tikungcrops.pipeline.reference import ReferenceDataError, read_reference, reference_path
 
 RICE = ["padi", "padi_sawah", "rice"]
 

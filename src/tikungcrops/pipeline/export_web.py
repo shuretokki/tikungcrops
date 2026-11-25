@@ -21,7 +21,7 @@ Outputs in data/web/<aoi-slug>/, all row-oriented JSON:
       forbids publishing its own outlines). Listed when present.
 A missing input skips its file, e.g. an area without reference data has no validation.
 
-Usage: `python -m jotosanur_agri.pipeline.export_web [AOI]` (default Lamongan/Tikung).
+Usage: `python -m tikungcrops.pipeline.export_web [AOI]` (default Lamongan/Tikung).
 """
 
 from __future__ import annotations
@@ -34,8 +34,8 @@ from typing import Any
 
 import polars as pl
 
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
 
 # satellite seasons start in late 2017, older rain adds size but no comparison
 RAIN_FROM_YEAR = 2017

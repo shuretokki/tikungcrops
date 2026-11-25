@@ -10,7 +10,7 @@ import pytest
 from affine import Affine
 from rasterio.errors import RasterioIOError
 
-from jotosanur_agri.pipeline import load_sentinel as ls
+from tikungcrops.pipeline import load_sentinel as ls
 
 
 class FakeGrid:

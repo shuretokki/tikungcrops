@@ -11,7 +11,7 @@ import numpy as np
 import polars as pl
 import pytest
 
-from jotosanur_agri.pipeline.compare_models import compare, compare_defaults
+from tikungcrops.pipeline.compare_models import compare, compare_defaults
 
 
 @pytest.fixture

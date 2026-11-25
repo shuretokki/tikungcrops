@@ -28,7 +28,7 @@ written with the median forecast date of its cells.
 Outputs: data/gold/sentinel/<aoi>_outlook_cells.parquet (per forecast cell),
 <aoi>_outlook_weekly.parquet (unit, week start, expected ha, cells) and
 <aoi>_outlook_desa.parquet (unit, forecast kind, cells, median forecast date and range).
-Usage: `python -m jotosanur_agri.pipeline.harvest_outlook [AOI] [--backtest DATE ...]`.
+Usage: `python -m tikungcrops.pipeline.harvest_outlook [AOI] [--backtest DATE ...]`.
 """
 
 from __future__ import annotations
@@ -42,11 +42,11 @@ from typing import Any
 import numpy as np
 import polars as pl
 
-from jotosanur_agri.pipeline import save
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.forecast_harvest import ISSUE_AFTER_GREENUP_DAYS, fit, training_table
-from jotosanur_agri.pipeline.gold_sentinel import build_gold
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline import save
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.forecast_harvest import ISSUE_AFTER_GREENUP_DAYS, fit, training_table
+from tikungcrops.pipeline.gold_sentinel import build_gold
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
 
 ANCHOR = {
     "planting": "flood_date",

@@ -25,7 +25,7 @@ from pathlib import Path
 
 import polars as pl
 
-from jotosanur_agri.pipeline.aoi import Aoi
+from tikungcrops.pipeline.aoi import Aoi
 
 REQUIRED = ["unit", "year", "crop", "harvested_area_ha", "source"]
 MAX_LISTED = 10

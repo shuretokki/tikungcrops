@@ -28,7 +28,7 @@ from typing import Any
 from pymongo import DESCENDING
 from pymongo.collection import Collection
 
-from jotosanur_agri.mongo import as_datetime, harvest_doc, source
+from tikungcrops.mongo import as_datetime, harvest_doc, source
 
 SQLITE_PATH = Path("data/relational.db")
 

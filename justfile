@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # AOI arguments are GADM name paths (e.g. Lamongan/Tikung)
-# or GeoJSON files, see src/jotosanur_agri/pipeline/aoi.py.
+# or GeoJSON files, see src/tikungcrops/pipeline/aoi.py.
 
 set default-list := true
 set dotenv-load := true
@@ -12,7 +12,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 uv := require("uv")
 
 aoi := "Lamongan/Tikung"
-py := "uv run python -m jotosanur_agri"
+py := "uv run python -m tikungcrops"
 PATHS := "src tests scripts app.py"
 
 # Install the project and its dev tools
@@ -179,7 +179,7 @@ alias t := test
 # Run the tests with line coverage
 [group("test")]
 @coverage:
-    uv run pytest --cov=jotosanur_agri --cov-report=term-missing
+    uv run pytest --cov=tikungcrops --cov-report=term-missing
 
 
 # Compile a typst document as PDF, e.g. `just pdf laporan-akhir/main` or `just pdf paparan-akhir/main`

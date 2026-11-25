@@ -7,7 +7,7 @@ Each pipeline starts with a `$match` on the leading key of its index (see
 `mongo.INDEXES`) so the planner can use an IXSCAN instead of a full collection scan.
 `explain_stages` reports which one it picked.
 
-Run `just agg` (or `uv run python -m jotosanur_agri.mongo_agg`) to print every
+Run `just agg` (or `uv run python -m tikungcrops.mongo_agg`) to print every
 pipeline's result and plan.
 """
 
@@ -18,7 +18,7 @@ from typing import Any
 from pymongo.collection import Collection
 from pymongo.database import Database
 
-from jotosanur_agri.mongo import connect
+from tikungcrops.mongo import connect
 
 
 def production_by_year_pipeline(commodities: list[str]) -> list[dict[str, Any]]:

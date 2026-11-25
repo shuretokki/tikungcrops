@@ -14,7 +14,7 @@ GADM is only used for this check, its geometry is never written.
 Output: data/web/<aoi-slug>/boundaries.geojson. Each feature has `unit` (the GADM name the rest
 of the pipeline uses), `name` (the geoBoundaries name), `name_match` and `level`.
 Units with no matching outline are listed in the summary.
-Usage: `python -m jotosanur_agri.pipeline.load_boundaries [AOI]` (default Lamongan/Tikung).
+Usage: `python -m tikungcrops.pipeline.load_boundaries [AOI]` (default Lamongan/Tikung).
 """
 
 from __future__ import annotations
@@ -26,8 +26,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from jotosanur_agri.pipeline.aoi import Aoi, resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.aoi import Aoi, resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
 
 GB_DIR = Path("data/external/geoboundaries")
 GB_URL = (

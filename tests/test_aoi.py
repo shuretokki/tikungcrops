@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 
-from jotosanur_agri.pipeline.aoi import resolve, slugify
+from tikungcrops.pipeline.aoi import resolve, slugify
 
 
 def test_slugify_joins_and_strips():

@@ -9,7 +9,7 @@ import polars as pl
 import pytest
 from rasterio.errors import RasterioIOError
 
-from jotosanur_agri.pipeline import load_chirps
+from tikungcrops.pipeline import load_chirps
 
 POINTS = pl.DataFrame({"unit": ["Alpha"], "lon": [112.3], "lat": [-7.1]})
 ROW = [{"unit": "Alpha", "year": 2020, "month": 1, "precip_mm": 300.0, "fetched_on": "2026-10-28"}]

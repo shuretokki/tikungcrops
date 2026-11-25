@@ -31,7 +31,7 @@ first vote and stack add nothing: `voting_picked` chooses its two members inside
 training years by year-grouped error, and `voting_mixed` averages two different families
 (spline and gradient boosting). The `params` column records the chosen members and the
 stack's learned weights. It writes <aoi>_model_comparison_defaults.csv.
-Usage: `python -m jotosanur_agri.pipeline.compare_models [AOI] [--defaults]` (default Lamongan/Tikung).
+Usage: `python -m tikungcrops.pipeline.compare_models [AOI] [--defaults]` (default Lamongan/Tikung).
 """
 
 from __future__ import annotations
@@ -61,9 +61,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import SplineTransformer, StandardScaler
 from xgboost import XGBRegressor
 
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.forecast_harvest import FEATURES, MIN_TEST_SEASONS, TARGET, training_table
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.forecast_harvest import FEATURES, MIN_TEST_SEASONS, TARGET, training_table
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
 
 MODELS = ("ridge", "random_forest", "gradient_boosting")
 DEFAULT_MODELS = (

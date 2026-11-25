@@ -18,8 +18,8 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
 
 ROOT = Path(__file__).resolve().parent.parent
 SLUG = resolve(DEFAULT_AOI).slug

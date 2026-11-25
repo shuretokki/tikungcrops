@@ -18,7 +18,7 @@ that the load no longer produces are deleted, and documents from `RETIRED_SOURCE
 removed. Partner input (`partner_input`) is never touched. The `recorded_at`
 timestamp is kept from the first load, so an unchanged rerun modifies nothing.
 
-Usage: `python -m jotosanur_agri.pipeline.load_mongo [AOI]` (default Lamongan/Tikung).
+Usage: `python -m tikungcrops.pipeline.load_mongo [AOI]` (default Lamongan/Tikung).
 """
 
 from __future__ import annotations
@@ -32,10 +32,10 @@ import polars as pl
 from pymongo import ReplaceOne
 from pymongo.database import Database
 
-from jotosanur_agri.mongo import SCHEMA_VERSION, as_datetime, connect, ensure_collections, harvest_doc, source
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import DEFAULT_AOI
-from jotosanur_agri.pipeline.reference import ReferenceDataError, read_reference
+from tikungcrops.mongo import SCHEMA_VERSION, as_datetime, connect, ensure_collections, harvest_doc, source
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import DEFAULT_AOI
+from tikungcrops.pipeline.reference import ReferenceDataError, read_reference
 
 GOLD = Path("data/gold/sentinel")
 

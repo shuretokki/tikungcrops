@@ -15,7 +15,7 @@ No Landsat to Sentinel-2 band adjustment is applied, because the back-test is th
 the extra dates help.
 
 Output: data/bronze/landsat/<aoi-slug>/<YYYY-MM>.parquet with the same columns as the Sentinel bronze,
-sensor "LS". Usage: `python -m jotosanur_agri.pipeline.load_landsat [AOI] [START_MONTH] [END_MONTH]`.
+sensor "LS". Usage: `python -m tikungcrops.pipeline.load_landsat [AOI] [START_MONTH] [END_MONTH]`.
 """
 
 from __future__ import annotations
@@ -31,9 +31,9 @@ from typing import Any
 import numpy as np
 import polars as pl
 
-from jotosanur_agri.pipeline import save
-from jotosanur_agri.pipeline.aoi import resolve
-from jotosanur_agri.pipeline.load_sentinel import (
+from tikungcrops.pipeline import save
+from tikungcrops.pipeline.aoi import resolve
+from tikungcrops.pipeline.load_sentinel import (
     BRONZE_SCHEMA,
     DEFAULT_AOI,
     PLANETARY,
