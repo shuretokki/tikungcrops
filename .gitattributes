@@ -1,0 +1,14 @@
+* text=auto eol=lf
+
+uv.lock linguist-generated=true
+flake.lock linguist-generated=true
+devenv.lock linguist-generated=true
+site/pnpm-lock.yaml linguist-generated=true
+
+*.parquet binary
+*.joblib binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.ttf binary
+*.pdf binary
