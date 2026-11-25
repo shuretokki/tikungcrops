@@ -59,6 +59,6 @@ This pipeline reads public data that keeps its own licence. These credits appear
 
 ## License
 
-The code is Apache-2.0, and the transcribed reference figures are CC BY 4.0.
+Code is Apache-2.0, and the transcribed reference figures are CC BY 4.0.
 Fonts, the UNESA logo and the palette colors keep their own licences, as `REUSE.toml` lists file by file.
-The licence texts are in `LICENSES/`. Run `just license-check` to check every file with REUSE.
+`LICENSES/` holds the licence texts. Run `just license-check` to check every file with REUSE.
