@@ -18,6 +18,10 @@ jobs:
   release-please:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      # Release Please always uses this branch, and one run left its pr output empty although prs_created was true.
+      # To undo it, read the branch name from steps.release.outputs.prs instead.
+      BRANCH: release-please--branches--master--components--tikungcrops
     steps:
       - id: app-token
         uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc  # v3.4.0
@@ -39,7 +43,7 @@ jobs:
       - if: steps.release.outputs.prs_created == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          ref: ${{ env.BRANCH }}
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: false
       - if: steps.release.outputs.prs_created == 'true'
@@ -47,7 +51,6 @@ jobs:
       - if: steps.release.outputs.prs_created == 'true'
         env:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
-          BRANCH: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
           REPO: ${{ github.repository }}
         run: |
           uv lock
