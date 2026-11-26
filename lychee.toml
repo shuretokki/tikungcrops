@@ -4,7 +4,13 @@
 # The workflow passes the Markdown and Typst files.
 # The site and data folders hold generated or draft pages, so they are skipped.
 exclude_path = ["data", "site", ".venv", "node_modules"]
-exclude = ["^https?://localhost", "^https?://127\\.0\\.0\\.1"]
+# A release pull request links to a compare page for a tag that release-please creates only after the merge.
+# Remove the compare pattern if release-please stops linking to unreleased tags.
+exclude = [
+  "^https?://localhost",
+  "^https?://127\\.0\\.0\\.1",
+  "^https://github\\.com/shuretokki/tikungcrops/compare/",
+]
 accept = ["200..=299", "429"]
 max_retries = 2
 timeout = 20
