@@ -1,5 +1,7 @@
 # tikungcrops
 
+tikungcrops turns public satellite data into a planting calendar for paddy farmers in Kecamatan Tikung, Lamongan. See it live at https://tikungcrops.tri-r-utomo.workers.dev.
+
 ## Prerequisites
 
 - [Nix](https://nixos.org/download/) and [devenv](https://devenv.sh/getting-started/), optionally [direnv](https://direnv.net/) (`.envrc` runs `use devenv`).
@@ -20,9 +22,9 @@ just app        # dashboard
 just dekit up   # dev tasks from dekit.yaml: site on :3017, then just dekit start app (needs mongo)
 ```
 
-Data layout: `data/README.md`. Reference statistics and their provenance: `data/reference/README.md`.
+See `data/README.md` for the data layout, and `data/reference/README.md` for reference statistics and where they came from.
 
-Checks run with these commands:
+Run these checks before you open a pull request:
 
 ```sh
 just test            # Python tests
@@ -32,18 +34,17 @@ just site            # build the static site into site/.output/public
 cd site && pnpm test && pnpm lint && pnpm typecheck && pnpm knip
 ```
 
-Run these inside `devenv shell`, because it sets the library path that the Python wheels need.
+Run them inside `devenv shell`, because it sets the library path that the Python wheels need.
 It also keeps the pnpm store on the home drive, since native Node modules cannot load from an NTFS mount.
 
-`.github/workflows/monthly.yml` runs on the 25th of each month. It fetches CHIRPS plus the previous month's Sentinel-1 and Sentinel-2 scenes.
-Scenes are uploaded as a workflow artifact that is kept for 90 days.
+`.github/workflows/monthly.yml` runs on the 25th of each month. It fetches CHIRPS plus the previous month's Sentinel-1 and Sentinel-2 scenes, and uploads them as a workflow artifact kept for 90 days.
 It needs no secrets, since every source is public.
-Silver needs all past months, so rebuild it where the bronze history lives with `just silver`.
-Locally, `just monthly` runs this same job.
+Silver needs all past months, so rebuild it with `just silver` where the bronze history lives.
+`just monthly` runs the same job locally.
 
 ## Data and credits
 
-This pipeline reads public data that keeps its own licence. These credits appear in the web site footer.
+This pipeline reads public data, and each source keeps its own licence. These credits also appear in the web site footer.
 
 | Data | Licence | Credit |
 |---|---|---|
