@@ -91,6 +91,10 @@ jobs:
       - name: Harvest outlook
         run: uv run --no-sync python -m tikungcrops.pipeline.harvest_outlook "$AOI"
 
+      # The reference statistics are tracked in the repository, so this step needs no stored data.
+      - name: Validation against the reference
+        run: uv run --no-sync python -m tikungcrops.pipeline.validate_reference "$AOI"
+
       - name: Web JSON
         run: uv run --no-sync python -m tikungcrops.pipeline.export_web "$AOI"
 
