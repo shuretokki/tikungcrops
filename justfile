@@ -228,6 +228,18 @@ cf-whoami:
 deploy: _site-data
     pnpm deploy
 
+# Upload the data history of one area to the R2 bucket tikungcrops-data, once, from the machine that holds it
+[group("deploy")]
+[script("bash")]
+r2-seed slug="idn-jawatimur-lamongan-tikung":
+    set -euo pipefail
+    cd site
+    find ../data/bronze/sentinel/{{ slug }} ../data/bronze/chirps/{{ slug }}_monthly.parquet \
+      ../data/silver/soilgrids/{{ slug }}_*.parquet ../data/gold/sentinel/{{ slug }}_calibration.json \
+      ../data/web/{{ slug }}/boundaries.geojson -type f | while read -r file; do
+      pnpm wrangler r2 object put "tikungcrops-data/data/${file#../data/}" --file "$file" --remote
+    done
+
 # Pin the workflow actions to commit hashes and audit them for security problems
 [group("check")]
 lint-actions:
