@@ -47,9 +47,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css', '~/assets/css/viz.css', 'maplibre-gl/dist/maplibre-gl.css'],
 
   // The SEO modules build absolute links, the sitemap and the share data from this address.
-  // It is the Workers address for now. Change the url when the site gets a custom domain.
+  // It is the custom domain that `wrangler.jsonc` attaches to the Worker.
   site: {
-    url: 'https://tikungcrops.tri-r-utomo.workers.dev',
+    url: 'https://tikungcrops.web.id',
     name: 'tikungcrops',
     description: 'Kalender tanam padi per desa di Kecamatan Tikung, dari citra satelit.',
     defaultLocale: 'id'
