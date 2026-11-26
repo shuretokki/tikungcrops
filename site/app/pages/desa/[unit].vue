@@ -21,7 +21,7 @@ const images: Record<string, DesaImage> = desaImages
 const info = computed(() => meta.value?.units.find(u => u.unit === unit.value))
 const photo = computed(() => images[unit.value])
 const labels = computed(() => (meta.value?.units ?? []).map(u => ({ name: u.unit, lon: u.lon, lat: u.lat })))
-const today = computed(() => (meta.value?.as_of ? dayOfYear(meta.value.as_of) : null))
+const today = useToday()
 const day = (d: number) => new Date(Date.UTC(2001, 0, 1 + d)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', timeZone: 'UTC' })
 
 const stages = computed(() => stageTotals((current.value ?? []).filter(r => r.unit === unit.value)))

@@ -27,7 +27,7 @@ const stageRows = computed(() => STAGE_ORDER.map(k => [
 
 const bands = computed(() => seasonBands(seasons.value ?? []))
 const main = computed(() => bands.value.find(b => b.season === 'MT1'))
-const todayDay = computed(() => (meta.value?.as_of ? dayOfYear(meta.value.as_of) : null))
+const todayDay = useToday()
 const progress = computed(() => (main.value && todayDay.value !== null ? seasonProgress(main.value, todayDay.value) : null))
 
 // Each desa tile shows its stage mix today and its place in the kecamatan.
