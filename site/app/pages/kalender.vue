@@ -13,7 +13,7 @@ const mm = (v: number) => Math.round(v).toLocaleString('id-ID')
 const units = computed(() => meta.value?.units ?? [])
 const bands = computed(() => seasonBands(seasons.value ?? []))
 const main = computed(() => bands.value.find(b => b.season === 'MT1'))
-const today = computed(() => (meta.value?.as_of ? dayOfYear(meta.value.as_of) : null))
+const today = useToday()
 
 // Typical main-season dates per desa, from the reliable past seasons of that desa.
 const schedule = computed(() => units.value.flatMap((u) => {
