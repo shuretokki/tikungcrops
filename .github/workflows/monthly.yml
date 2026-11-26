@@ -45,7 +45,7 @@ jobs:
       # R2 does not accept the newer default checksums of the AWS CLI. Remove these two lines when R2 does.
       AWS_REQUEST_CHECKSUM_CALCULATION: when_required
       AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
-      R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      R2_ENDPOINT: https://${{ vars.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
@@ -78,9 +78,16 @@ jobs:
       - name: Sentinel-1/2 bronze
         run: uv run --no-sync python -m tikungcrops.pipeline.load_sentinel "$AOI" "$START" "$END"
 
-      # needs the cells table written by the Sentinel step
+      # Needs the cells table written by the Sentinel step.
+      # The CHIRPS server rate limits and times out at times, and the first request of the script has no retry.
+      # The loop tries three times. Remove it when the script retries that request itself.
       - name: CHIRPS monthly rainfall
-        run: uv run --no-sync python -m tikungcrops.pipeline.load_chirps "$AOI"
+        run: |
+          for wait in 0 120 300; do
+            sleep "$wait"
+            uv run --no-sync python -m tikungcrops.pipeline.load_chirps "$AOI" && exit 0
+          done
+          exit 1
 
       - name: Silver
         run: uv run --no-sync python -m tikungcrops.pipeline.silver_sentinel "$AOI"
@@ -90,6 +97,10 @@ jobs:
 
       - name: Harvest outlook
         run: uv run --no-sync python -m tikungcrops.pipeline.harvest_outlook "$AOI"
+
+      # The reference statistics are tracked in the repository, so this step needs no stored data.
+      - name: Validation against the reference
+        run: uv run --no-sync python -m tikungcrops.pipeline.validate_reference "$AOI"
 
       - name: Web JSON
         run: uv run --no-sync python -m tikungcrops.pipeline.export_web "$AOI"
@@ -121,7 +132,7 @@ jobs:
         working-directory: site
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           pnpm install --frozen-lockfile
           pnpm run deploy

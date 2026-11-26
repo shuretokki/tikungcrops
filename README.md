@@ -1,6 +1,6 @@
 # tikungcrops
 
-tikungcrops turns public satellite data into a planting calendar for paddy farmers in Kecamatan Tikung, Lamongan. See it live at https://tikungcrops.tri-r-utomo.workers.dev.
+tikungcrops turns public satellite data into a planting calendar for paddy farmers in Kecamatan Tikung, Lamongan. See it live at https://tikungcrops.web.id.
 
 ## Prerequisites
 
@@ -37,10 +37,10 @@ cd site && pnpm test && pnpm lint && pnpm typecheck && pnpm knip
 Run them inside `devenv shell`, because it sets the library path that the Python wheels need.
 It also keeps the pnpm store on the home drive, since native Node modules cannot load from an NTFS mount.
 
-`.github/workflows/monthly.yml` runs on the 25th of each month. It fetches CHIRPS plus the previous month's Sentinel-1 and Sentinel-2 scenes, and uploads them as a workflow artifact kept for 90 days.
-It needs no secrets, since every source is public.
-Silver needs all past months, so rebuild it with `just silver` where the bronze history lives.
-`just monthly` runs the same job locally.
+`.github/workflows/monthly.yml` runs on the 25th of each month. It restores the data history from a private R2 bucket, adds last month's Sentinel and CHIRPS data, rebuilds the web JSON and publishes the site.
+It needs the variable `CLOUDFLARE_ACCOUNT_ID` and three secrets: `CLOUDFLARE_API_TOKEN`, `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY`.
+Fill the bucket once with `just r2-seed` on the machine that holds the history.
+`just monthly` runs the pipeline part locally, and `just deploy` publishes the site.
 
 ## Data and credits
 
