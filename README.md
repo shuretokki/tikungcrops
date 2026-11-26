@@ -38,7 +38,7 @@ Run them inside `devenv shell`, because it sets the library path that the Python
 It also keeps the pnpm store on the home drive, since native Node modules cannot load from an NTFS mount.
 
 `.github/workflows/monthly.yml` runs on the 25th of each month. It restores the data history from a private R2 bucket, adds last month's Sentinel and CHIRPS data, rebuilds the web JSON and publishes the site.
-It needs four secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY`.
+It needs the variable `CLOUDFLARE_ACCOUNT_ID` and three secrets: `CLOUDFLARE_API_TOKEN`, `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY`.
 Fill the bucket once with `just r2-seed` on the machine that holds the history.
 `just monthly` runs the pipeline part locally, and `just deploy` publishes the site.
 
