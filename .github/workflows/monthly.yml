@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright © 2026 Tri Rianto Utomo
 # SPDX-License-Identifier: Apache-2.0
 
-name: monthly-extract
+name: monthly-refresh
 
 on:
   schedule:
@@ -17,22 +17,35 @@ on:
       end:
         description: Last month YYYY-MM (empty = same as start)
         default: ""
+      deploy:
+        description: Publish the site after the data is rebuilt
+        type: boolean
+        default: true
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
-  group: monthly-extract
+  group: monthly-refresh
   cancel-in-progress: false
 
 jobs:
-  extract:
+  refresh:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
+    permissions:
+      contents: read
     env:
       AOI: ${{ inputs.aoi || 'Lamongan/Tikung' }} # inputs reach the shell only through env, never interpolated
       START: ${{ inputs.start }}
       END: ${{ inputs.end }}
+      BUCKET: tikungcrops-data
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      # R2 does not accept the newer default checksums of the AWS CLI. Remove these two lines when R2 does.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
@@ -54,6 +67,14 @@ jobs:
       - name: Install runtime dependencies
         run: uv sync --locked --no-dev
 
+      # Silver and gold need every past month, so the history lives in the private R2 bucket.
+      # `just r2-seed` uploads it once from the machine that holds it.
+      - name: Restore the data history from R2
+        run: |
+          aws s3 sync "s3://$BUCKET/data/" data/ --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          compgen -G 'data/bronze/sentinel/*/cells.parquet' > /dev/null \
+            || { echo "The R2 bucket has no history. Run just r2-seed first."; exit 1; }
+
       - name: Sentinel-1/2 bronze
         run: uv run --no-sync python -m tikungcrops.pipeline.load_sentinel "$AOI" "$START" "$END"
 
@@ -61,12 +82,46 @@ jobs:
       - name: CHIRPS monthly rainfall
         run: uv run --no-sync python -m tikungcrops.pipeline.load_chirps "$AOI"
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+      - name: Silver
+        run: uv run --no-sync python -m tikungcrops.pipeline.silver_sentinel "$AOI"
+
+      - name: Gold
+        run: uv run --no-sync python -m tikungcrops.pipeline.gold_sentinel "$AOI"
+
+      - name: Harvest outlook
+        run: uv run --no-sync python -m tikungcrops.pipeline.harvest_outlook "$AOI"
+
+      - name: Web JSON
+        run: uv run --no-sync python -m tikungcrops.pipeline.export_web "$AOI"
+
+      # Only the bronze months and the soil tables are kept, because every later step can rebuild the rest.
+      - name: Save the data history to R2
+        run: |
+          aws s3 sync data/bronze "s3://$BUCKET/data/bronze" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          aws s3 sync data/silver/soilgrids "s3://$BUCKET/data/silver/soilgrids" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+
+      - name: Copy the web JSON into the site
+        run: |
+          rm -rf site/public/json
+          mkdir -p site/public/json
+          cp -r data/web/* site/public/json/
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115  # v6.1.1
         with:
-          name: extract-${{ github.run_id }}
-          path: |
-            data/bronze/chirps/
-            data/silver/chirps/
-            data/bronze/sentinel/
-          retention-days: 90
-          if-no-files-found: error
+          package_json_file: site/package.json
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+
+      - name: Publish the site
+        if: ${{ github.event_name == 'schedule' || inputs.deploy }}
+        working-directory: site
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run deploy
