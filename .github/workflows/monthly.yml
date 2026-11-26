@@ -78,9 +78,16 @@ jobs:
       - name: Sentinel-1/2 bronze
         run: uv run --no-sync python -m tikungcrops.pipeline.load_sentinel "$AOI" "$START" "$END"
 
-      # needs the cells table written by the Sentinel step
+      # Needs the cells table written by the Sentinel step.
+      # The CHIRPS server rate limits and times out at times, and the first request of the script has no retry.
+      # The loop tries three times. Remove it when the script retries that request itself.
       - name: CHIRPS monthly rainfall
-        run: uv run --no-sync python -m tikungcrops.pipeline.load_chirps "$AOI"
+        run: |
+          for wait in 0 120 300; do
+            sleep "$wait"
+            uv run --no-sync python -m tikungcrops.pipeline.load_chirps "$AOI" && exit 0
+          done
+          exit 1
 
       - name: Silver
         run: uv run --no-sync python -m tikungcrops.pipeline.silver_sentinel "$AOI"
