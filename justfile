@@ -236,7 +236,7 @@ r2-seed slug="idn-jawatimur-lamongan-tikung":
     cd site
     find ../data/bronze/sentinel/{{ slug }} ../data/bronze/chirps/{{ slug }}_monthly.parquet \
       ../data/silver/soilgrids/{{ slug }}_*.parquet ../data/gold/sentinel/{{ slug }}_calibration.json \
-      ../data/web/{{ slug }}/boundaries.geojson -type f | while read -r file; do
+      ../data/gold/sentinel/{{ slug }}_forecast_eval.csv ../data/web/{{ slug }}/boundaries.geojson -type f | while read -r file; do
       pnpm wrangler r2 object put "tikungcrops-data/data/${file#../data/}" --file "$file" --remote
     done
 
